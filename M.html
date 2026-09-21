@@ -423,8 +423,25 @@
         transform: rotate(180deg);
       }
 
+      .language-flag {
+        width: 24px;
+        height: 16px;
+        object-fit: cover;
+        border-radius: 3px;
+        display: inline-block;
+        flex-shrink: 0;
+        vertical-align: middle;
+      }
+
+      #lang-selected-text,
+      .language-option {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
       .custom-select-menu {
-        position: absolute;
+        position: fixed;
         top: 50px;
         left: 0;
         width: 100%;
@@ -1114,7 +1131,33 @@
       <!-- Language Selector -->
       <div class="setting-group">
         <div class="setting-label" data-i18n="langLabel">Language</div>
-        <select id="lang-select" class="setting-select">
+        <div class="custom-select-wrapper language-custom-select" id="lang-custom-select">
+          <div class="custom-select-trigger" id="lang-select-trigger">
+            <span id="lang-selected-text"><img src="https://flagcdn.com/w40/us.png" alt="" class="language-flag" />English</span>
+            <svg class="dropdown-chevron" viewBox="0 0 24 24">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </div>
+          <div class="custom-select-menu" id="lang-select-menu">
+            <div class="custom-select-option language-option" data-value="en"><img src="https://flagcdn.com/w40/us.png" alt="" class="language-flag" />English</div>
+            <div class="custom-select-option language-option" data-value="am"><img src="https://flagcdn.com/w40/et.png" alt="" class="language-flag" />Amharic (አማርኛ)</div>
+            <div class="custom-select-option language-option" data-value="om"><img src="https://flagcdn.com/w40/et.png" alt="" class="language-flag" />Afaan Oromoo</div>
+            <div class="custom-select-option language-option" data-value="es"><img src="https://flagcdn.com/w40/es.png" alt="" class="language-flag" />Spanish (Español)</div>
+            <div class="custom-select-option language-option" data-value="fr"><img src="https://flagcdn.com/w40/fr.png" alt="" class="language-flag" />French (Français)</div>
+            <div class="custom-select-option language-option" data-value="de"><img src="https://flagcdn.com/w40/de.png" alt="" class="language-flag" />German (Deutsch)</div>
+            <div class="custom-select-option language-option" data-value="ar"><img src="https://flagcdn.com/w40/sa.png" alt="" class="language-flag" />Arabic (العربية)</div>
+            <div class="custom-select-option language-option" data-value="zh"><img src="https://flagcdn.com/w40/cn.png" alt="" class="language-flag" />Chinese (中文)</div>
+            <div class="custom-select-option language-option" data-value="ja"><img src="https://flagcdn.com/w40/jp.png" alt="" class="language-flag" />Japanese (日本語)</div>
+            <div class="custom-select-option language-option" data-value="ru"><img src="https://flagcdn.com/w40/ru.png" alt="" class="language-flag" />Russian (Русский)</div>
+            <div class="custom-select-option language-option" data-value="pt"><img src="https://flagcdn.com/w40/pt.png" alt="" class="language-flag" />Portuguese (Português)</div>
+            <div class="custom-select-option language-option" data-value="hi"><img src="https://flagcdn.com/w40/in.png" alt="" class="language-flag" />Hindi (हिन्दी)</div>
+            <div class="custom-select-option language-option" data-value="it"><img src="https://flagcdn.com/w40/it.png" alt="" class="language-flag" />Italian (Italiano)</div>
+            <div class="custom-select-option language-option" data-value="tr"><img src="https://flagcdn.com/w40/tr.png" alt="" class="language-flag" />Turkish (Türkçe)</div>
+            <div class="custom-select-option language-option" data-value="ko"><img src="https://flagcdn.com/w40/kr.png" alt="" class="language-flag" />Korean (한국어)</div>
+            <div class="custom-select-option language-option" data-value="sw"><img src="https://flagcdn.com/w40/tz.png" alt="" class="language-flag" />Swahili (Kiswahili)</div>
+          </div>
+        </div>
+        <select id="lang-select" class="setting-select" style="display:none;">
           <option value="en">English</option>
           <option value="am">Amharic (አማርኛ)</option>
           <option value="om">Afaan Oromoo</option>
@@ -2711,7 +2754,11 @@
 
       fontTrigger.addEventListener("click", function (e) {
         e.stopPropagation();
+        langWrapper.classList.remove("open");
         fontWrapper.classList.toggle("open");
+        if (fontWrapper.classList.contains("open")) {
+          positionCustomMenu(fontWrapper, document.getElementById("font-select-menu"));
+        }
       });
 
       document.querySelectorAll(".custom-select-option").forEach((opt) => {
@@ -2728,8 +2775,45 @@
 
       // Language Select
       const langSelect = document.getElementById("lang-select");
-      langSelect.addEventListener("change", function () {
-        setLanguage(this.value);
+      const langWrapper = document.getElementById("lang-custom-select");
+      const langTrigger = document.getElementById("lang-select-trigger");
+      const langSelectedText = document.getElementById("lang-selected-text");
+      const langMenu = document.getElementById("lang-select-menu");
+
+      function positionCustomMenu(wrapper, menu) {
+        const rect = wrapper.getBoundingClientRect();
+        menu.style.left = rect.left + "px";
+        menu.style.top = rect.bottom + 6 + "px";
+        menu.style.width = rect.width + "px";
+      }
+
+      langTrigger.addEventListener("click", function (e) {
+        e.stopPropagation();
+        fontWrapper.classList.remove("open");
+        langWrapper.classList.toggle("open");
+        if (langWrapper.classList.contains("open")) {
+          positionCustomMenu(langWrapper, langMenu);
+        }
+      });
+
+      langWrapper.querySelectorAll(".language-option").forEach((opt) => {
+        opt.addEventListener("click", function (e) {
+          e.stopPropagation();
+          const value = this.getAttribute("data-value");
+          const flag = this.querySelector("img").cloneNode(true);
+          const label = document.createTextNode(" " + this.textContent.trim());
+          langSelectedText.innerHTML = "";
+          langSelectedText.appendChild(flag);
+          langSelectedText.appendChild(label);
+          langSelect.value = value;
+          langWrapper.classList.remove("open");
+          setLanguage(value);
+        });
+      });
+
+      window.addEventListener("resize", function () {
+        if (langWrapper.classList.contains("open")) positionCustomMenu(langWrapper, langMenu);
+        if (fontWrapper.classList.contains("open")) positionCustomMenu(fontWrapper, document.getElementById("font-select-menu"));
       });
 
       // Zoom Controls
@@ -2796,6 +2880,14 @@
       // Initialize Stored Language
       const storedLang = localStorage.getItem("yb_lang") || "en";
       langSelect.value = storedLang;
+      const storedLangOption = langWrapper.querySelector(`.language-option[data-value="${storedLang}"]`);
+      if (storedLangOption) {
+        const storedFlag = storedLangOption.querySelector("img").cloneNode(true);
+        const storedLabel = document.createTextNode(" " + storedLangOption.textContent.trim());
+        langSelectedText.innerHTML = "";
+        langSelectedText.appendChild(storedFlag);
+        langSelectedText.appendChild(storedLabel);
+      }
       setLanguage(storedLang);
     </script>
   </body>
