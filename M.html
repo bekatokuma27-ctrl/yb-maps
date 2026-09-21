@@ -206,24 +206,23 @@
 
       .compass-face {
         position: relative;
-        width: 46px;
-        height: 46px;
+        width: 48px;
+        height: 48px;
         border-radius: 50%;
-        background: rgba(12, 18, 29, 0.92);
-        border: 1px solid rgba(255, 255, 255, 0.22);
+        background: #ffffff;
+        border: 3px solid #222a31;
         box-shadow:
-          inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-          0 8px 24px rgba(0, 0, 0, 0.45);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        color: rgba(255, 255, 255, 0.82);
+          inset 0 0 0 2px #d8dde1,
+          0 6px 16px rgba(0, 0, 0, 0.28);
+        color: #222a31;
+        overflow: hidden;
         transition: box-shadow 0.2s ease;
       }
 
       #compass-btn:hover .compass-face {
         box-shadow:
-          inset 0 0 0 1px rgba(255, 255, 255, 0.14),
-          0 10px 28px rgba(0, 0, 0, 0.55);
+          inset 0 0 0 2px #d8dde1,
+          0 8px 20px rgba(0, 0, 0, 0.34);
       }
 
       .compass-label {
@@ -263,15 +262,28 @@
         position: absolute;
         left: 50%;
         top: 50%;
-        width: 3px;
-        height: 27px;
-        background: #ff4d55;
-        border-radius: 3px;
+        width: 18px;
+        height: 30px;
+        background: transparent;
+        border: 7px solid #222a31;
+        border-radius: 5px;
         transform: translate(-50%, -100%) rotate(0rad);
         transform-origin: 50% 100%;
         transition: transform 0.15s ease;
         z-index: 3;
-        box-shadow: 0 0 8px rgba(255, 77, 85, 0.25);
+        clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+      }
+
+      .compass-needle::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 8px;
+        height: 20px;
+        background: #ffffff;
+        transform: translate(-50%, -50%) rotate(45deg);
+        clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
       }
 
       .compass-needle > span {
@@ -2645,50 +2657,105 @@
           searchResults.style.display = "none";
           return;
         }
+
         searchResults.innerHTML = `<div class="search-result-item">Searching...</div>`;
         searchResults.style.display = "block";
+
         try {
-          const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=8`;
-          const res = await fetch(url, { headers: { Accept: "application/json" } });
-          if (!res.ok) throw new Error("Search request failed");
-          const json = await res.json();
-          const data = (json.features || []).map((feature) => {
-            const p = feature.properties || {};
-            const coords = feature.geometry?.coordinates || [];
-            const parts = [
-              p.name,
-              p.street,
-              p.city || p.town || p.village || p.municipality,
-              p.state,
-              p.country,
-            ].filter(Boolean);
-            return {
-              name: p.name || parts[0] || "Location",
-              lat: Number(coords[1]),
-              lon: Number(coords[0]),
-              display_name: [...new Set(parts)].join(", "),
-              address: {
-                country_code: p.countrycode || "",
-                country: p.country || "Country unavailable",
-              },
-            };
-          }).filter((item) => Number.isFinite(item.lat) && Number.isFinite(item.lon));
+          let data = [];
+
+          // Use Nominatim first. It supports browser CORS and is the same
+          // OpenStreetMap geocoding service the map data is based on.
+          const nominatimUrl =
+            `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=8&q=${encodeURIComponent(query)}`;
+
+          try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 9000);
+            const res = await fetch(nominatimUrl, {
+              method: "GET",
+              headers: { Accept: "application/json" },
+              signal: controller.signal,
+            });
+            clearTimeout(timeout);
+            if (!res.ok) throw new Error(`Nominatim HTTP ${res.status}`);
+            const json = await res.json();
+
+            data = (json || [])
+              .map((item) => ({
+                name: item.name || (item.display_name || "Location").split(",")[0],
+                lat: Number(item.lat),
+                lon: Number(item.lon),
+                display_name: item.display_name || "",
+                address: {
+                  country_code: item.address?.country_code || "",
+                  country: item.address?.country || "Country unavailable",
+                },
+              }))
+              .filter((item) => Number.isFinite(item.lat) && Number.isFinite(item.lon));
+          } catch (nominatimError) {
+            console.warn("Nominatim search failed, trying backup search.", nominatimError);
+
+            // Backup geocoder.
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 9000);
+            const res = await fetch(
+              `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=8`,
+              { signal: controller.signal }
+            );
+            clearTimeout(timeout);
+            if (!res.ok) throw new Error(`Backup search HTTP ${res.status}`);
+            const json = await res.json();
+
+            data = (json.features || [])
+              .map((feature) => {
+                const p = feature.properties || {};
+                const coords = feature.geometry?.coordinates || [];
+                const parts = [
+                  p.name,
+                  p.street,
+                  p.city || p.town || p.village || p.municipality,
+                  p.state,
+                  p.country,
+                ].filter(Boolean);
+
+                return {
+                  name: p.name || parts[0] || "Location",
+                  lat: Number(coords[1]),
+                  lon: Number(coords[0]),
+                  display_name: [...new Set(parts)].join(", "),
+                  address: {
+                    country_code: p.countrycode || "",
+                    country: p.country || "Country unavailable",
+                  },
+                };
+              })
+              .filter((item) => Number.isFinite(item.lat) && Number.isFinite(item.lon));
+          }
 
           searchResults.innerHTML = "";
+
           if (!data.length) {
-            searchResults.innerHTML = `<div class="search-result-item">No matching locations found.</div>`;
+            searchResults.innerHTML =
+              `<div class="search-result-item">No matching locations found.</div>`;
             return;
           }
 
           data.forEach((item, index) => {
             const div = document.createElement("div");
             div.className = "search-result-item";
-            const name = item.name || (item.display_name || "Location").split(",")[0];
+
+            const name =
+              item.name || (item.display_name || "Location").split(",")[0];
             const country = item.address?.country_code;
             const countryName = item.address?.country || "Country unavailable";
-            div.innerHTML = `<div class="search-result-top"><div class="search-result-name"><span>${escapeHtml(name)}</span></div><span class="weather-mini" id="weather-${index}">--°C</span></div><div class="search-result-country">${countryFlag(country)}<span>${escapeHtml(countryName)}</span></div><div class="search-result-address">${escapeHtml(item.display_name || "")}</div>`;
+
+            div.innerHTML =
+              `<div class="search-result-top"><div class="search-result-name"><span>${escapeHtml(name)}</span></div><span class="weather-mini" id="weather-${index}">--°C</span></div><div class="search-result-country">${countryFlag(country)}<span>${escapeHtml(countryName)}</span></div><div class="search-result-address">${escapeHtml(item.display_name || "")}</div>`;
+
             div.addEventListener("click", () => selectSearchResult(item));
             searchResults.appendChild(div);
+
             weatherFor(item.lat, item.lon).then((temp) => {
               const w = document.getElementById(`weather-${index}`);
               if (w) w.textContent = temp || "Weather unavailable";
@@ -2704,10 +2771,12 @@
               });
             });
           };
+
           weatherRefreshTimer = setInterval(refreshWeather, 60000);
         } catch (err) {
-          console.error(err);
-          searchResults.innerHTML = `<div class="search-result-item">Search unavailable.</div>`;
+          console.error("All location search providers failed:", err);
+          searchResults.innerHTML =
+            `<div class="search-result-item">Search unavailable. Check your internet connection.</div>`;
         }
       }
 
@@ -2715,14 +2784,23 @@
         const lat = Number(item.lat);
         const lon = Number(item.lon);
         if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+
         clearSearchMarker();
+
         const coordinate = ol.proj.fromLonLat([lon, lat]);
         searchMarkerFeature = new ol.Feature({
           geometry: new ol.geom.Point(coordinate),
           type: "search-marker",
         });
+
         vectorSource.addFeature(searchMarkerFeature);
-        map.getView().animate({ center: coordinate, zoom: 15, duration: 650 });
+
+        map.getView().animate({
+          center: coordinate,
+          zoom: 15,
+          duration: 650,
+        });
+
         searchResults.style.display = "none";
         searchInput.value = item.name || item.display_name || "";
         clearInterval(weatherRefreshTimer);
