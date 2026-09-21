@@ -2243,7 +2243,7 @@
                 name: props.name || props.city || props.country || "Location",
                 city: props.city || props.state || props.county || "",
                 country: props.country || "",
-                countryCode: props.countrycode || "",
+                countryCode: (props.countrycode || "").toUpperCase(),
                 type: props.type || "",
                 osm_value: props.osm_value || "",
                 lon: f.geometry.coordinates[0],
@@ -2277,7 +2277,7 @@
                   city: item.display_name.split(",")[0],
                   country:
                     item.display_name.split(",").slice(-1)[0]?.trim() || "",
-                  countryCode: "",
+                  countryCode: (item.address?.country_code || "").toUpperCase(),
                   type: item.type || "",
                   lon: parseFloat(item.lon),
                   lat: parseFloat(item.lat),
