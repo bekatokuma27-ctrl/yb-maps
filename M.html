@@ -2779,12 +2779,22 @@
         }
         langWrapper.classList.remove("open");
         fontWrapper.classList.remove("open");
-        langWrapper.appendChild(langMenu);
-        fontWrapper.appendChild(fontMenu);
         langMenu.style.display = "none";
         fontMenu.style.display = "none";
         if (showSettings) {
           document.getElementById("settings-panel").style.display = "flex";
+        }
+      }
+
+      function applyStoredFont() {
+        const storedFont = localStorage.getItem("yb_font");
+        if (!storedFont) return;
+        document.body.style.fontFamily = storedFont;
+        const storedFontOption = fontMenu.querySelector(
+          `.custom-select-option[data-value="${CSS.escape(storedFont)}"]`,
+        );
+        if (storedFontOption) {
+          fontSelectedText.textContent = storedFontOption.textContent.trim();
         }
       }
 
@@ -2814,17 +2824,51 @@
         title.style.marginBottom = "12px";
         standalonePicker.appendChild(title);
 
-        const menu = type === "language" ? langMenu : fontMenu;
-        menu.style.position = "static";
-        menu.style.left = "auto";
-        menu.style.top = "auto";
-        menu.style.width = "100%";
-        menu.style.maxHeight = "calc(100vh - 210px)";
-        menu.style.display = "block";
-        menu.style.overflowY = "auto";
-        menu.style.boxShadow = "none";
-        menu.style.borderRadius = "14px";
-        standalonePicker.appendChild(menu);
+        const sourceMenu = type === "language" ? langMenu : fontMenu;
+        const optionSelector =
+          type === "language"
+            ? ".language-option"
+            : ".custom-select-option";
+
+        const optionsContainer = document.createElement("div");
+        optionsContainer.style.maxHeight = "calc(100vh - 210px)";
+        optionsContainer.style.overflowY = "auto";
+        optionsContainer.style.borderRadius = "14px";
+
+        sourceMenu.querySelectorAll(optionSelector).forEach((sourceOption) => {
+          const option = sourceOption.cloneNode(true);
+          option.addEventListener("click", function (e) {
+            e.stopPropagation();
+
+            if (type === "language") {
+              const value = sourceOption.getAttribute("data-value");
+              const sourceFlag = sourceOption.querySelector("img");
+              const flag = sourceFlag ? sourceFlag.cloneNode(true) : null;
+              const label = document.createTextNode(sourceOption.textContent.trim());
+
+              langSelectedText.innerHTML = "";
+              if (flag) langSelectedText.appendChild(flag);
+              langSelectedText.appendChild(label);
+              langSelect.value = value;
+
+              closeStandalonePicker(true);
+              setLanguage(value);
+              return;
+            }
+
+            const fontVal = sourceOption.getAttribute("data-value");
+            document.body.style.fontFamily = fontVal;
+            fontSelectedText.textContent = sourceOption.textContent.trim();
+            localStorage.setItem("yb_font", fontVal);
+
+            closeStandalonePicker(true);
+            showNotification("Font updated");
+          });
+
+          optionsContainer.appendChild(option);
+        });
+
+        standalonePicker.appendChild(optionsContainer);
         document.body.appendChild(standalonePicker);
 
         if (type === "language") langWrapper.classList.add("open");
@@ -2836,39 +2880,15 @@
         openStandalonePicker("font");
       });
 
-      document.querySelectorAll("#font-select-menu .custom-select-option").forEach((opt) => {
-        opt.addEventListener("click", function (e) {
-          e.stopPropagation();
-          const fontVal = this.getAttribute("data-value");
-          document.body.style.fontFamily = fontVal;
-          fontSelectedText.textContent = this.textContent.trim();
-          localStorage.setItem("yb_font", fontVal);
-          closeStandalonePicker(true);
-          showNotification("Font updated");
-        });
-      });
-
       langTrigger.addEventListener("click", function (e) {
         e.stopPropagation();
         openStandalonePicker("language");
       });
 
-      langWrapper.querySelectorAll(".language-option").forEach((opt) => {
-        opt.addEventListener("click", function (e) {
-          e.stopPropagation();
-          const value = this.getAttribute("data-value");
-          const flag = this.querySelector("img").cloneNode(true);
-          const label = document.createTextNode(" " + this.textContent.trim());
-          langSelectedText.innerHTML = "";
-          langSelectedText.appendChild(flag);
-          langSelectedText.appendChild(label);
-          langSelect.value = value;
-          closeStandalonePicker(true);
-          setLanguage(value);
-        });
-      });
+      applyStoredFont();
 
       // Zoom Controls
+      
       document
         .getElementById("btn-zoom-in")
         .addEventListener("click", function () {
