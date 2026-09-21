@@ -206,15 +206,24 @@
 
       .compass-face {
         position: relative;
-        width: 42px;
-        height: 42px;
+        width: 46px;
+        height: 46px;
         border-radius: 50%;
-        background: rgba(244, 246, 248, 0.96);
-        border: 2px solid rgba(20, 24, 30, 0.9);
+        background: rgba(12, 18, 29, 0.92);
+        border: 1px solid rgba(255, 255, 255, 0.22);
         box-shadow:
-          inset 0 0 0 2px rgba(255, 255, 255, 0.75),
-          0 4px 10px rgba(0, 0, 0, 0.25);
-        color: #171b20;
+          inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+          0 8px 24px rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        color: rgba(255, 255, 255, 0.82);
+        transition: box-shadow 0.2s ease;
+      }
+
+      #compass-btn:hover .compass-face {
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+          0 10px 28px rgba(0, 0, 0, 0.55);
       }
 
       .compass-label {
@@ -222,8 +231,10 @@
         z-index: 4;
         font-size: 7px;
         line-height: 1;
-        font-weight: 900;
+        font-weight: 800;
+        letter-spacing: 0.2px;
         user-select: none;
+        color: rgba(255, 255, 255, 0.72);
       }
 
       .compass-n {
@@ -252,15 +263,15 @@
         position: absolute;
         left: 50%;
         top: 50%;
-        width: 2px;
-        height: 25px;
-        background: #ef3f45;
-        border-radius: 2px;
+        width: 3px;
+        height: 27px;
+        background: #ff4d55;
+        border-radius: 3px;
         transform: translate(-50%, -100%) rotate(0rad);
         transform-origin: 50% 100%;
         transition: transform 0.15s ease;
         z-index: 3;
-        box-shadow: 0 0 1px rgba(0, 0, 0, 0.55);
+        box-shadow: 0 0 8px rgba(255, 77, 85, 0.25);
       }
 
       .compass-needle > span {
@@ -2637,10 +2648,31 @@
         searchResults.innerHTML = `<div class="search-result-item">Searching...</div>`;
         searchResults.style.display = "block";
         try {
-          const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&namedetails=1&extratags=1&limit=8&q=${encodeURIComponent(query)}`;
-          const res = await fetch(url);
+          const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=8`;
+          const res = await fetch(url, { headers: { Accept: "application/json" } });
           if (!res.ok) throw new Error("Search request failed");
-          const data = await res.json();
+          const json = await res.json();
+          const data = (json.features || []).map((feature) => {
+            const p = feature.properties || {};
+            const coords = feature.geometry?.coordinates || [];
+            const parts = [
+              p.name,
+              p.street,
+              p.city || p.town || p.village || p.municipality,
+              p.state,
+              p.country,
+            ].filter(Boolean);
+            return {
+              name: p.name || parts[0] || "Location",
+              lat: Number(coords[1]),
+              lon: Number(coords[0]),
+              display_name: [...new Set(parts)].join(", "),
+              address: {
+                country_code: p.countrycode || "",
+                country: p.country || "Country unavailable",
+              },
+            };
+          }).filter((item) => Number.isFinite(item.lat) && Number.isFinite(item.lon));
 
           searchResults.innerHTML = "";
           if (!data.length) {
@@ -2651,8 +2683,7 @@
           data.forEach((item, index) => {
             const div = document.createElement("div");
             div.className = "search-result-item";
-            const name =
-              item.name || (item.display_name || "Location").split(",")[0];
+            const name = item.name || (item.display_name || "Location").split(",")[0];
             const country = item.address?.country_code;
             const countryName = item.address?.country || "Country unavailable";
             div.innerHTML = `<div class="search-result-top"><div class="search-result-name"><span>${escapeHtml(name)}</span></div><span class="weather-mini" id="weather-${index}">--°C</span></div><div class="search-result-country">${countryFlag(country)}<span>${escapeHtml(countryName)}</span></div><div class="search-result-address">${escapeHtml(item.display_name || "")}</div>`;
@@ -2678,6 +2709,24 @@
           console.error(err);
           searchResults.innerHTML = `<div class="search-result-item">Search unavailable.</div>`;
         }
+      }
+
+      function selectSearchResult(item) {
+        const lat = Number(item.lat);
+        const lon = Number(item.lon);
+        if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+        clearSearchMarker();
+        const coordinate = ol.proj.fromLonLat([lon, lat]);
+        searchMarkerFeature = new ol.Feature({
+          geometry: new ol.geom.Point(coordinate),
+          type: "search-marker",
+        });
+        vectorSource.addFeature(searchMarkerFeature);
+        map.getView().animate({ center: coordinate, zoom: 15, duration: 650 });
+        searchResults.style.display = "none";
+        searchInput.value = item.name || item.display_name || "";
+        clearInterval(weatherRefreshTimer);
+        weatherRefreshTimer = null;
       }
 
       searchInput.addEventListener("input", (e) => {
