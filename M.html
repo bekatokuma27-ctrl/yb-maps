@@ -2686,6 +2686,15 @@
         document
           .getElementById("font-custom-select")
           .classList.remove("open");
+        document
+          .getElementById("lang-custom-select")
+          .classList.remove("open");
+        const fontMenu = document.getElementById("font-select-menu");
+        const langMenu = document.getElementById("lang-select-menu");
+        fontMenu.style.display = "none";
+        langMenu.style.display = "none";
+        document.getElementById("font-custom-select").appendChild(fontMenu);
+        document.getElementById("lang-custom-select").appendChild(langMenu);
       }
 
       document
@@ -2755,9 +2764,20 @@
       fontTrigger.addEventListener("click", function (e) {
         e.stopPropagation();
         langWrapper.classList.remove("open");
-        fontWrapper.classList.toggle("open");
-        if (fontWrapper.classList.contains("open")) {
-          positionCustomMenu(fontWrapper, document.getElementById("font-select-menu"));
+        const fontMenu = document.getElementById("font-select-menu");
+        const opening = !fontWrapper.classList.contains("open");
+        if (opening) {
+          const settingsPanel = document.getElementById("settings-panel");
+          settingsPanel.style.display = "none";
+          fontWrapper.classList.add("open");
+          document.body.appendChild(fontMenu);
+          fontMenu.style.display = "block";
+          positionCustomMenu(fontWrapper, fontMenu);
+        } else {
+          fontWrapper.classList.remove("open");
+          fontMenu.style.display = "none";
+          fontWrapper.appendChild(fontMenu);
+          document.getElementById("settings-panel").style.display = "flex";
         }
       });
 
@@ -2768,6 +2788,10 @@
           document.body.style.fontFamily = fontVal;
           fontSelectedText.textContent = this.textContent.trim();
           fontWrapper.classList.remove("open");
+          const fontMenu = document.getElementById("font-select-menu");
+          fontMenu.style.display = "none";
+          fontWrapper.appendChild(fontMenu);
+          document.getElementById("settings-panel").style.display = "flex";
           localStorage.setItem("yb_font", fontVal);
           showNotification("Font updated");
         });
@@ -2790,9 +2814,19 @@
       langTrigger.addEventListener("click", function (e) {
         e.stopPropagation();
         fontWrapper.classList.remove("open");
-        langWrapper.classList.toggle("open");
-        if (langWrapper.classList.contains("open")) {
+        const opening = !langWrapper.classList.contains("open");
+        if (opening) {
+          const settingsPanel = document.getElementById("settings-panel");
+          settingsPanel.style.display = "none";
+          langWrapper.classList.add("open");
+          document.body.appendChild(langMenu);
+          langMenu.style.display = "block";
           positionCustomMenu(langWrapper, langMenu);
+        } else {
+          langWrapper.classList.remove("open");
+          langMenu.style.display = "none";
+          langWrapper.appendChild(langMenu);
+          document.getElementById("settings-panel").style.display = "flex";
         }
       });
 
@@ -2807,6 +2841,9 @@
           langSelectedText.appendChild(label);
           langSelect.value = value;
           langWrapper.classList.remove("open");
+          langMenu.style.display = "none";
+          langWrapper.appendChild(langMenu);
+          document.getElementById("settings-panel").style.display = "flex";
           setLanguage(value);
         });
       });
