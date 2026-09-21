@@ -2174,12 +2174,9 @@
 
       // Country Flag Emoji Helper
       function getCountryFlagEmoji(countryCode) {
-        if (!countryCode || countryCode.length !== 2) return "🌐";
-        const codePoints = countryCode
-          .toUpperCase()
-          .split("")
-          .map((char) => 127397 + char.charCodeAt(0));
-        return String.fromCodePoint(...codePoints);
+        if (!countryCode || countryCode.length !== 2) return "";
+        const code = countryCode.toLowerCase();
+        return `<img src="https://flagcdn.com/w40/${code}.png" alt="" style="width: 24px; height: 16px; object-fit: cover; border-radius: 3px; display: block;" loading="lazy">`;
       }
 
       // Live Temperature Fetching (°C)
@@ -2509,13 +2506,7 @@
             showNotification("Could not calculate route path.");
           }
         } catch (err) {
-          const lineCoords = [start, end];
-          currentRouteFeature = new ol.Feature({
-            geometry: new ol.geom.LineString(lineCoords),
-            type: "route",
-          });
-          vectorSource.addFeature(currentRouteFeature);
-          showNotification("Route line drawn (direct line).");
+          showNotification("Could not calculate route path.");
         }
       }
 
