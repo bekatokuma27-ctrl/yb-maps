@@ -2836,7 +2836,7 @@
         openStandalonePicker("font");
       });
 
-      document.querySelectorAll(".custom-select-option").forEach((opt) => {
+      document.querySelectorAll("#font-select-menu .custom-select-option").forEach((opt) => {
         opt.addEventListener("click", function (e) {
           e.stopPropagation();
           const fontVal = this.getAttribute("data-value");
