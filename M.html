@@ -2091,7 +2091,7 @@
           const type = feature.get("type");
           if (type === "route") {
             return new ol.style.Style({
-              stroke: new ol.style.Stroke({ color: "#10b981", width: 6 }),
+              stroke: new ol.style.Stroke({ color: "#3b82f6", width: 6 }),
             });
           } else if (type === "start-pin") {
             return new ol.style.Style({
@@ -2144,11 +2144,18 @@
       }
 
       // --- NOTIFICATION BANNER ---
-      function showNotification(msg) {
+      let notificationTimer = null;
+      function showNotification(msg, persistent = false) {
         const banner = document.getElementById("notification-banner");
+        if (notificationTimer) clearTimeout(notificationTimer);
         banner.textContent = msg;
         banner.classList.add("show");
-        setTimeout(() => banner.classList.remove("show"), 3200);
+        if (!persistent) {
+          notificationTimer = setTimeout(() => {
+            banner.classList.remove("show");
+            notificationTimer = null;
+          }, 3200);
+        }
       }
 
       // --- COMPASS & VIEW ROTATION ---
@@ -2469,7 +2476,7 @@
         const startLonLat = ol.proj.toLonLat(start);
         const endLonLat = ol.proj.toLonLat(end);
 
-        showNotification("Calculating route...");
+        showNotification("Calculating route...", true);
 
         try {
           const url = `https://router.project-osrm.org/route/v1/driving/${startLonLat[0]},${startLonLat[1]};${endLonLat[0]},${endLonLat[1]}?overview=full&geometries=geojson`;
