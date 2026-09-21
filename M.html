@@ -2214,6 +2214,8 @@
         "oceania"
       ];
 
+      let searchAbortController = null;
+
       async function performSearch(query) {
         query = query.trim();
         if (!query) {
@@ -2228,8 +2230,12 @@
         }
 
         try {
+          if (searchAbortController) searchAbortController.abort();
+          searchAbortController = new AbortController();
+
           const resp = await fetch(
-            `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=10`,
+            `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=6`,
+            { signal: searchAbortController.signal },
           );
           const data = await resp.json();
 
@@ -2263,6 +2269,7 @@
           searchCache.set(query, results);
           renderSearchResults(results, query);
         } catch (err) {
+          if (err.name === "AbortError") return;
           fetch(
             `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=6`,
           )
@@ -2385,7 +2392,7 @@
           return;
         }
         clearTimeout(searchDebounceTimer);
-        searchDebounceTimer = setTimeout(() => performSearch(this.value), 160);
+        searchDebounceTimer = setTimeout(() => performSearch(this.value), 60);
       });
 
       // --- ROUTING SYSTEM ---
