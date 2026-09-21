@@ -2662,86 +2662,63 @@
         searchResults.style.display = "block";
 
         try {
-          let data = [];
+          // Use JSONP instead of browser fetch. This avoids the cross-origin
+          // fetch/CORS problem that was causing "Search unavailable".
+          const data = await new Promise((resolve, reject) => {
+            const callbackName = `ybMapSearch_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+            const script = document.createElement("script");
+            let finished = false;
 
-          // Use Nominatim first. It supports browser CORS and is the same
-          // OpenStreetMap geocoding service the map data is based on.
-          const nominatimUrl =
-            `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=8&q=${encodeURIComponent(query)}`;
+            const cleanup = () => {
+              if (finished) return;
+              finished = true;
+              clearTimeout(timeout);
+              script.remove();
+              delete window[callbackName];
+            };
 
-          try {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 9000);
-            const res = await fetch(nominatimUrl, {
-              method: "GET",
-              headers: { Accept: "application/json" },
-              signal: controller.signal,
-            });
-            clearTimeout(timeout);
-            if (!res.ok) throw new Error(`Nominatim HTTP ${res.status}`);
-            const json = await res.json();
+            const timeout = setTimeout(() => {
+              cleanup();
+              reject(new Error("Search request timed out"));
+            }, 10000);
 
-            data = (json || [])
-              .map((item) => ({
-                name: item.name || (item.display_name || "Location").split(",")[0],
-                lat: Number(item.lat),
-                lon: Number(item.lon),
-                display_name: item.display_name || "",
-                address: {
-                  country_code: item.address?.country_code || "",
-                  country: item.address?.country || "Country unavailable",
-                },
-              }))
-              .filter((item) => Number.isFinite(item.lat) && Number.isFinite(item.lon));
-          } catch (nominatimError) {
-            console.warn("Nominatim search failed, trying backup search.", nominatimError);
+            window[callbackName] = (json) => {
+              cleanup();
+              resolve(json || []);
+            };
 
-            // Backup geocoder.
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 9000);
-            const res = await fetch(
-              `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=8`,
-              { signal: controller.signal }
-            );
-            clearTimeout(timeout);
-            if (!res.ok) throw new Error(`Backup search HTTP ${res.status}`);
-            const json = await res.json();
+            script.onerror = () => {
+              cleanup();
+              reject(new Error("Search request failed"));
+            };
 
-            data = (json.features || [])
-              .map((feature) => {
-                const p = feature.properties || {};
-                const coords = feature.geometry?.coordinates || [];
-                const parts = [
-                  p.name,
-                  p.street,
-                  p.city || p.town || p.village || p.municipality,
-                  p.state,
-                  p.country,
-                ].filter(Boolean);
+            script.src =
+              `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=8&json_callback=${callbackName}&q=${encodeURIComponent(query)}`;
+            document.head.appendChild(script);
+          });
 
-                return {
-                  name: p.name || parts[0] || "Location",
-                  lat: Number(coords[1]),
-                  lon: Number(coords[0]),
-                  display_name: [...new Set(parts)].join(", "),
-                  address: {
-                    country_code: p.countrycode || "",
-                    country: p.country || "Country unavailable",
-                  },
-                };
-              })
-              .filter((item) => Number.isFinite(item.lat) && Number.isFinite(item.lon));
-          }
+          const results = (Array.isArray(data) ? data : [])
+            .map((item) => ({
+              name: item.name || (item.display_name || "Location").split(",")[0],
+              lat: Number(item.lat),
+              lon: Number(item.lon),
+              display_name: item.display_name || "",
+              address: {
+                country_code: item.address?.country_code || "",
+                country: item.address?.country || "Country unavailable",
+              },
+            }))
+            .filter((item) => Number.isFinite(item.lat) && Number.isFinite(item.lon));
 
           searchResults.innerHTML = "";
 
-          if (!data.length) {
+          if (!results.length) {
             searchResults.innerHTML =
               `<div class="search-result-item">No matching locations found.</div>`;
             return;
           }
 
-          data.forEach((item, index) => {
+          results.forEach((item, index) => {
             const div = document.createElement("div");
             div.className = "search-result-item";
 
@@ -2763,7 +2740,7 @@
           });
 
           const refreshWeather = () => {
-            data.forEach((item, index) => {
+            results.forEach((item, index) => {
               weatherFor(item.lat, item.lon).then((temp) => {
                 const w = document.getElementById(`weather-${index}`);
                 if (w && searchResults.style.display !== "none")
@@ -2774,9 +2751,9 @@
 
           weatherRefreshTimer = setInterval(refreshWeather, 60000);
         } catch (err) {
-          console.error("All location search providers failed:", err);
+          console.error("YB-Maps search failed:", err);
           searchResults.innerHTML =
-            `<div class="search-result-item">Search unavailable. Check your internet connection.</div>`;
+            `<div class="search-result-item">Search unavailable. Try again.</div>`;
         }
       }
 
