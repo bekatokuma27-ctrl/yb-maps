@@ -20,6 +20,10 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/ol@v10.2.1/ol.css"
     />
+    <!-- Fast geocoding connection -->
+    <link rel="preconnect" href="https://photon.komoot.io" crossorigin />
+    <link rel="dns-prefetch" href="//photon.komoot.io" />
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -2531,6 +2535,7 @@
       const searchInput = document.getElementById("search-input");
       const searchResults = document.getElementById("search-results");
       const searchCache = new Map();
+      const searchPrefixCache = new Map();
       let searchDebounceTimer = null;
 
       const CONTINENTS = [
@@ -2597,6 +2602,10 @@
             .slice(0, 6);
 
           searchCache.set(query, results);
+          const normalizedQuery = query.toLowerCase();
+          for (let i = 2; i <= normalizedQuery.length; i++) {
+            searchPrefixCache.set(normalizedQuery.slice(0, i), results);
+          }
           renderSearchResults(results, query);
         } catch (err) {
           if (err.name === "AbortError") return;
@@ -2622,6 +2631,10 @@
                     item.type !== "continent"
                 );
               searchCache.set(query, results);
+              const normalizedQuery = query.toLowerCase();
+              for (let i = 2; i <= normalizedQuery.length; i++) {
+                searchPrefixCache.set(normalizedQuery.slice(0, i), results);
+              }
               renderSearchResults(results, query);
             })
             .catch(() => {});
@@ -2846,15 +2859,34 @@
         });
       }
 
-      // Input event listener with backspace clearing feature
+      // Fast search input: show cached partial results immediately, then refresh with the exact query.
       searchInput.addEventListener("input", function () {
-        if (!this.value.trim()) {
+        const value = this.value.trim();
+        if (!value) {
           searchResults.style.display = "none";
           clearSearchPin();
           return;
         }
+
+        const normalized = value.toLowerCase();
+        if (normalized.length >= 2) {
+          let prefixResults = searchPrefixCache.get(normalized);
+          if (!prefixResults) {
+            for (let i = normalized.length - 1; i >= 2; i--) {
+              const cached = searchPrefixCache.get(normalized.slice(0, i));
+              if (cached) {
+                prefixResults = cached;
+                break;
+              }
+            }
+          }
+          if (prefixResults && prefixResults.length) {
+            renderSearchResults(prefixResults, value);
+          }
+        }
+
         clearTimeout(searchDebounceTimer);
-        searchDebounceTimer = setTimeout(() => performSearch(this.value), 60);
+        searchDebounceTimer = setTimeout(() => performSearch(value), 80);
       });
 
       // --- ROUTING SYSTEM ---
