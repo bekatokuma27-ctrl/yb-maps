@@ -787,6 +787,134 @@
         background: rgba(255, 255, 255, 0.22);
       }
 
+      /* Country Information Card */
+      #country-info-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 6000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(3, 5, 10, 0.62);
+        backdrop-filter: blur(4px);
+      }
+
+      #country-info-card {
+        width: min(660px, 94vw);
+        height: min(460px, 82vh);
+        display: grid;
+        grid-template-columns: 38% 62%;
+        grid-template-rows: 28% 24% 24% 24%;
+        overflow: hidden;
+        border-radius: 34px;
+        background: #30333f;
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.72);
+        position: relative;
+      }
+
+      .country-info-cell {
+        min-width: 0;
+        min-height: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 14px 18px;
+        text-align: center;
+        font-size: 17px;
+        border-right: 8px solid rgba(255, 239, 239, 0.9);
+        border-bottom: 6px solid rgba(255, 239, 239, 0.9);
+      }
+
+      .country-info-cell.no-right-border {
+        border-right: none;
+      }
+
+      .country-info-cell.no-bottom-border {
+        border-bottom: none;
+      }
+
+      #country-info-flag {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      #country-info-flag-wrap {
+        padding: 0;
+        overflow: hidden;
+      }
+
+      #country-info-economy {
+        grid-column: 2;
+        grid-row: 2 / 5;
+        border-right: none;
+        border-bottom: none;
+        flex-direction: column;
+        gap: 10px;
+        padding: 24px;
+      }
+
+      #country-info-economy-title {
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+      }
+
+      #country-info-economy-value {
+        font-size: 18px;
+        line-height: 1.6;
+        opacity: 0.92;
+      }
+
+      #country-info-close {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 38px;
+        height: 38px;
+        border: none;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.34);
+        color: white;
+        font-size: 24px;
+        line-height: 1;
+        cursor: pointer;
+        z-index: 2;
+      }
+
+      #country-info-close:hover {
+        background: rgba(0, 0, 0, 0.55);
+      }
+
+      .search-more-btn {
+        width: 32px;
+        height: 32px;
+        flex-shrink: 0;
+        border: none;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.82);
+        cursor: pointer;
+        font-size: 20px;
+        line-height: 28px;
+        text-align: center;
+      }
+
+      .search-more-btn:hover {
+        background: rgba(255, 255, 255, 0.16);
+      }
+
+      /* Keep touch gestures available on phones. */
+      #map {
+        touch-action: none;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+
       /* Notification Banner */
       #notification-banner {
         position: absolute;
@@ -830,6 +958,17 @@
         .help-modal-box {
           transform: scale(1);
           padding: 22px 20px 24px;
+        }
+        #country-info-card {
+          width: min(94vw, 520px);
+          height: min(78vh, 420px);
+        }
+        .country-info-cell {
+          font-size: 14px;
+          padding: 10px;
+        }
+        #country-info-economy {
+          padding: 14px;
         }
       }
     </style>
@@ -1468,6 +1607,24 @@
             style="color: #10b981; font-weight: 700; text-decoration: underline"
             >bekatokuma27@gmail.com</a
           >
+        </div>
+      </div>
+    </div>
+
+    <!-- Country Information Modal -->
+    <div id="country-info-modal" role="dialog" aria-modal="true" aria-label="Country information">
+      <div id="country-info-card" class="glass-ui">
+        <button id="country-info-close" type="button" aria-label="Close">×</button>
+        <div id="country-info-flag-wrap" class="country-info-cell">
+          <img id="country-info-flag" src="" alt="" />
+        </div>
+        <div id="country-info-continent" class="country-info-cell no-right-border">Continent</div>
+        <div id="country-info-timezone" class="country-info-cell">Timezone</div>
+        <div id="country-info-country" class="country-info-cell">Country</div>
+        <div id="country-info-capital" class="country-info-cell no-bottom-border">Country capital</div>
+        <div id="country-info-economy" class="country-info-cell">
+          <div id="country-info-economy-title">ECONOMY</div>
+          <div id="country-info-economy-value">—</div>
         </div>
       </div>
     </div>
@@ -2162,23 +2319,58 @@
         }
 
         localStorage.setItem("yb_lang", lang);
+
+        // Keep Google map labels synchronized with the selected app language.
+        if (typeof applyMapLanguage === "function") {
+          applyMapLanguage(lang);
+        }
       }
 
       // --- MAP SOURCES ---
+      const MAP_LABEL_LANGUAGES = {
+        en: "en",
+        am: "am",
+        om: "om",
+        es: "es",
+        fr: "fr",
+        de: "de",
+        ar: "ar",
+        zh: "zh-CN",
+        ja: "ja",
+        ru: "ru",
+        pt: "pt",
+        hi: "hi",
+        it: "it",
+        tr: "tr",
+        ko: "ko",
+        sw: "sw",
+      };
+
+      function googleTileUrl(layerType, lang) {
+        const mapLang = MAP_LABEL_LANGUAGES[lang] || "en";
+        return `https://mt1.google.com/vt/lyrs=${layerType}&hl=${encodeURIComponent(mapLang)}&x={x}&y={y}&z={z}`;
+      }
+
       const defaultSource = new ol.source.XYZ({
-        url: "https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}",
+        url: googleTileUrl("m", "en"),
         maxZoom: 20,
       });
 
       const satelliteSource = new ol.source.XYZ({
-        url: "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+        url: googleTileUrl("s", "en"),
         maxZoom: 20,
       });
 
       const hybridSource = new ol.source.XYZ({
-        url: "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
+        url: googleTileUrl("y", "en"),
         maxZoom: 20,
       });
+
+      function applyMapLanguage(lang) {
+        defaultSource.setUrl(googleTileUrl("m", lang));
+        satelliteSource.setUrl(googleTileUrl("s", lang));
+        hybridSource.setUrl(googleTileUrl("y", lang));
+      }
 
       const tileLayer = new ol.layer.Tile({ source: hybridSource });
 
@@ -2275,24 +2467,6 @@
         if (!countryCode || countryCode.length !== 2) return "";
         const code = countryCode.toLowerCase();
         return `<img src="https://flagcdn.com/w40/${code}.png" alt="" style="width: 24px; height: 16px; object-fit: cover; border-radius: 3px; display: block;" loading="lazy">`;
-      }
-
-      // Live Temperature Fetching (°C)
-      async function fetchTemperature(lat, lon) {
-        try {
-          const res = await fetch(
-            `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`,
-          );
-          const data = await res.json();
-          if (
-            data &&
-            data.current_weather &&
-            typeof data.current_weather.temperature === "number"
-          ) {
-            return `${Math.round(data.current_weather.temperature)}°C`;
-          }
-        } catch (e) {}
-        return "--°C";
       }
 
       // --- SEARCH ENGINE ---
@@ -2396,7 +2570,104 @@
         }
       }
 
-      async function renderSearchResults(items, query) {
+      // --- COUNTRY INFORMATION ---
+      const countryInfoModal = document.getElementById("country-info-modal");
+      const countryInfoClose = document.getElementById("country-info-close");
+
+      const countryInfoLabels = {
+        en: { timezone: "Timezone", country: "Country", capital: "Country capital", continent: "Continent", economy: "ECONOMY" },
+        am: { timezone: "የሰዓት ዞን", country: "አገር", capital: "የአገሩ ዋና ከተማ", continent: "አህጉር", economy: "ኢኮኖሚ" },
+        om: { timezone: "Sa'aatii", country: "Biyya", capital: "Magaalaa guddoo biyya", continent: "Qaaradda", economy: "DINAGDEE" },
+        es: { timezone: "Zona horaria", country: "País", capital: "Capital", continent: "Continente", economy: "ECONOMÍA" },
+        fr: { timezone: "Fuseau horaire", country: "Pays", capital: "Capitale", continent: "Continent", economy: "ÉCONOMIE" },
+        de: { timezone: "Zeitzone", country: "Land", capital: "Hauptstadt", continent: "Kontinent", economy: "WIRTSCHAFT" },
+        ar: { timezone: "المنطقة الزمنية", country: "الدولة", capital: "عاصمة الدولة", continent: "القارة", economy: "الاقتصاد" },
+        zh: { timezone: "时区", country: "国家", capital: "国家首都", continent: "洲", economy: "经济" },
+        ja: { timezone: "タイムゾーン", country: "国", capital: "首都", continent: "大陸", economy: "経済" },
+        ru: { timezone: "Часовой пояс", country: "Страна", capital: "Столица", continent: "Континент", economy: "ЭКОНОМИКА" },
+        pt: { timezone: "Fuso horário", country: "País", capital: "Capital", continent: "Continente", economy: "ECONOMIA" },
+        hi: { timezone: "समय क्षेत्र", country: "देश", capital: "राजधानी", continent: "महाद्वीप", economy: "अर्थव्यवस्था" },
+        it: { timezone: "Fuso orario", country: "Paese", capital: "Capitale", continent: "Continente", economy: "ECONOMIA" },
+        tr: { timezone: "Saat dilimi", country: "Ülke", capital: "Başkent", continent: "Kıta", economy: "EKONOMİ" },
+        ko: { timezone: "시간대", country: "국가", capital: "수도", continent: "대륙", economy: "경제" },
+        sw: { timezone: "Saa za eneo", country: "Nchi", capital: "Mji mkuu", continent: "Bara", economy: "UCHUMI" },
+      };
+
+      function formatMoney(value) {
+        if (typeof value !== "number" || !Number.isFinite(value)) return "—";
+        if (value >= 1e12) return "$" + (value / 1e12).toFixed(2) + "T";
+        if (value >= 1e9) return "$" + (value / 1e9).toFixed(2) + "B";
+        if (value >= 1e6) return "$" + (value / 1e6).toFixed(2) + "M";
+        return "$" + Math.round(value).toLocaleString();
+      }
+
+      async function showCountryInfo(item) {
+        if (!item || !item.countryCode) return;
+
+        const lang = localStorage.getItem("yb_lang") || "en";
+        const labels = countryInfoLabels[lang] || countryInfoLabels.en;
+
+        document.getElementById("country-info-timezone").textContent = labels.timezone;
+        document.getElementById("country-info-country").textContent = labels.country;
+        document.getElementById("country-info-capital").textContent = labels.capital;
+        document.getElementById("country-info-continent").textContent = labels.continent;
+        document.getElementById("country-info-economy-title").textContent = labels.economy;
+        document.getElementById("country-info-economy-value").textContent = "Loading…";
+        countryInfoModal.style.display = "flex";
+
+        try {
+          const code = item.countryCode.toLowerCase();
+          const countryResp = await fetch(
+            `https://restcountries.com/v3.1/alpha/${encodeURIComponent(code)}`
+          );
+          if (!countryResp.ok) throw new Error("Country lookup failed");
+          const countryData = await countryResp.json();
+          const country = Array.isArray(countryData) ? countryData[0] : countryData;
+
+          const flagUrl = country?.flags?.png || `https://flagcdn.com/w640/${code}.png`;
+          const flag = document.getElementById("country-info-flag");
+          flag.src = flagUrl;
+          flag.alt = country?.name?.common || item.country || "Country flag";
+
+          const countryName = country?.name?.common || item.country || item.name;
+          const capital = country?.capital?.join(", ") || "—";
+          const timezone = country?.timezones?.join(", ") || "—";
+          const continent = country?.continents?.join(", ") || country?.region || "—";
+
+          document.getElementById("country-info-timezone").textContent = `${labels.timezone}: ${timezone}`;
+          document.getElementById("country-info-country").textContent = `${labels.country}: ${countryName}`;
+          document.getElementById("country-info-capital").textContent = `${labels.capital}: ${capital}`;
+          document.getElementById("country-info-continent").textContent = `${labels.continent}: ${continent}`;
+
+          // World Bank public GDP data fills the large economy box.
+          let economyText = "—";
+          try {
+            const [gdpResp, pcResp] = await Promise.all([
+              fetch(`https://api.worldbank.org/v2/country/${encodeURIComponent(code)}/indicator/NY.GDP.MKTP.CD?format=json&per_page=1`),
+              fetch(`https://api.worldbank.org/v2/country/${encodeURIComponent(code)}/indicator/NY.GDP.PCAP.CD?format=json&per_page=1`)
+            ]);
+            const gdpData = await gdpResp.json();
+            const pcData = await pcResp.json();
+            const gdp = gdpData?.[1]?.find((x) => x.value != null)?.value;
+            const perCapita = pcData?.[1]?.find((x) => x.value != null)?.value;
+            economyText = `GDP: ${formatMoney(gdp)}\nGDP per capita: ${formatMoney(perCapita)}`;
+          } catch (e) {}
+
+          document.getElementById("country-info-economy-value").textContent = economyText;
+        } catch (e) {
+          document.getElementById("country-info-economy-value").textContent = "Country information unavailable.";
+        }
+      }
+
+      countryInfoClose.addEventListener("click", () => {
+        countryInfoModal.style.display = "none";
+      });
+
+      countryInfoModal.addEventListener("click", (e) => {
+        if (e.target === countryInfoModal) countryInfoModal.style.display = "none";
+      });
+
+            async function renderSearchResults(items, query) {
         if (!items || items.length === 0) {
           searchResults.innerHTML =
             '<div class="search-result-item">No locations found</div>';
@@ -2428,12 +2699,12 @@
               }
             }
 
-            const flagEmoji = getCountryFlagEmoji(item.countryCode);
+            const flagImage = getCountryFlagEmoji(item.countryCode);
 
             return `
             <div class="search-result-item" data-index="${index}">
               <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-                <span style="font-size: 18px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">${flagEmoji}</span>
+                <span style="font-size: 18px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">${flagImage}</span>
                 <div style="flex: 1; min-width: 0; overflow: hidden;">
                   <div style="font-weight: 600; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; color: #ffffff;">
                     ${primary}
@@ -2442,9 +2713,7 @@
                     ${secondary}
                   </div>
                 </div>
-                <div style="font-size: 12px; font-weight: 700; background: rgba(16, 185, 129, 0.18); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 4px 8px; border-radius: 10px; flex-shrink: 0; white-space: nowrap;">
-                  <span id="temp-val-${index}">...</span>
-                </div>
+                <button class="search-more-btn" type="button" data-info-index="${index}" aria-label="More information">⋯</button>
               </div>
             </div>
           `;
@@ -2453,16 +2722,20 @@
 
         searchResults.style.display = "block";
 
-        items.forEach(async (item, idx) => {
-          const tempVal = await fetchTemperature(item.lat, item.lon);
-          const el = document.getElementById(`temp-val-${idx}`);
-          if (el) el.textContent = tempVal;
+        searchResults.querySelectorAll(".search-more-btn").forEach((btn) => {
+          btn.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const idx = parseInt(this.getAttribute("data-info-index"), 10);
+            const target = items[idx];
+            if (target) showCountryInfo(target);
+          });
         });
 
         const itemEls = searchResults.querySelectorAll(".search-result-item");
         itemEls.forEach((el) => {
           el.addEventListener("click", function () {
-            const idx = parseInt(this.getAttribute("data-index"));
+            const idx = parseInt(this.getAttribute("data-index"), 10);
             const target = items[idx];
             if (target) {
               const coord = ol.proj.fromLonLat([target.lon, target.lat]);
