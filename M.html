@@ -353,21 +353,12 @@
         color: white;
         user-select: none;
         -webkit-user-select: none;
-        touch-action: none;
-        cursor: grab;
-      }
-
-      .panel-title:active {
-        cursor: grabbing;
       }
 
       #layers-menu,
       #settings-panel,
       #directions-panel {
-        resize: both;
         overflow: auto;
-        min-width: 280px;
-        min-height: 180px;
       }
 
       .layer-option {
@@ -2492,102 +2483,14 @@
         controls: [],
       });
 
-      // Keep OpenLayers' built-in pan, wheel zoom, and pinch zoom active.
+      // Keep OpenLayers' built-in map navigation active:
+      // drag to pan, mouse wheel to zoom, double-click to zoom, and pinch to zoom.
       map.getInteractions().forEach((interaction) => interaction.setActive(true));
 
       // Recalculate the map size after phone rotation/resizing so touch gestures stay responsive.
       window.addEventListener("resize", () => map.updateSize());
 
-      // --- DRAGGABLE + RESIZABLE UI PANELS ---
-      function makePanelInteractive(panelId) {
-        const panel = document.getElementById(panelId);
-        if (!panel) return;
-        const title = panel.querySelector(".panel-title");
-        if (!title) return;
-
-        panel.style.touchAction = "none";
-
-        ["nw","n","ne","e","se","s","sw","w"].forEach((dir) => {
-          const h = document.createElement("div");
-          h.className = "ui-resize-handle ui-resize-" + dir;
-          h.dataset.resize = dir;
-          panel.appendChild(h);
-        });
-
-        let action = null;
-        let sx = 0, sy = 0, sl = 0, st = 0, sw = 0, sh = 0;
-
-        function start(e, type) {
-          if (e.pointerType === "mouse" && e.button !== 0) return;
-          const r = panel.getBoundingClientRect();
-          action = type;
-          sx = e.clientX; sy = e.clientY;
-          sl = r.left; st = r.top; sw = r.width; sh = r.height;
-          panel.style.left = sl + "px";
-          panel.style.top = st + "px";
-          panel.style.width = sw + "px";
-          panel.style.height = sh + "px";
-          panel.style.right = "auto";
-          panel.style.bottom = "auto";
-          e.preventDefault();
-          e.stopPropagation();
-          try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {}
-        }
-
-        title.addEventListener("pointerdown", (e) => {
-          if (e.target.closest("button,input,select,textarea,a")) return;
-          start(e, "move");
-        });
-
-        panel.querySelectorAll(".ui-resize-handle").forEach((h) => {
-          h.addEventListener("pointerdown", (e) => start(e, h.dataset.resize));
-        });
-
-        panel.addEventListener("pointermove", (e) => {
-          if (!action) return;
-          const dx = e.clientX - sx;
-          const dy = e.clientY - sy;
-          const minW = 280, minH = 180;
-
-          if (action === "move") {
-            panel.style.left = Math.max(8, Math.min(window.innerWidth - sw - 8, sl + dx)) + "px";
-            panel.style.top = Math.max(8, Math.min(window.innerHeight - sh - 8, st + dy)) + "px";
-            return;
-          }
-
-          let l = sl, t = st, w = sw, h = sh;
-          if (action.includes("e")) w = Math.max(minW, sw + dx);
-          if (action.includes("s")) h = Math.max(minH, sh + dy);
-          if (action.includes("w")) {
-            l = Math.min(sl + dx, sl + sw - minW);
-            l = Math.max(8, l);
-            w = sw + sl - l;
-          }
-          if (action.includes("n")) {
-            t = Math.min(st + dy, st + sh - minH);
-            t = Math.max(8, t);
-            h = sh + st - t;
-          }
-
-          w = Math.min(w, window.innerWidth - l - 8);
-          h = Math.min(h, window.innerHeight - t - 8);
-          panel.style.left = l + "px";
-          panel.style.top = t + "px";
-          panel.style.width = w + "px";
-          panel.style.height = h + "px";
-        });
-
-        const stop = (e) => {
-          if (!action) return;
-          action = null;
-          try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (_) {}
-        };
-        panel.addEventListener("pointerup", stop);
-        panel.addEventListener("pointercancel", stop);
-      }
-
-      ["layers-menu", "settings-panel", "directions-panel"].forEach(makePanelInteractive);
-
+      // UI panels are fixed overlays; map navigation is handled by OpenLayers interactions.
       // --- HELPER FUNCTION TO CLEAR SEARCH PIN ---
       function clearSearchPin() {
         vectorSource.getFeatures().forEach((f) => {
