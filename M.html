@@ -919,13 +919,11 @@
         stroke-linejoin: round;
       }
 
-      /* Keep touch gestures available on phones, including the OpenLayers viewport. */
-      #map,
-      #map .ol-viewport {
-        touch-action: none !important;
+      /* Keep touch gestures available on phones. */
+      #map {
+        touch-action: none;
         -webkit-user-select: none;
         user-select: none;
-        overscroll-behavior: none;
       }
 
       /* Notification Banner */
@@ -2384,7 +2382,7 @@
         defaultSource.setUrl(googleTileUrl("m", lang));
         satelliteSource.setUrl(googleTileUrl("s", lang));
         hybridSource.setUrl(googleTileUrl("y", lang));
-        tileLayer?.changed();
+        tileLayer.changed();
       }
 
       const tileLayer = new ol.layer.Tile({ source: hybridSource });
@@ -2437,14 +2435,6 @@
         layers: [tileLayer, vectorLayer],
         view: view,
         controls: [],
-        interactions: ol.interaction.defaults({
-          dragPan: true,
-          pinchZoom: true,
-          pinchRotate: false,
-          mouseWheelZoom: true,
-          doubleClickZoom: true,
-          keyboard: true,
-        }),
       });
 
       // --- HELPER FUNCTION TO CLEAR SEARCH PIN ---
