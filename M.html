@@ -93,6 +93,13 @@
         align-items: flex-start;
         gap: 8px;
         z-index: 1000;
+        pointer-events: none;
+      }
+
+      .top-left-cluster > *,
+      .top-left-cluster .toolbar-top-row > *,
+      .top-left-cluster .toolbar-buttons > * {
+        pointer-events: auto;
       }
 
       .toolbar-top-row {
