@@ -351,6 +351,23 @@
         margin-bottom: 16px;
         letter-spacing: -0.3px;
         color: white;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: none;
+        cursor: grab;
+      }
+
+      .panel-title:active {
+        cursor: grabbing;
+      }
+
+      #layers-menu,
+      #settings-panel,
+      #directions-panel {
+        resize: both;
+        overflow: auto;
+        min-width: 280px;
+        min-height: 180px;
       }
 
       .layer-option {
@@ -926,6 +943,17 @@
         -webkit-user-select: none;
         user-select: none;
         -webkit-tap-highlight-color: transparent;
+      }
+
+      /* Prevent accidental text selection while interacting with the YB-Maps UI. */
+      .top-left-cluster,
+      #layers-menu,
+      #settings-panel,
+      #directions-panel,
+      #country-info-modal,
+      #notification-banner {
+        -webkit-user-select: none;
+        user-select: none;
       }
 
       /* Notification Banner */
@@ -2380,11 +2408,39 @@
         maxZoom: 20,
       });
 
+      const oromoLabelSource = new ol.source.Vector();
+      const oromoLabelFeature = new ol.Feature({
+        geometry: new ol.geom.Point(ol.proj.fromLonLat([40.4897, 9.1450])),
+        label: "Itoophiyaa",
+      });
+      oromoLabelSource.addFeature(oromoLabelFeature);
+
+      const oromoLabelLayer = new ol.layer.Vector({
+        source: oromoLabelSource,
+        visible: false,
+        zIndex: 20,
+        style: function (feature) {
+          return new ol.style.Style({
+            text: new ol.style.Text({
+              text: feature.get("label"),
+              font: "700 18px sans-serif",
+              fill: new ol.style.Fill({ color: "#ffffff" }),
+              stroke: new ol.style.Stroke({ color: "rgba(0, 0, 0, 0.9)", width: 4 }),
+              backgroundFill: new ol.style.Fill({ color: "rgba(10, 15, 25, 0.82)" }),
+              padding: [5, 8, 5, 8],
+              offsetY: 0,
+            }),
+          });
+        },
+      });
+
       function applyMapLanguage(lang) {
         defaultSource.setUrl(googleTileUrl("m", lang));
         satelliteSource.setUrl(googleTileUrl("s", lang));
         hybridSource.setUrl(googleTileUrl("y", lang));
+        oromoLabelLayer.setVisible(lang === "om");
         tileLayer.changed();
+        oromoLabelLayer.changed();
       }
 
       const tileLayer = new ol.layer.Tile({ source: hybridSource });
@@ -2434,7 +2490,7 @@
 
       const map = new ol.Map({
         target: "map",
-        layers: [tileLayer, vectorLayer],
+        layers: [tileLayer, vectorLayer, oromoLabelLayer],
         view: view,
         controls: [],
       });
@@ -2444,6 +2500,56 @@
 
       // Recalculate the map size after phone rotation/resizing so touch gestures stay responsive.
       window.addEventListener("resize", () => map.updateSize());
+
+      // --- DRAGGABLE + RESIZABLE UI PANELS ---
+      function makePanelInteractive(panelId) {
+        const panel = document.getElementById(panelId);
+        const handle = panel.querySelector(".panel-title");
+        if (!panel || !handle) return;
+
+        let dragging = false;
+        let startX = 0;
+        let startY = 0;
+        let startLeft = 0;
+        let startTop = 0;
+
+        handle.addEventListener("pointerdown", (e) => {
+          if (e.button !== undefined && e.button !== 0) return;
+          dragging = true;
+          const rect = panel.getBoundingClientRect();
+          startX = e.clientX;
+          startY = e.clientY;
+          startLeft = rect.left;
+          startTop = rect.top;
+          panel.style.left = `${rect.left}px`;
+          panel.style.top = `${rect.top}px`;
+          panel.style.right = "auto";
+          handle.setPointerCapture?.(e.pointerId);
+          e.preventDefault();
+          e.stopPropagation();
+        });
+
+        handle.addEventListener("pointermove", (e) => {
+          if (!dragging) return;
+          const maxLeft = Math.max(8, window.innerWidth - panel.offsetWidth - 8);
+          const maxTop = Math.max(8, window.innerHeight - panel.offsetHeight - 8);
+          const nextLeft = Math.min(maxLeft, Math.max(8, startLeft + e.clientX - startX));
+          const nextTop = Math.min(maxTop, Math.max(8, startTop + e.clientY - startY));
+          panel.style.left = `${nextLeft}px`;
+          panel.style.top = `${nextTop}px`;
+        });
+
+        const stopDragging = (e) => {
+          if (!dragging) return;
+          dragging = false;
+          try { handle.releasePointerCapture?.(e.pointerId); } catch (_) {}
+        };
+
+        handle.addEventListener("pointerup", stopDragging);
+        handle.addEventListener("pointercancel", stopDragging);
+      }
+
+      ["layers-menu", "settings-panel", "directions-panel"].forEach(makePanelInteractive);
 
       // --- HELPER FUNCTION TO CLEAR SEARCH PIN ---
       function clearSearchPin() {
@@ -2595,11 +2701,9 @@
       async function copyLocationLink(item) {
         if (!item || item.lat == null || item.lon == null) return;
 
-        const lat = Number(item.lat).toFixed(6);
-        const lon = Number(item.lon).toFixed(6);
-        const googleMapsLink =
-          `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lat + "," + lon)}`;
-        const copyText = `${lat}, ${lon}\n${googleMapsLink}`;
+        const lat = Number(item.lat);
+        const lon = Number(item.lon);
+        const copyText = `{${lat}, ${lon}}`;
 
         try {
           if (navigator.clipboard && window.isSecureContext) {
@@ -2615,9 +2719,9 @@
             document.execCommand("copy");
             textarea.remove();
           }
-          showNotification("Location copied.");
+          showNotification("Coordinates copied.");
         } catch (err) {
-          showNotification("Could not copy location.");
+          showNotification("Could not copy coordinates.");
         }
       }
 
