@@ -956,6 +956,31 @@
         user-select: none;
       }
 
+      .ui-resize-handle {
+        position: absolute;
+        z-index: 50;
+        touch-action: none;
+        user-select: none;
+      }
+      .ui-resize-n,.ui-resize-s { left: 10px; right: 10px; height: 12px; }
+      .ui-resize-n { top: -6px; cursor: ns-resize; }
+      .ui-resize-s { bottom: -6px; cursor: ns-resize; }
+      .ui-resize-e,.ui-resize-w { top: 10px; bottom: 10px; width: 12px; }
+      .ui-resize-e { right: -6px; cursor: ew-resize; }
+      .ui-resize-w { left: -6px; cursor: ew-resize; }
+      .ui-resize-ne,.ui-resize-nw,.ui-resize-se,.ui-resize-sw { width: 20px; height: 20px; }
+      .ui-resize-ne { top: -7px; right: -7px; cursor: nesw-resize; }
+      .ui-resize-nw { top: -7px; left: -7px; cursor: nwse-resize; }
+      .ui-resize-se { bottom: -7px; right: -7px; cursor: nwse-resize; }
+      .ui-resize-sw { bottom: -7px; left: -7px; cursor: nesw-resize; }
+
+      #layers-menu,
+      #settings-panel,
+      #directions-panel {
+        -webkit-user-select: none;
+        user-select: none;
+      }
+
       /* Notification Banner */
       #notification-banner {
         position: absolute;
@@ -2408,39 +2433,11 @@
         maxZoom: 20,
       });
 
-      const oromoLabelSource = new ol.source.Vector();
-      const oromoLabelFeature = new ol.Feature({
-        geometry: new ol.geom.Point(ol.proj.fromLonLat([40.4897, 9.1450])),
-        label: "Itoophiyaa",
-      });
-      oromoLabelSource.addFeature(oromoLabelFeature);
-
-      const oromoLabelLayer = new ol.layer.Vector({
-        source: oromoLabelSource,
-        visible: false,
-        zIndex: 20,
-        style: function (feature) {
-          return new ol.style.Style({
-            text: new ol.style.Text({
-              text: feature.get("label"),
-              font: "700 18px sans-serif",
-              fill: new ol.style.Fill({ color: "#ffffff" }),
-              stroke: new ol.style.Stroke({ color: "rgba(0, 0, 0, 0.9)", width: 4 }),
-              backgroundFill: new ol.style.Fill({ color: "rgba(10, 15, 25, 0.82)" }),
-              padding: [5, 8, 5, 8],
-              offsetY: 0,
-            }),
-          });
-        },
-      });
-
       function applyMapLanguage(lang) {
         defaultSource.setUrl(googleTileUrl("m", lang));
         satelliteSource.setUrl(googleTileUrl("s", lang));
         hybridSource.setUrl(googleTileUrl("y", lang));
-        oromoLabelLayer.setVisible(lang === "om");
         tileLayer.changed();
-        oromoLabelLayer.changed();
       }
 
       const tileLayer = new ol.layer.Tile({ source: hybridSource });
@@ -2490,7 +2487,7 @@
 
       const map = new ol.Map({
         target: "map",
-        layers: [tileLayer, vectorLayer, oromoLabelLayer],
+        layers: [tileLayer, vectorLayer],
         view: view,
         controls: [],
       });
@@ -2504,49 +2501,89 @@
       // --- DRAGGABLE + RESIZABLE UI PANELS ---
       function makePanelInteractive(panelId) {
         const panel = document.getElementById(panelId);
-        const handle = panel.querySelector(".panel-title");
-        if (!panel || !handle) return;
+        if (!panel) return;
+        const title = panel.querySelector(".panel-title");
+        if (!title) return;
 
-        let dragging = false;
-        let startX = 0;
-        let startY = 0;
-        let startLeft = 0;
-        let startTop = 0;
+        panel.style.touchAction = "none";
 
-        handle.addEventListener("pointerdown", (e) => {
-          if (e.button !== undefined && e.button !== 0) return;
-          dragging = true;
-          const rect = panel.getBoundingClientRect();
-          startX = e.clientX;
-          startY = e.clientY;
-          startLeft = rect.left;
-          startTop = rect.top;
-          panel.style.left = `${rect.left}px`;
-          panel.style.top = `${rect.top}px`;
+        ["nw","n","ne","e","se","s","sw","w"].forEach((dir) => {
+          const h = document.createElement("div");
+          h.className = "ui-resize-handle ui-resize-" + dir;
+          h.dataset.resize = dir;
+          panel.appendChild(h);
+        });
+
+        let action = null;
+        let sx = 0, sy = 0, sl = 0, st = 0, sw = 0, sh = 0;
+
+        function start(e, type) {
+          if (e.pointerType === "mouse" && e.button !== 0) return;
+          const r = panel.getBoundingClientRect();
+          action = type;
+          sx = e.clientX; sy = e.clientY;
+          sl = r.left; st = r.top; sw = r.width; sh = r.height;
+          panel.style.left = sl + "px";
+          panel.style.top = st + "px";
+          panel.style.width = sw + "px";
+          panel.style.height = sh + "px";
           panel.style.right = "auto";
-          handle.setPointerCapture?.(e.pointerId);
+          panel.style.bottom = "auto";
           e.preventDefault();
           e.stopPropagation();
+          try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {}
+        }
+
+        title.addEventListener("pointerdown", (e) => {
+          if (e.target.closest("button,input,select,textarea,a")) return;
+          start(e, "move");
         });
 
-        handle.addEventListener("pointermove", (e) => {
-          if (!dragging) return;
-          const maxLeft = Math.max(8, window.innerWidth - panel.offsetWidth - 8);
-          const maxTop = Math.max(8, window.innerHeight - panel.offsetHeight - 8);
-          const nextLeft = Math.min(maxLeft, Math.max(8, startLeft + e.clientX - startX));
-          const nextTop = Math.min(maxTop, Math.max(8, startTop + e.clientY - startY));
-          panel.style.left = `${nextLeft}px`;
-          panel.style.top = `${nextTop}px`;
+        panel.querySelectorAll(".ui-resize-handle").forEach((h) => {
+          h.addEventListener("pointerdown", (e) => start(e, h.dataset.resize));
         });
 
-        const stopDragging = (e) => {
-          if (!dragging) return;
-          dragging = false;
-          try { handle.releasePointerCapture?.(e.pointerId); } catch (_) {}
+        panel.addEventListener("pointermove", (e) => {
+          if (!action) return;
+          const dx = e.clientX - sx;
+          const dy = e.clientY - sy;
+          const minW = 280, minH = 180;
+
+          if (action === "move") {
+            panel.style.left = Math.max(8, Math.min(window.innerWidth - sw - 8, sl + dx)) + "px";
+            panel.style.top = Math.max(8, Math.min(window.innerHeight - sh - 8, st + dy)) + "px";
+            return;
+          }
+
+          let l = sl, t = st, w = sw, h = sh;
+          if (action.includes("e")) w = Math.max(minW, sw + dx);
+          if (action.includes("s")) h = Math.max(minH, sh + dy);
+          if (action.includes("w")) {
+            l = Math.min(sl + dx, sl + sw - minW);
+            l = Math.max(8, l);
+            w = sw + sl - l;
+          }
+          if (action.includes("n")) {
+            t = Math.min(st + dy, st + sh - minH);
+            t = Math.max(8, t);
+            h = sh + st - t;
+          }
+
+          w = Math.min(w, window.innerWidth - l - 8);
+          h = Math.min(h, window.innerHeight - t - 8);
+          panel.style.left = l + "px";
+          panel.style.top = t + "px";
+          panel.style.width = w + "px";
+          panel.style.height = h + "px";
+        });
+
+        const stop = (e) => {
+          if (!action) return;
+          action = null;
+          try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (_) {}
         };
-
-        handle.addEventListener("pointerup", stopDragging);
-        handle.addEventListener("pointercancel", stopDragging);
+        panel.addEventListener("pointerup", stop);
+        panel.addEventListener("pointercancel", stop);
       }
 
       ["layers-menu", "settings-panel", "directions-panel"].forEach(makePanelInteractive);
@@ -2703,7 +2740,7 @@
 
         const lat = Number(item.lat);
         const lon = Number(item.lon);
-        const copyText = `{${lat}, ${lon}}`;
+        const copyText = `${lat}, ${lon}`;
 
         try {
           if (navigator.clipboard && window.isSecureContext) {
