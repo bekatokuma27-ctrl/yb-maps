@@ -890,7 +890,7 @@
         background: rgba(0, 0, 0, 0.55);
       }
 
-      .search-more-btn {
+      .search-copy-btn {
         width: 32px;
         height: 32px;
         flex-shrink: 0;
@@ -899,20 +899,33 @@
         background: rgba(255, 255, 255, 0.08);
         color: rgba(255, 255, 255, 0.82);
         cursor: pointer;
-        font-size: 20px;
-        line-height: 28px;
-        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
       }
 
-      .search-more-btn:hover {
+      .search-copy-btn:hover {
         background: rgba(255, 255, 255, 0.16);
       }
 
-      /* Keep touch gestures available on phones. */
-      #map {
+      .search-copy-btn svg {
+        width: 18px;
+        height: 18px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      /* Keep OpenLayers touch gestures available on phones. */
+      #map,
+      #map .ol-viewport {
         touch-action: none;
         -webkit-user-select: none;
         user-select: none;
+        -webkit-tap-highlight-color: transparent;
       }
 
       /* Notification Banner */
@@ -2348,7 +2361,8 @@
 
       function googleTileUrl(layerType, lang) {
         const mapLang = MAP_LABEL_LANGUAGES[lang] || "en";
-        return `https://mt1.google.com/vt/lyrs=${layerType}&hl=${encodeURIComponent(mapLang)}&x={x}&y={y}&z={z}`;
+        const regionHint = lang === "om" ? "&gl=ET" : "";
+        return `https://mt1.google.com/vt/lyrs=${layerType}&hl=${encodeURIComponent(mapLang)}${regionHint}&x={x}&y={y}&z={z}`;
       }
 
       const defaultSource = new ol.source.XYZ({
@@ -2370,6 +2384,7 @@
         defaultSource.setUrl(googleTileUrl("m", lang));
         satelliteSource.setUrl(googleTileUrl("s", lang));
         hybridSource.setUrl(googleTileUrl("y", lang));
+        tileLayer.changed();
       }
 
       const tileLayer = new ol.layer.Tile({ source: hybridSource });
@@ -2423,6 +2438,12 @@
         view: view,
         controls: [],
       });
+
+      // Keep OpenLayers' built-in pan, wheel zoom, and pinch zoom active.
+      map.getInteractions().forEach((interaction) => interaction.setActive(true));
+
+      // Recalculate the map size after phone rotation/resizing so touch gestures stay responsive.
+      window.addEventListener("resize", () => map.updateSize());
 
       // --- HELPER FUNCTION TO CLEAR SEARCH PIN ---
       function clearSearchPin() {
@@ -2570,6 +2591,36 @@
         }
       }
 
+      // --- COPY LOCATION ---
+      async function copyLocationLink(item) {
+        if (!item || item.lat == null || item.lon == null) return;
+
+        const lat = Number(item.lat).toFixed(6);
+        const lon = Number(item.lon).toFixed(6);
+        const googleMapsLink =
+          `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lat + "," + lon)}`;
+        const copyText = `${lat}, ${lon}\n${googleMapsLink}`;
+
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(copyText);
+          } else {
+            const textarea = document.createElement("textarea");
+            textarea.value = copyText;
+            textarea.style.position = "fixed";
+            textarea.style.opacity = "0";
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            document.execCommand("copy");
+            textarea.remove();
+          }
+          showNotification("Location copied.");
+        } catch (err) {
+          showNotification("Could not copy location.");
+        }
+      }
+
       // --- COUNTRY INFORMATION ---
       const countryInfoModal = document.getElementById("country-info-modal");
       const countryInfoClose = document.getElementById("country-info-close");
@@ -2713,7 +2764,12 @@
                     ${secondary}
                   </div>
                 </div>
-                <button class="search-more-btn" type="button" data-info-index="${index}" aria-label="More information">⋯</button>
+                <button class="search-copy-btn" type="button" data-copy-index="${index}" aria-label="Copy location" title="Copy location">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="9" y="9" width="10" height="10" rx="2"></rect>
+                    <path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                </button>
               </div>
             </div>
           `;
@@ -2722,13 +2778,13 @@
 
         searchResults.style.display = "block";
 
-        searchResults.querySelectorAll(".search-more-btn").forEach((btn) => {
+        searchResults.querySelectorAll(".search-copy-btn").forEach((btn) => {
           btn.addEventListener("click", function (e) {
             e.preventDefault();
             e.stopPropagation();
-            const idx = parseInt(this.getAttribute("data-info-index"), 10);
+            const idx = parseInt(this.getAttribute("data-copy-index"), 10);
             const target = items[idx];
-            if (target) showCountryInfo(target);
+            if (target) copyLocationLink(target);
           });
         });
 
