@@ -2462,8 +2462,17 @@
       // drag to pan, mouse wheel to zoom, double-click to zoom, and pinch to zoom.
       map.getInteractions().forEach((interaction) => interaction.setActive(true));
 
+      // Explicitly keep the map viewport touch-enabled on phones.
+      const mapViewport = map.getViewport();
+      mapViewport.style.touchAction = "none";
+      mapViewport.style.webkitUserSelect = "none";
+      mapViewport.style.userSelect = "none";
+
       // Recalculate the map size after phone rotation/resizing so touch gestures stay responsive.
       window.addEventListener("resize", () => map.updateSize());
+      window.addEventListener("orientationchange", () => {
+        setTimeout(() => map.updateSize(), 100);
+      });
 
       // UI panels are fixed overlays; map navigation is handled by OpenLayers interactions.
       // --- HELPER FUNCTION TO CLEAR SEARCH PIN ---
