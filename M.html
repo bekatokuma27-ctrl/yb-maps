@@ -890,7 +890,7 @@
         background: rgba(0, 0, 0, 0.55);
       }
 
-      .search-copy-btn {
+      .search-more-btn {
         width: 32px;
         height: 32px;
         flex-shrink: 0;
@@ -899,24 +899,13 @@
         background: rgba(255, 255, 255, 0.08);
         color: rgba(255, 255, 255, 0.82);
         cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s ease;
+        font-size: 20px;
+        line-height: 28px;
+        text-align: center;
       }
 
-      .search-copy-btn:hover {
+      .search-more-btn:hover {
         background: rgba(255, 255, 255, 0.16);
-      }
-
-      .search-copy-btn svg {
-        width: 18px;
-        height: 18px;
-        fill: none;
-        stroke: currentColor;
-        stroke-width: 2;
-        stroke-linecap: round;
-        stroke-linejoin: round;
       }
 
       /* Keep touch gestures available on phones. */
@@ -2359,8 +2348,7 @@
 
       function googleTileUrl(layerType, lang) {
         const mapLang = MAP_LABEL_LANGUAGES[lang] || "en";
-        const regionHint = lang === "om" ? "&gl=ET" : "";
-        return `https://mt1.google.com/vt/lyrs=${layerType}&hl=${encodeURIComponent(mapLang)}${regionHint}&x={x}&y={y}&z={z}`;
+        return `https://mt1.google.com/vt/lyrs=${layerType}&hl=${encodeURIComponent(mapLang)}&x={x}&y={y}&z={z}`;
       }
 
       const defaultSource = new ol.source.XYZ({
@@ -2382,7 +2370,6 @@
         defaultSource.setUrl(googleTileUrl("m", lang));
         satelliteSource.setUrl(googleTileUrl("s", lang));
         hybridSource.setUrl(googleTileUrl("y", lang));
-        tileLayer.changed();
       }
 
       const tileLayer = new ol.layer.Tile({ source: hybridSource });
@@ -2680,39 +2667,6 @@
         if (e.target === countryInfoModal) countryInfoModal.style.display = "none";
       });
 
-      async function copyLocationLink(item) {
-        if (!item) return;
-
-        const placeName = item.name || item.city || item.country || "Location";
-        const locationQuery = item.country && item.country.toLowerCase() !== placeName.toLowerCase()
-          ? `${placeName}, ${item.country}`
-          : placeName;
-
-        const googleMapsLink =
-          item.lat != null && item.lon != null
-            ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locationQuery)}`
-            : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locationQuery)}`;
-
-        try {
-          if (navigator.clipboard && window.isSecureContext) {
-            await navigator.clipboard.writeText(googleMapsLink);
-          } else {
-            const textarea = document.createElement("textarea");
-            textarea.value = googleMapsLink;
-            textarea.style.position = "fixed";
-            textarea.style.opacity = "0";
-            document.body.appendChild(textarea);
-            textarea.focus();
-            textarea.select();
-            document.execCommand("copy");
-            textarea.remove();
-          }
-          showNotification("Location link copied.");
-        } catch (err) {
-          showNotification("Could not copy location link.");
-        }
-      }
-
             async function renderSearchResults(items, query) {
         if (!items || items.length === 0) {
           searchResults.innerHTML =
@@ -2759,12 +2713,7 @@
                     ${secondary}
                   </div>
                 </div>
-                <button class="search-copy-btn" type="button" data-copy-index="${index}" aria-label="Copy location link" title="Copy location link">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="9" y="9" width="10" height="10" rx="2"></rect>
-                    <path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"></path>
-                  </svg>
-                </button>
+                <button class="search-more-btn" type="button" data-info-index="${index}" aria-label="More information">⋯</button>
               </div>
             </div>
           `;
@@ -2773,13 +2722,13 @@
 
         searchResults.style.display = "block";
 
-        searchResults.querySelectorAll(".search-copy-btn").forEach((btn) => {
+        searchResults.querySelectorAll(".search-more-btn").forEach((btn) => {
           btn.addEventListener("click", function (e) {
             e.preventDefault();
             e.stopPropagation();
-            const idx = parseInt(this.getAttribute("data-copy-index"), 10);
+            const idx = parseInt(this.getAttribute("data-info-index"), 10);
             const target = items[idx];
-            if (target) copyLocationLink(target);
+            if (target) showCountryInfo(target);
           });
         });
 
