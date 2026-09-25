@@ -249,7 +249,7 @@
 
       .compass-needle {
         position: absolute;
-        width: 6px;
+        width: 0;
         height: 28px;
         top: 50%;
         left: 50%;
@@ -264,7 +264,7 @@
         content: "";
         position: absolute;
         top: 0;
-        left: 0;
+        left: -3px;
         width: 0;
         height: 0;
         border-left: 3px solid transparent;
@@ -276,7 +276,7 @@
         content: "";
         position: absolute;
         bottom: 0;
-        left: 0;
+        left: -3px;
         width: 0;
         height: 0;
         border-left: 3px solid transparent;
@@ -2777,7 +2777,7 @@
             })
             .slice(0, 6);
 
-          searchCache.set(query, results);
+          searchCache.set(query.toLowerCase(), results);
           const normalizedQuery = query.toLowerCase();
           for (let i = 2; i <= normalizedQuery.length; i++) {
             searchPrefixCache.set(normalizedQuery.slice(0, i), results);
@@ -2806,7 +2806,7 @@
                     !CONTINENTS.includes(item.name.toLowerCase().trim()) &&
                     item.type !== "continent",
                 );
-              searchCache.set(query, results);
+              searchCache.set(query.toLowerCase(), results);
               const normalizedQuery = query.toLowerCase();
               for (let i = 2; i <= normalizedQuery.length; i++) {
                 searchPrefixCache.set(normalizedQuery.slice(0, i), results);
@@ -3180,7 +3180,7 @@
         }
 
         clearTimeout(searchDebounceTimer);
-        searchDebounceTimer = setTimeout(() => performSearch(value), 80);
+        searchDebounceTimer = setTimeout(() => performSearch(value), 0);
       });
 
       // --- ROUTING SYSTEM ---
