@@ -197,9 +197,9 @@
       }
 
       .search-suggestion-title { padding: 6px 10px 8px; font-size: 11px; font-weight: 600; color: rgba(255,255,255,.45); text-transform: uppercase; letter-spacing: .5px; }
-      .search-suggestion-item { display:flex; align-items:center; width:100%; min-height:40px; padding:8px 10px; margin-bottom:5px; border:1px solid rgba(255,255,255,.09); border-radius:12px; background:rgba(255,255,255,.045); color:rgba(255,255,255,.58); font:inherit; font-size:11px; text-align:left; cursor:pointer; transition:background .2s ease, border-color .2s ease; }
+      .search-suggestion-item { display:grid; grid-template-columns:34px 1fr; align-items:center; width:100%; min-height:46px; padding:6px; margin-bottom:6px; border:1px solid rgba(255,255,255,.10); border-radius:10px; background:rgba(255,255,255,.045); color:rgba(255,255,255,.58); font:inherit; font-size:11px; text-align:left; cursor:pointer; transition:background .2s ease, border-color .2s ease; }
       .search-suggestion-item:hover { background:rgba(255,255,255,.11); border-color:rgba(255,255,255,.16); color:rgba(255,255,255,.82); }
-      .search-suggestion-icon { width:18px; height:18px; margin-right:9px; flex-shrink:0; opacity:.7; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+      .search-suggestion-icon { width:22px; height:22px; margin:0 auto; opacity:.7; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
 
       .profile-btn {
         overflow: hidden;
@@ -410,6 +410,7 @@
       .home-menu-description { font-size: 13px; line-height: 1.45; color: rgba(255,255,255,.62); }
       .home-menu-actions { display: flex; gap: 8px; }
       .home-menu-btn { flex: 1; min-height: 40px; border: 1px solid rgba(255,255,255,.14); border-radius: 11px; background: rgba(255,255,255,.07); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+      .home-remove-btn { width: 100%; color: #f87171; border-color: rgba(248,113,113,.35); }
       .home-menu-btn.primary { background: #10b981; border-color: #10b981; }
       .home-menu-btn:hover { background: rgba(255,255,255,.14); }
       .home-menu-btn.primary:hover { background: #059669; }
@@ -1234,6 +1235,7 @@
         <button id="home-primary-btn" class="home-menu-btn primary" type="button">Set Home</button>
         <button id="home-cancel-btn" class="home-menu-btn" type="button" style="display: none;">Cancel</button>
       </div>
+      <button id="home-remove-btn" class="home-menu-btn home-remove-btn" type="button" style="display: none;">Remove Current Home</button>
     </div>
 
     <!-- Layers Menu -->
@@ -3497,41 +3499,35 @@
         savedHome = null;
       }
 
+      const homeRemoveBtn = document.getElementById("home-remove-btn");
+
       function renderHomeMenu() {
         if (savedHome) {
           homeMenuDescription.textContent = "Your home is saved. Click Home to return to it.";
           homeSavedItem.style.display = "flex";
           homePrimaryBtn.textContent = "Add a New Home";
           homeCancelBtn.style.display = "none";
-          if (!document.getElementById("home-remove-btn")) {
-            const removeBtn = document.createElement("button");
-            removeBtn.id = "home-remove-btn";
-            removeBtn.className = "home-menu-btn";
-            removeBtn.type = "button";
-            removeBtn.textContent = "Remove Home";
-            removeBtn.style.color = "#f87171";
-            removeBtn.style.borderColor = "rgba(248,113,113,.35)";
-            removeBtn.addEventListener("click", function (e) {
-              e.stopPropagation();
-              savedHome = null;
-              localStorage.removeItem("yb_home_location");
-              homeSelectionActive = false;
-              document.getElementById("map").classList.remove("sniper-mode");
-              renderHomeMenu();
-              closeHomeMenu();
-              showNotification("Home removed.");
-            });
-            homeMenu.querySelector(".home-menu-actions").appendChild(removeBtn);
-          }
+          homeRemoveBtn.style.display = "block";
         } else {
           homeMenuDescription.textContent = "Set a home location to quickly return to it.";
           homeSavedItem.style.display = "none";
           homePrimaryBtn.textContent = "Set Home";
           homeCancelBtn.style.display = "none";
-          const removeBtn = document.getElementById("home-remove-btn");
-          if (removeBtn) removeBtn.remove();
+          homeRemoveBtn.style.display = "none";
         }
       }
+
+      homeRemoveBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        savedHome = null;
+        localStorage.removeItem("yb_home_location");
+        homeSelectionActive = false;
+        document.getElementById("map").classList.remove("sniper-mode");
+        renderHomeMenu();
+        closeHomeMenu();
+        showNotification("Home removed.");
+      });
 
       function openHomeMenu(replaceMode = false) {
         closeAllPanels();
