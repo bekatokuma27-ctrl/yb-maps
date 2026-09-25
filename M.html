@@ -2821,6 +2821,583 @@
       }
 
 
+      map.on("click", function (evt) {
+        if (homeSelectionActive) {
+          saveHomeAtCoordinate(evt.coordinate);
+          return;
+        }
+        if (!isRoutingActive || routeStep >= 2) return;
+
+        if (routeStep === 0) {
+          departureCoord = evt.coordinate;
+          startMarkerFeature = new ol.Feature({
+            geometry: new ol.geom.Point(departureCoord),
+            type: "start-pin",
+          });
+          vectorSource.addFeature(startMarkerFeature);
+          routeStep = 1;
+          showNotification("Departure set! Click map for Destination.");
+        } else if (routeStep === 1) {
+          destinationCoord = evt.coordinate;
+          endMarkerFeature = new ol.Feature({
+            geometry: new ol.geom.Point(destinationCoord),
+            type: "end-pin",
+          });
+          vectorSource.addFeature(endMarkerFeature);
+          routeStep = 2;
+          document.getElementById("map").classList.remove("sniper-mode");
+
+          fetchRouteOSRM(departureCoord, destinationCoord);
+        }
+      });
+
+      // --- COMPASS & VIEW ROTATION ---
+      const compassNeedle = document.getElementById("compass-needle");
+      const compassBtn = document.getElementById("compass-btn");
+      let compassVisualRotation = 0;
+      let compassTargetRotation = 0;
+      let compassFrame = null;
+      let compassLastFrameTime = 0;
+
+      function normalizeAngle(angle) {
+        return Math.atan2(Math.sin(angle), Math.cos(angle));
+      }
+
+      function updateCompassNeedle() {
+        if (compassFrame !== null) return;
+
+        compassFrame = requestAnimationFrame(
+          function animateCompass(timestamp) {
+            compassFrame = null;
+
+            const deltaTime = compassLastFrameTime
+              ? Math.min(timestamp - compassLastFrameTime, 50)
+              : 16.67;
+            compassLastFrameTime = timestamp;
+
+            const delta = normalizeAngle(
+              compassTargetRotation - compassVisualRotation,
+            );
+
+            // Smooth, frame-rate-independent follow so the needle stays centered
+            // and does not jump or glitch around West/South.
+            const smoothing = 1 - Math.exp(-deltaTime / 90);
+            compassVisualRotation += delta * smoothing;
+
+            compassNeedle.style.transform = `rotate(${compassVisualRotation}rad)`;
+
+            if (Math.abs(delta) > 0.0005) {
+              compassFrame = requestAnimationFrame(animateCompass);
+            } else {
+              compassVisualRotation = compassTargetRotation;
+              compassNeedle.style.transform = `rotate(${compassVisualRotation}rad)`;
+              compassLastFrameTime = 0;
+            }
+          },
+        );
+      }
+
+      map.getView().on("change:rotation", function () {
+        compassTargetRotation = -map.getView().getRotation();
+        updateCompassNeedle();
+      });
+
+      compassBtn.addEventListener("click", function () {
+        map.getView().animate({ rotation: 0, duration: 350 });
+        showNotification("Map aligned to North");
+      });
+
+      compassNeedle.style.transform = "rotate(0rad)";
+
+      // Country Flag Emoji Helper
+      function getCountryFlagEmoji(countryCode) {
+        if (!countryCode || countryCode.length !== 2) return "";
+        const code = countryCode.toLowerCase();
+        return `<img src="https://flagcdn.com/w40/${code}.png" alt="" style="width: 24px; height: 16px; object-fit: cover; border-radius: 3px; display: block;" loading="lazy">`;
+      }
+
+      // --- SEARCH ENGINE ---
+      const searchInput = document.getElementById("search-input");
+      const searchResults = document.getElementById("search-results");
+      const searchCache = new Map();
+      const searchPrefixCache = new Map();
+      let searchDebounceTimer = null;
+
+      const CONTINENTS = [
+        "asia",
+        "africa",
+        "north america",
+        "south america",
+        "antarctica",
+        "europe",
+        "australia",
+        "oceania",
+      ];
+
+      let searchAbortController = null;
+
+      async function performSearch(query) {
+        query = query.trim();
+        if (!query) {
+          searchResults.style.display = "none";
+          clearSearchPin();
+          return;
+        }
+
+        const cacheKey = query.toLowerCase();
+        if (searchCache.has(cacheKey)) {
+          renderSearchResults(searchCache.get(cacheKey), query);
+          return;
+        }
+
+        try {
+          if (searchAbortController) searchAbortController.abort();
+          searchAbortController = new AbortController();
+
+          const resp = await fetch(
+            `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=6`,
+            {
+              signal: searchAbortController.signal,
+              cache: "force-cache",
+              priority: "high",
+            },
+          );
+          const data = await resp.json();
+
+          const results = (data.features || [])
+            .map((f) => {
+              const props = f.properties;
+              return {
+                name: props.name || props.city || props.country || "Location",
+                city: props.city || props.state || props.county || "",
+                country: props.country || "",
+                countryCode: (props.countrycode || "").toUpperCase(),
+                type: props.type || "",
+                osm_value: props.osm_value || "",
+                lon: f.geometry.coordinates[0],
+                lat: f.geometry.coordinates[1],
+              };
+            })
+            // Filter out continent entries strictly
+            .filter((item) => {
+              const nameLower = item.name.toLowerCase().trim();
+              const typeLower = (item.type || "").toLowerCase();
+              const osmVal = (item.osm_value || "").toLowerCase();
+              return (
+                !CONTINENTS.includes(nameLower) &&
+                typeLower !== "continent" &&
+                osmVal !== "continent"
+              );
+            })
+            .slice(0, 6);
+
+          searchCache.set(query.toLowerCase(), results);
+          const normalizedQuery = query.toLowerCase();
+          for (let i = 2; i <= normalizedQuery.length; i++) {
+            searchPrefixCache.set(normalizedQuery.slice(0, i), results);
+          }
+          renderSearchResults(results, query);
+        } catch (err) {
+          if (err.name === "AbortError") return;
+          fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=6`,
+          )
+            .then((res) => res.json())
+            .then((data) => {
+              const results = data
+                .map((item) => ({
+                  name: item.display_name.split(",")[0],
+                  city: item.display_name.split(",")[0],
+                  country:
+                    item.display_name.split(",").slice(-1)[0]?.trim() || "",
+                  countryCode: (item.address?.country_code || "").toUpperCase(),
+                  type: item.type || "",
+                  lon: parseFloat(item.lon),
+                  lat: parseFloat(item.lat),
+                }))
+                .filter(
+                  (item) =>
+                    !CONTINENTS.includes(item.name.toLowerCase().trim()) &&
+                    item.type !== "continent",
+                );
+              searchCache.set(query.toLowerCase(), results);
+              const normalizedQuery = query.toLowerCase();
+              for (let i = 2; i <= normalizedQuery.length; i++) {
+                searchPrefixCache.set(normalizedQuery.slice(0, i), results);
+              }
+              renderSearchResults(results, query);
+            })
+            .catch(() => {});
+        }
+      }
+
+      // --- COPY LOCATION ---
+      async function copyLocationLink(item) {
+        if (!item || item.lat == null || item.lon == null) return;
+
+        const lat = Number(item.lat);
+        const lon = Number(item.lon);
+        const copyText = `${lat}, ${lon}`;
+
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(copyText);
+          } else {
+            const textarea = document.createElement("textarea");
+            textarea.value = copyText;
+            textarea.style.position = "fixed";
+            textarea.style.opacity = "0";
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            document.execCommand("copy");
+            textarea.remove();
+          }
+          showNotification("Coordinates copied.");
+        } catch (err) {
+          showNotification("Could not copy coordinates.");
+        }
+      }
+
+      // --- COUNTRY INFORMATION ---
+      const countryInfoModal = document.getElementById("country-info-modal");
+      const countryInfoClose = document.getElementById("country-info-close");
+
+      const countryInfoLabels = {
+        en: {
+          timezone: "Timezone",
+          country: "Country",
+          capital: "Country capital",
+          continent: "Continent",
+          economy: "ECONOMY",
+        },
+        am: {
+          timezone: "የሰዓት ዞን",
+          country: "አገር",
+          capital: "የአገሩ ዋና ከተማ",
+          continent: "አህጉር",
+          economy: "ኢኮኖሚ",
+        },
+        om: {
+          timezone: "Sa'aatii",
+          country: "Biyya",
+          capital: "Magaalaa guddoo biyya",
+          continent: "Qaaradda",
+          economy: "DINAGDEE",
+        },
+        es: {
+          timezone: "Zona horaria",
+          country: "País",
+          capital: "Capital",
+          continent: "Continente",
+          economy: "ECONOMÍA",
+        },
+        fr: {
+          timezone: "Fuseau horaire",
+          country: "Pays",
+          capital: "Capitale",
+          continent: "Continent",
+          economy: "ÉCONOMIE",
+        },
+        de: {
+          timezone: "Zeitzone",
+          country: "Land",
+          capital: "Hauptstadt",
+          continent: "Kontinent",
+          economy: "WIRTSCHAFT",
+        },
+        ar: {
+          timezone: "المنطقة الزمنية",
+          country: "الدولة",
+          capital: "عاصمة الدولة",
+          continent: "القارة",
+          economy: "الاقتصاد",
+        },
+        zh: {
+          timezone: "时区",
+          country: "国家",
+          capital: "国家首都",
+          continent: "洲",
+          economy: "经济",
+        },
+        ja: {
+          timezone: "タイムゾーン",
+          country: "国",
+          capital: "首都",
+          continent: "大陸",
+          economy: "経済",
+        },
+        ru: {
+          timezone: "Часовой пояс",
+          country: "Страна",
+          capital: "Столица",
+          continent: "Континент",
+          economy: "ЭКОНОМИКА",
+        },
+        pt: {
+          timezone: "Fuso horário",
+          country: "País",
+          capital: "Capital",
+          continent: "Continente",
+          economy: "ECONOMIA",
+        },
+        hi: {
+          timezone: "समय क्षेत्र",
+          country: "देश",
+          capital: "राजधानी",
+          continent: "महाद्वीप",
+          economy: "अर्थव्यवस्था",
+        },
+        it: {
+          timezone: "Fuso orario",
+          country: "Paese",
+          capital: "Capitale",
+          continent: "Continente",
+          economy: "ECONOMIA",
+        },
+        tr: {
+          timezone: "Saat dilimi",
+          country: "Ülke",
+          capital: "Başkent",
+          continent: "Kıta",
+          economy: "EKONOMİ",
+        },
+        ko: {
+          timezone: "시간대",
+          country: "국가",
+          capital: "수도",
+          continent: "대륙",
+          economy: "경제",
+        },
+        sw: {
+          timezone: "Saa za eneo",
+          country: "Nchi",
+          capital: "Mji mkuu",
+          continent: "Bara",
+          economy: "UCHUMI",
+        },
+      };
+
+      function formatMoney(value) {
+        if (typeof value !== "number" || !Number.isFinite(value)) return "—";
+        if (value >= 1e12) return "$" + (value / 1e12).toFixed(2) + "T";
+        if (value >= 1e9) return "$" + (value / 1e9).toFixed(2) + "B";
+        if (value >= 1e6) return "$" + (value / 1e6).toFixed(2) + "M";
+        return "$" + Math.round(value).toLocaleString();
+      }
+
+      async function showCountryInfo(item) {
+        if (!item || !item.countryCode) return;
+
+        const lang = localStorage.getItem("yb_lang") || "en";
+        const labels = countryInfoLabels[lang] || countryInfoLabels.en;
+
+        document.getElementById("country-info-timezone").textContent =
+          labels.timezone;
+        document.getElementById("country-info-country").textContent =
+          labels.country;
+        document.getElementById("country-info-capital").textContent =
+          labels.capital;
+        document.getElementById("country-info-continent").textContent =
+          labels.continent;
+        document.getElementById("country-info-economy-title").textContent =
+          labels.economy;
+        document.getElementById("country-info-economy-value").textContent =
+          "Loading…";
+        countryInfoModal.style.display = "flex";
+
+        try {
+          const code = item.countryCode.toLowerCase();
+          const countryResp = await fetch(
+            `https://restcountries.com/v3.1/alpha/${encodeURIComponent(code)}`,
+          );
+          if (!countryResp.ok) throw new Error("Country lookup failed");
+          const countryData = await countryResp.json();
+          const country = Array.isArray(countryData)
+            ? countryData[0]
+            : countryData;
+
+          const flagUrl =
+            country?.flags?.png || `https://flagcdn.com/w640/${code}.png`;
+          const flag = document.getElementById("country-info-flag");
+          flag.src = flagUrl;
+          flag.alt = country?.name?.common || item.country || "Country flag";
+
+          const countryName =
+            country?.name?.common || item.country || item.name;
+          const capital = country?.capital?.join(", ") || "—";
+          const timezone = country?.timezones?.join(", ") || "—";
+          const continent =
+            country?.continents?.join(", ") || country?.region || "—";
+
+          document.getElementById("country-info-timezone").textContent =
+            `${labels.timezone}: ${timezone}`;
+          document.getElementById("country-info-country").textContent =
+            `${labels.country}: ${countryName}`;
+          document.getElementById("country-info-capital").textContent =
+            `${labels.capital}: ${capital}`;
+          document.getElementById("country-info-continent").textContent =
+            `${labels.continent}: ${continent}`;
+
+          // World Bank public GDP data fills the large economy box.
+          let economyText = "—";
+          try {
+            const [gdpResp, pcResp] = await Promise.all([
+              fetch(
+                `https://api.worldbank.org/v2/country/${encodeURIComponent(code)}/indicator/NY.GDP.MKTP.CD?format=json&per_page=1`,
+              ),
+              fetch(
+                `https://api.worldbank.org/v2/country/${encodeURIComponent(code)}/indicator/NY.GDP.PCAP.CD?format=json&per_page=1`,
+              ),
+            ]);
+            const gdpData = await gdpResp.json();
+            const pcData = await pcResp.json();
+            const gdp = gdpData?.[1]?.find((x) => x.value != null)?.value;
+            const perCapita = pcData?.[1]?.find((x) => x.value != null)?.value;
+            economyText = `GDP: ${formatMoney(gdp)}\nGDP per capita: ${formatMoney(perCapita)}`;
+          } catch (e) {}
+
+          document.getElementById("country-info-economy-value").textContent =
+            economyText;
+        } catch (e) {
+          document.getElementById("country-info-economy-value").textContent =
+            "Country information unavailable.";
+        }
+      }
+
+      countryInfoClose.addEventListener("click", () => {
+        countryInfoModal.style.display = "none";
+      });
+
+      countryInfoModal.addEventListener("click", (e) => {
+        if (e.target === countryInfoModal)
+          countryInfoModal.style.display = "none";
+      });
+
+      async function renderSearchResults(items, query) {
+        if (!items || items.length === 0) {
+          searchResults.innerHTML =
+            '<div class="search-result-item">No locations found</div>';
+          searchResults.style.display = "block";
+          return;
+        }
+
+        const queryLower = query.toLowerCase().trim();
+
+        searchResults.innerHTML = items
+          .map((item, index) => {
+            const isCountryQuery =
+              item.type === "country" ||
+              (item.country && item.country.toLowerCase() === queryLower);
+
+            let primary = item.name;
+            let secondary = "";
+
+            if (isCountryQuery) {
+              primary = item.country || item.name;
+              secondary = item.city ? `${item.city}` : "Country";
+            } else {
+              if (item.city && item.country) {
+                secondary = `${item.city}, ${item.country}`;
+              } else if (item.country) {
+                secondary = item.country;
+              } else if (item.city) {
+                secondary = item.city;
+              }
+            }
+
+            const flagImage = getCountryFlagEmoji(item.countryCode);
+
+            return `
+            <div class="search-result-item" data-index="${index}">
+              <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
+                <span style="font-size: 18px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">${flagImage}</span>
+                <div style="flex: 1; min-width: 0; overflow: hidden;">
+                  <div style="font-weight: 600; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; color: #ffffff;">
+                    ${primary}
+                  </div>
+                  <div style="font-size: 11px; opacity: 0.65; margin-top: 1px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                    ${secondary}
+                  </div>
+                </div>
+                <button class="search-copy-btn" type="button" data-copy-index="${index}" aria-label="Copy location" title="Copy location">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="9" y="9" width="10" height="10" rx="2"></rect>
+                    <path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          `;
+          })
+          .join("");
+
+        searchResults.style.display = "block";
+
+        searchResults.querySelectorAll(".search-copy-btn").forEach((btn) => {
+          btn.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const idx = parseInt(this.getAttribute("data-copy-index"), 10);
+            const target = items[idx];
+            if (target) copyLocationLink(target);
+          });
+        });
+
+        const itemEls = searchResults.querySelectorAll(".search-result-item");
+        itemEls.forEach((el) => {
+          el.addEventListener("click", function () {
+            const idx = parseInt(this.getAttribute("data-index"), 10);
+            const target = items[idx];
+            if (target) {
+              const coord = ol.proj.fromLonLat([target.lon, target.lat]);
+              map.getView().animate({ center: coord, zoom: 12, duration: 600 });
+
+              clearSearchPin();
+              const searchPin = new ol.Feature({
+                geometry: new ol.geom.Point(coord),
+                type: "search-pin",
+              });
+              vectorSource.addFeature(searchPin);
+
+              searchResults.style.display = "none";
+              searchInput.value = target.name;
+            }
+          });
+        });
+      }
+
+      // Fast search input: show cached partial results immediately, then refresh with the exact query.
+      searchInput.addEventListener("input", function () {
+        const value = this.value.trim();
+        if (!value) {
+          searchResults.style.display = "none";
+          clearSearchPin();
+          return;
+        }
+
+        const normalized = value.toLowerCase();
+        if (normalized.length >= 2) {
+          let prefixResults = searchPrefixCache.get(normalized);
+          if (!prefixResults) {
+            for (let i = normalized.length - 1; i >= 2; i--) {
+              const cached = searchPrefixCache.get(normalized.slice(0, i));
+              if (cached) {
+                prefixResults = cached;
+                break;
+              }
+            }
+          }
+          if (prefixResults && prefixResults.length) {
+            renderSearchResults(prefixResults, value);
+          }
+        }
+
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = null;
+        performSearch(value);
+      });
+
       // --- HOME LOCATION ---
       const homeBtn = document.getElementById("home-btn");
       const homeMenu = document.getElementById("home-menu");
