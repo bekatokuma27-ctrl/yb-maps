@@ -196,6 +196,11 @@
         color: #ffffff;
       }
 
+      .search-suggestion-title { padding: 6px 10px 8px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .5px; }
+      .search-suggestion-item { display:flex; align-items:center; width:100%; padding:12px 14px; margin-bottom:4px; border:0; border-radius:12px; background:transparent; color:rgba(255,255,255,.9); font:inherit; font-size:14px; text-align:left; cursor:pointer; transition:background .2s ease; }
+      .search-suggestion-item:hover { background:rgba(255,255,255,.12); color:#fff; }
+      .search-suggestion-item span:first-child { width:28px; flex-shrink:0; opacity:.85; font-size:16px; }
+
       .profile-btn {
         overflow: hidden;
         padding: 0;
@@ -3373,12 +3378,74 @@
         });
       }
 
+      const nearbySearchCategories = [
+        { label: "Restaurants near me", query: "restaurant" },
+        { label: "Hotels near me", query: "hotel" },
+        { label: "Museums near me", query: "museum" },
+        { label: "Pharmacies near me", query: "pharmacy" },
+        { label: "ATMs near me", query: "atm" },
+        { label: "Things to do around me", query: "things to do" },
+      ];
+
+      function showSearchSuggestions() {
+        if (searchInput.value.trim()) return;
+        searchResults.innerHTML = '<div class="search-suggestion-title">Nearby</div>' + nearbySearchCategories.map((item, index) => '<button class="search-suggestion-item" type="button" data-nearby-index="' + index + '"><span aria-hidden="true">' + ["R","H","M","P","A","T"][index] + '</span><span>' + item.label + '</span></button>').join("");
+        searchResults.style.display = "block";
+        searchResults.querySelectorAll(".search-suggestion-item").forEach((btn) => {
+          btn.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const item = nearbySearchCategories[parseInt(this.getAttribute("data-nearby-index"), 10)];
+            if (item) performNearbyCategorySearch(item);
+          });
+        });
+      }
+
+      async function performNearbyCategorySearch(item) {
+        if (!savedHome) {
+          showNotification("Set Home first to search nearby places.");
+          return;
+        }
+        const [lon, lat] = ol.proj.toLonLat(savedHome);
+        searchInput.value = item.label;
+        searchResults.innerHTML = '<div class="search-result-item">Finding nearby places...</div>';
+        searchResults.style.display = "block";
+        try {
+          const resp = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(item.query)}&lat=${lat}&lon=${lon}&limit=6`, { cache: "force-cache", priority: "high" });
+          const data = await resp.json();
+          const results = (data.features || []).map((f) => {
+            const props = f.properties || {};
+            return { name: props.name || props.city || props.country || "Location", city: props.city || props.state || props.county || "", country: props.country || "", countryCode: (props.countrycode || "").toUpperCase(), type: props.type || "", osm_value: props.osm_value || "", lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1] };
+          }).filter((place) => {
+            const nameLower = place.name.toLowerCase().trim();
+            const typeLower = (place.type || "").toLowerCase();
+            const osmVal = (place.osm_value || "").toLowerCase();
+            return !CONTINENTS.includes(nameLower) && typeLower !== "continent" && osmVal !== "continent";
+          }).slice(0, 6);
+          if (results.length) {
+            searchCache.set(item.label.toLowerCase(), results);
+            renderSearchResults(results, item.label);
+          } else {
+            searchResults.innerHTML = '<div class="search-result-item">No nearby places found.</div>';
+            searchResults.style.display = "block";
+          }
+        } catch (err) {
+          searchResults.innerHTML = '<div class="search-result-item">Nearby search is unavailable right now.</div>';
+          searchResults.style.display = "block";
+        }
+      }
+
+      searchInput.addEventListener("focus", function () {
+        if (!this.value.trim() && savedHome) showSearchSuggestions();
+      });
+
       // Fast search input: show cached partial results immediately, then refresh with the exact query.
       searchInput.addEventListener("input", function () {
         const value = this.value.trim();
         if (!value) {
-          searchResults.style.display = "none";
           clearSearchPin();
+          if (savedHome) showSearchSuggestions();
+          else searchResults.style.display = "none";
           return;
         }
 
