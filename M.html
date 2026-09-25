@@ -1228,15 +1228,15 @@
     <!-- Home Menu -->
     <div id="home-menu" class="glass-ui" aria-hidden="true">
       <div class="home-menu-title" data-i18n="homeTitle">Home</div>
-      <div id="home-menu-description" class="home-menu-description">Set a home location to quickly return to it.</div>
+      <div id="home-menu-description" class="home-menu-description" data-i18n="homeSetDescription">Set a home location to quickly return to it.</div>
       <div id="home-saved-item" class="home-saved-item" style="display: none;">
-        <span class="home-saved-dot"></span><span>Home location saved</span>
+        <span class="home-saved-dot"></span><span data-i18n="homeSavedText">Home location saved</span>
       </div>
       <div class="home-menu-actions">
-        <button id="home-primary-btn" class="home-menu-btn primary" type="button">Set Home</button>
-        <button id="home-cancel-btn" class="home-menu-btn" type="button" style="display: none;">Cancel</button>
+        <button id="home-primary-btn" class="home-menu-btn primary" type="button" data-i18n="homeSetBtn">Set Home</button>
+        <button id="home-cancel-btn" class="home-menu-btn" type="button" style="display: none;" data-i18n="homeCancelBtn">Cancel</button>
       </div>
-      <button id="home-remove-btn" class="home-menu-btn home-remove-btn" type="button" style="display: none;">Remove Current Home</button>
+      <button id="home-remove-btn" class="home-menu-btn home-remove-btn" type="button" style="display: none;" data-i18n="homeRemoveBtn">Remove Current Home</button>
     </div>
 
     <!-- Layers Menu -->
@@ -1864,6 +1864,8 @@
               >
             </li>
             <li><strong data-i18n="h8Title">Home:</strong> <span data-i18n="h8Text">Set your home on the map, then click Home to return to it.</span></li>
+            <li><strong data-i18n="h9Title">Nearby Search:</strong> <span data-i18n="h9Text">When Home is saved, search suggestions include restaurants, hotels, museums, pharmacies, and things to do around you.</span></li>
+            <li><strong data-i18n="h10Title">Close Search Results:</strong> <span data-i18n="h10Text">Clicking a search result now zooms closely to the selected place.</span></li>
           </ul>
         </div>
 
@@ -1976,6 +1978,23 @@
             "Name your commute and save custom driving routes for quick access.",
           h8Title: "Home",
           h8Text: "Set your home on the map, then click Home to return to it.",
+          homeSetBtn: "Set Home",
+          homeCancelBtn: "Cancel",
+          homeSavedText: "Home location saved",
+          homeAddBtn: "Add a New Home",
+          homeRemoveBtn: "Remove Current Home",
+          homeSavedDescription: "Your home is saved. Click Home to return to it.",
+          homeSetDescription: "Set a home location to quickly return to it.",
+          homeReplaceDescription: "Choose a new location to replace your current home.",
+          h9Title: "Nearby Search",
+          h9Text: "When Home is saved, search suggestions include restaurants, hotels, museums, pharmacies, and things to do around you.",
+          h10Title: "Close Search Results",
+          h10Text: "Clicking a search result now zooms closely to the selected place.",
+          nearbyRestaurants: "Restaurants near me",
+          nearbyHotels: "Hotels near me",
+          nearbyMuseums: "Museums near me",
+          nearbyPharmacies: "Pharmacies near me",
+          nearbyThings: "Things to do around me",
           bugText: "If you find a bug or issue, contact:",
         },
         am: {
@@ -2020,6 +2039,23 @@
           h7Text: "የመንገድ ስም በመስጠት ያስቀምጡ።",
           h8Title: "ቤት",
           h8Text: "Set your home on the map, then click Home to return to it.",
+          homeSetBtn: "ቤት አዘጋጅ",
+          homeCancelBtn: "ሰርዝ",
+          homeSavedText: "የቤት ቦታ ተቀምጧል",
+          homeAddBtn: "አዲስ ቤት ጨምር",
+          homeRemoveBtn: "የአሁኑን ቤት አስወግድ",
+          homeSavedDescription: "ቤትዎ ተቀምጧል። ወደ እሱ ለመመለስ ቤትን ይጫኑ።",
+          homeSetDescription: "ወደ ቤት ቦታ በፍጥነት ለመመለስ ያስቀምጡ።",
+          homeReplaceDescription: "የአሁኑን ቤት ለመተካት አዲስ ቦታ ይምረጡ።",
+          h9Title: "የአቅራቢያ ፍለጋ",
+          h9Text: "ቤት ሲቀመጥ የፍለጋ ምክሮች በአቅራቢያዎ ያሉ ምግብ ቤቶች፣ ሆቴሎች፣ ሙዚየሞች፣ ፋርማሲዎች እና የመዝናኛ ቦታዎችን ያሳያሉ።",
+          h10Title: "የፍለጋ ውጤት ማጉላት",
+          h10Text: "የፍለጋ ውጤትን ሲጫኑ ካርታው ወደ ተመረጠው ቦታ በቅርብ ያጎላል።",
+          nearbyRestaurants: "በአቅራቢያ ያሉ ምግብ ቤቶች",
+          nearbyHotels: "በአቅራቢያ ያሉ ሆቴሎች",
+          nearbyMuseums: "በአቅራቢያ ያሉ ሙዚየሞች",
+          nearbyPharmacies: "በአቅራቢያ ያሉ ፋርማሲዎች",
+          nearbyThings: "በአቅራቢያ ያሉ የመዝናኛ ቦታዎች",
           bugText: "ችግር ካጋጠመዎት እባክዎን ያነጋግሩን:",
         },
         om: {
@@ -2064,6 +2100,23 @@
           h7Text: "Maqaa karaa kennuun olkaa'adhaa.",
           h8Title: "Mana",
           h8Text: "Set your home on the map, then click Home to return to it.",
+          homeSetBtn: "Mana Qopheessi",
+          homeCancelBtn: "Haqi",
+          homeSavedText: "Bakka manaa olkaa'ameera",
+          homeAddBtn: "Mana Haaraa Dabali",
+          homeRemoveBtn: "Mana Ammaa Haqi",
+          homeSavedDescription: "Manan kee olkaa'ameera. Gara isaatti deebi'uuf Mana tuqi.",
+          homeSetDescription: "Bakka mana kee saffisaan deebi'uuf olkaa'i.",
+          homeReplaceDescription: "Mana ammaa bakka buusuuf bakka haaraa filadhu.",
+          h9Title: "Nearby Search",
+          h9Text: "When Home is saved, search suggestions include restaurants, hotels, museums, pharmacies, and things to do around you.",
+          h10Title: "Close Search Results",
+          h10Text: "Clicking a search result now zooms closely to the selected place.",
+          nearbyRestaurants: "Restaurants near me",
+          nearbyHotels: "Hotels near me",
+          nearbyMuseums: "Museums near me",
+          nearbyPharmacies: "Pharmacies near me",
+          nearbyThings: "Things to do around me",
           bugText: "Rakkon yoo jiraate asiin nu qunnamaa:",
         },
         es: {
@@ -2108,6 +2161,23 @@
           h7Text: "Guarde sus trayectos favoritos.",
           h8Title: "Inicio",
           h8Text: "Set your home on the map, then click Home to return to it.",
+          homeSetBtn: "Establecer inicio",
+          homeCancelBtn: "Cancelar",
+          homeSavedText: "Ubicación de inicio guardada",
+          homeAddBtn: "Añadir nuevo inicio",
+          homeRemoveBtn: "Eliminar inicio actual",
+          homeSavedDescription: "Tu ubicación de inicio está guardada. Haz clic en Inicio para volver.",
+          homeSetDescription: "Establece una ubicación de inicio para volver rápidamente a ella.",
+          homeReplaceDescription: "Elige una nueva ubicación para reemplazar tu inicio actual.",
+          h9Title: "Nearby Search",
+          h9Text: "When Home is saved, search suggestions include restaurants, hotels, museums, pharmacies, and things to do around you.",
+          h10Title: "Close Search Results",
+          h10Text: "Clicking a search result now zooms closely to the selected place.",
+          nearbyRestaurants: "Restaurantes cerca",
+          nearbyHotels: "Hoteles cerca",
+          nearbyMuseums: "Museos cerca",
+          nearbyPharmacies: "Farmacias cerca",
+          nearbyThings: "Cosas que hacer cerca",
           bugText: "Si encuentra algún error, contacte:",
         },
         fr: {
@@ -2152,6 +2222,23 @@
           h7Text: "Enregistrez vos trajets habituels.",
           h8Title: "Accueil",
           h8Text: "Set your home on the map, then click Home to return to it.",
+          homeSetBtn: "Définir l'accueil",
+          homeCancelBtn: "Annuler",
+          homeSavedText: "Emplacement d'accueil enregistré",
+          homeAddBtn: "Ajouter un nouvel accueil",
+          homeRemoveBtn: "Supprimer l'accueil actuel",
+          homeSavedDescription: "Votre accueil est enregistré. Cliquez sur Accueil pour y revenir.",
+          homeSetDescription: "Définissez un emplacement d'accueil pour y revenir rapidement.",
+          homeReplaceDescription: "Choisissez un nouvel emplacement pour remplacer votre accueil actuel.",
+          h9Title: "Nearby Search",
+          h9Text: "When Home is saved, search suggestions include restaurants, hotels, museums, pharmacies, and things to do around you.",
+          h10Title: "Close Search Results",
+          h10Text: "Clicking a search result now zooms closely to the selected place.",
+          nearbyRestaurants: "Restaurants à proximité",
+          nearbyHotels: "Hôtels à proximité",
+          nearbyMuseums: "Musées à proximité",
+          nearbyPharmacies: "Pharmacies à proximité",
+          nearbyThings: "Activités à proximité",
           bugText: "Si vous trouvez un bug, contactez:",
         },
         de: {
@@ -2196,6 +2283,23 @@
           h7Text: "Speichern Sie Ihre Wege ab.",
           h8Title: "Startseite",
           h8Text: "Set your home on the map, then click Home to return to it.",
+          homeSetBtn: "Startseite festlegen",
+          homeCancelBtn: "Abbrechen",
+          homeSavedText: "Startort gespeichert",
+          homeAddBtn: "Neue Startseite hinzufügen",
+          homeRemoveBtn: "Aktuelle Startseite entfernen",
+          homeSavedDescription: "Ihr Startort ist gespeichert. Klicken Sie auf Startseite, um zurückzukehren.",
+          homeSetDescription: "Legen Sie einen Startort fest, um schnell dorthin zurückzukehren.",
+          homeReplaceDescription: "Wählen Sie einen neuen Ort, um die aktuelle Startseite zu ersetzen.",
+          h9Title: "Nearby Search",
+          h9Text: "When Home is saved, search suggestions include restaurants, hotels, museums, pharmacies, and things to do around you.",
+          h10Title: "Close Search Results",
+          h10Text: "Clicking a search result now zooms closely to the selected place.",
+          nearbyRestaurants: "Restaurants near me",
+          nearbyHotels: "Hotels near me",
+          nearbyMuseums: "Museums near me",
+          nearbyPharmacies: "Pharmacies near me",
+          nearbyThings: "Things to do around me",
           bugText: "Bei Fehlern kontaktieren Sie:",
         },
         ar: {
@@ -2240,6 +2344,23 @@
           h7Text: "احفظ الطرق الخاصة بك.",
           h8Title: "المنزل",
           h8Text: "Set your home on the map, then click Home to return to it.",
+          homeSetBtn: "تعيين المنزل",
+          homeCancelBtn: "إلغاء",
+          homeSavedText: "تم حفظ موقع المنزل",
+          homeAddBtn: "إضافة منزل جديد",
+          homeRemoveBtn: "إزالة المنزل الحالي",
+          homeSavedDescription: "تم حفظ منزلك. اضغط على المنزل للعودة إليه.",
+          homeSetDescription: "عيّن موقع المنزل للعودة إليه بسرعة.",
+          homeReplaceDescription: "اختر موقعًا جديدًا لاستبدال منزلك الحالي.",
+          h9Title: "Nearby Search",
+          h9Text: "When Home is saved, search suggestions include restaurants, hotels, museums, pharmacies, and things to do around you.",
+          h10Title: "Close Search Results",
+          h10Text: "Clicking a search result now zooms closely to the selected place.",
+          nearbyRestaurants: "Restaurants near me",
+          nearbyHotels: "Hotels near me",
+          nearbyMuseums: "Museums near me",
+          nearbyPharmacies: "Pharmacies near me",
+          nearbyThings: "Things to do around me",
           bugText: "إذا وجدت أي خطأ، يرجى التواصل:",
         },
         zh: {
@@ -2284,6 +2405,23 @@
           h7Text: "保存常用的出行路线。",
           h8Title: "家",
           h8Text: "Set your home on the map, then click Home to return to it.",
+          homeSetBtn: "设置家",
+          homeCancelBtn: "取消",
+          homeSavedText: "家庭位置已保存",
+          homeAddBtn: "添加新家",
+          homeRemoveBtn: "移除当前家庭位置",
+          homeSavedDescription: "您的家庭位置已保存。点击“家”即可返回。",
+          homeSetDescription: "设置一个家庭位置，以便快速返回。",
+          homeReplaceDescription: "选择新位置以替换当前家庭位置。",
+          h9Title: "Nearby Search",
+          h9Text: "When Home is saved, search suggestions include restaurants, hotels, museums, pharmacies, and things to do around you.",
+          h10Title: "Close Search Results",
+          h10Text: "Clicking a search result now zooms closely to the selected place.",
+          nearbyRestaurants: "Restaurants near me",
+          nearbyHotels: "Hotels near me",
+          nearbyMuseums: "Museums near me",
+          nearbyPharmacies: "Pharmacies near me",
+          nearbyThings: "Things to do around me",
           bugText: "如果遇到问题，请联系：",
         },
         ja: {
@@ -2328,6 +2466,23 @@
           h7Text: "ルート를 保存できます。",
           h8Title: "ホーム",
           h8Text: "Set your home on the map, then click Home to return to it.",
+          homeSetBtn: "ホームを設定",
+          homeCancelBtn: "キャンセル",
+          homeSavedText: "ホームの場所を保存しました",
+          homeAddBtn: "新しいホームを追加",
+          homeRemoveBtn: "現在のホームを削除",
+          homeSavedDescription: "ホームが保存されています。ホームをクリックすると戻れます。",
+          homeSetDescription: "すぐに戻れるホームの場所を設定します。",
+          homeReplaceDescription: "現在のホームを置き換える新しい場所を選択してください。",
+          h9Title: "Nearby Search",
+          h9Text: "When Home is saved, search suggestions include restaurants, hotels, museums, pharmacies, and things to do around you.",
+          h10Title: "Close Search Results",
+          h10Text: "Clicking a search result now zooms closely to the selected place.",
+          nearbyRestaurants: "Restaurants near me",
+          nearbyHotels: "Hotels near me",
+          nearbyMuseums: "Museums near me",
+          nearbyPharmacies: "Pharmacies near me",
+          nearbyThings: "Things to do around me",
           bugText: "バグ報告・お問い合わせ：",
         },
         ru: {
@@ -2372,6 +2527,23 @@
           h7Text: "Сохраняйте нужные маршруты.",
           h8Title: "Домой",
           h8Text: "Set your home on the map, then click Home to return to it.",
+          homeSetBtn: "Установить дом",
+          homeCancelBtn: "Отмена",
+          homeSavedText: "Домашнее местоположение сохранено",
+          homeAddBtn: "Добавить новый дом",
+          homeRemoveBtn: "Удалить текущий дом",
+          homeSavedDescription: "Ваш дом сохранён. Нажмите «Дом», чтобы вернуться.",
+          homeSetDescription: "Установите домашнее местоположение для быстрого возврата.",
+          homeReplaceDescription: "Выберите новое место, чтобы заменить текущий дом.",
+          h9Title: "Nearby Search",
+          h9Text: "When Home is saved, search suggestions include restaurants, hotels, museums, pharmacies, and things to do around you.",
+          h10Title: "Close Search Results",
+          h10Text: "Clicking a search result now zooms closely to the selected place.",
+          nearbyRestaurants: "Restaurants near me",
+          nearbyHotels: "Hotels near me",
+          nearbyMuseums: "Museums near me",
+          nearbyPharmacies: "Pharmacies near me",
+          nearbyThings: "Things to do around me",
           bugText: "Если вы нашли ошибку, напишите:",
         },
         pt: {
@@ -2416,6 +2588,23 @@
           h7Text: "Guarde seus trajetos favoritos.",
           h8Title: "Casa",
           h8Text: "Set your home on the map, then click Home to return to it.",
+          homeSetBtn: "Definir casa",
+          homeCancelBtn: "Cancelar",
+          homeSavedText: "Local de casa salvo",
+          homeAddBtn: "Adicionar nova casa",
+          homeRemoveBtn: "Remover casa atual",
+          homeSavedDescription: "Sua casa está salva. Clique em Casa para voltar.",
+          homeSetDescription: "Defina um local de casa para voltar rapidamente.",
+          homeReplaceDescription: "Escolha um novo local para substituir sua casa atual.",
+          h9Title: "Nearby Search",
+          h9Text: "When Home is saved, search suggestions include restaurants, hotels, museums, pharmacies, and things to do around you.",
+          h10Title: "Close Search Results",
+          h10Text: "Clicking a search result now zooms closely to the selected place.",
+          nearbyRestaurants: "Restaurants near me",
+          nearbyHotels: "Hotels near me",
+          nearbyMuseums: "Museums near me",
+          nearbyPharmacies: "Pharmacies near me",
+          nearbyThings: "Things to do around me",
           bugText: "Encontrou um erro? Entre em contato:",
         },
         hi: {
@@ -2460,6 +2649,23 @@
           h7Text: "अपने मार्गों को सुरक्षित रखें।",
           h8Title: "घर",
           h8Text: "Set your home on the map, then click Home to return to it.",
+          homeSetBtn: "होम सेट करें",
+          homeCancelBtn: "रद्द करें",
+          homeSavedText: "होम स्थान सहेजा गया",
+          homeAddBtn: "नया होम जोड़ें",
+          homeRemoveBtn: "वर्तमान होम हटाएँ",
+          homeSavedDescription: "आपका होम सहेजा गया है। वापस जाने के लिए होम दबाएँ।",
+          homeSetDescription: "जल्दी वापस आने के लिए होम स्थान सेट करें।",
+          homeReplaceDescription: "वर्तमान होम को बदलने के लिए नया स्थान चुनें।",
+          h9Title: "Nearby Search",
+          h9Text: "When Home is saved, search suggestions include restaurants, hotels, museums, pharmacies, and things to do around you.",
+          h10Title: "Close Search Results",
+          h10Text: "Clicking a search result now zooms closely to the selected place.",
+          nearbyRestaurants: "Restaurants near me",
+          nearbyHotels: "Hotels near me",
+          nearbyMuseums: "Museums near me",
+          nearbyPharmacies: "Pharmacies near me",
+          nearbyThings: "Things to do around me",
           bugText: "यदि कोई समस्या हो तो संपर्क करें:",
         },
         it: {
@@ -2504,6 +2710,23 @@
           h7Text: "Salva i tuoi tragitti frequenti.",
           h8Title: "Casa",
           h8Text: "Set your home on the map, then click Home to return to it.",
+          homeSetBtn: "Imposta casa",
+          homeCancelBtn: "Annulla",
+          homeSavedText: "Posizione casa salvata",
+          homeAddBtn: "Aggiungi nuova casa",
+          homeRemoveBtn: "Rimuovi casa attuale",
+          homeSavedDescription: "La tua casa è salvata. Clicca Casa per tornarci.",
+          homeSetDescription: "Imposta una posizione casa per tornarci rapidamente.",
+          homeReplaceDescription: "Scegli una nuova posizione per sostituire la casa attuale.",
+          h9Title: "Nearby Search",
+          h9Text: "When Home is saved, search suggestions include restaurants, hotels, museums, pharmacies, and things to do around you.",
+          h10Title: "Close Search Results",
+          h10Text: "Clicking a search result now zooms closely to the selected place.",
+          nearbyRestaurants: "Restaurants near me",
+          nearbyHotels: "Hotels near me",
+          nearbyMuseums: "Museums near me",
+          nearbyPharmacies: "Pharmacies near me",
+          nearbyThings: "Things to do around me",
           bugText: "Per segnalare un errore, scrivi a:",
         },
         tr: {
@@ -2548,6 +2771,23 @@
           h7Text: "Sık kullandığınız yolları kaydedin.",
           h8Title: "Ev",
           h8Text: "Set your home on the map, then click Home to return to it.",
+          homeSetBtn: "Evi ayarla",
+          homeCancelBtn: "İptal",
+          homeSavedText: "Ev konumu kaydedildi",
+          homeAddBtn: "Yeni ev ekle",
+          homeRemoveBtn: "Mevcut evi kaldır",
+          homeSavedDescription: "Eviniz kaydedildi. Geri dönmek için Ev'e tıklayın.",
+          homeSetDescription: "Hızlıca dönmek için bir ev konumu ayarlayın.",
+          homeReplaceDescription: "Mevcut evinizi değiştirmek için yeni bir konum seçin.",
+          h9Title: "Nearby Search",
+          h9Text: "When Home is saved, search suggestions include restaurants, hotels, museums, pharmacies, and things to do around you.",
+          h10Title: "Close Search Results",
+          h10Text: "Clicking a search result now zooms closely to the selected place.",
+          nearbyRestaurants: "Restaurants near me",
+          nearbyHotels: "Hotels near me",
+          nearbyMuseums: "Museums near me",
+          nearbyPharmacies: "Pharmacies near me",
+          nearbyThings: "Things to do around me",
           bugText: "Bir hata bulursanız iletişim:",
         },
         ko: {
@@ -2592,6 +2832,23 @@
           h7Text: "자주 다니는 경로를 저장하세요.",
           h8Title: "집",
           h8Text: "Set your home on the map, then click Home to return to it.",
+          homeSetBtn: "집 설정",
+          homeCancelBtn: "취소",
+          homeSavedText: "집 위치가 저장되었습니다",
+          homeAddBtn: "새 집 추가",
+          homeRemoveBtn: "현재 집 삭제",
+          homeSavedDescription: "집이 저장되었습니다. 집을 클릭하면 돌아갑니다.",
+          homeSetDescription: "빠르게 돌아갈 집 위치를 설정하세요.",
+          homeReplaceDescription: "현재 집을 바꿀 새 위치를 선택하세요.",
+          h9Title: "Nearby Search",
+          h9Text: "When Home is saved, search suggestions include restaurants, hotels, museums, pharmacies, and things to do around you.",
+          h10Title: "Close Search Results",
+          h10Text: "Clicking a search result now zooms closely to the selected place.",
+          nearbyRestaurants: "Restaurants near me",
+          nearbyHotels: "Hotels near me",
+          nearbyMuseums: "Museums near me",
+          nearbyPharmacies: "Pharmacies near me",
+          nearbyThings: "Things to do around me",
           bugText: "버그 제보 및 문의 사항:",
         },
         sw: {
@@ -2636,6 +2893,23 @@
           h7Text: "Hifadhi njia zako za kila siku.",
           h8Title: "Nyumbani",
           h8Text: "Set your home on the map, then click Home to return to it.",
+          homeSetBtn: "Weka Nyumbani",
+          homeCancelBtn: "Ghairi",
+          homeSavedText: "Mahali pa nyumbani pamehifadhiwa",
+          homeAddBtn: "Ongeza Nyumba Mpya",
+          homeRemoveBtn: "Ondoa Nyumba ya Sasa",
+          homeSavedDescription: "Nyumba yako imehifadhiwa. Bofya Nyumbani kurudi.",
+          homeSetDescription: "Weka mahali pa nyumbani ili kurudi haraka.",
+          homeReplaceDescription: "Chagua eneo jipya kuchukua nafasi ya nyumba ya sasa.",
+          h9Title: "Nearby Search",
+          h9Text: "When Home is saved, search suggestions include restaurants, hotels, museums, pharmacies, and things to do around you.",
+          h10Title: "Close Search Results",
+          h10Text: "Clicking a search result now zooms closely to the selected place.",
+          nearbyRestaurants: "Restaurants near me",
+          nearbyHotels: "Hotels near me",
+          nearbyMuseums: "Museums near me",
+          nearbyPharmacies: "Pharmacies near me",
+          nearbyThings: "Things to do around me",
           bugText: "Kama ukipata tatizo, wasiliana nasi:",
         },
       };
@@ -2688,6 +2962,9 @@
         // Keep Google map labels synchronized with the selected app language.
         if (typeof applyMapLanguage === "function") {
           applyMapLanguage(lang);
+        }
+        if (typeof renderHomeMenu === "function") {
+          renderHomeMenu();
         }
       }
 
@@ -3383,27 +3660,27 @@
 
       const nearbySearchCategories = [
         {
-          label: "Restaurants near me",
+          labelKey: "nearbyRestaurants", label: "Restaurants near me",
           query: "restaurant",
           icon: "https://cdn-icons-png.flaticon.com/512/710/710923.png",
         },
         {
-          label: "Hotels near me",
+          labelKey: "nearbyHotels", label: "Hotels near me",
           query: "hotel",
           icon: "https://cdn-icons-png.flaticon.com/512/5867/5867132.png",
         },
         {
-          label: "Museums near me",
+          labelKey: "nearbyMuseums", label: "Museums near me",
           query: "museum",
           icon: "https://cdn-icons-png.flaticon.com/512/5236/5236884.png",
         },
         {
-          label: "Pharmacies near me",
+          labelKey: "nearbyPharmacies", label: "Pharmacies near me",
           query: "pharmacy",
           icon: "https://cdn-icons-png.flaticon.com/512/14599/14599222.png",
         },
         {
-          label: "Things to do around me",
+          labelKey: "nearbyThings", label: "Things to do around me",
           query: "tourism",
           icon: "https://cdn-icons-png.flaticon.com/512/7695/7695065.png",
         },
@@ -3423,7 +3700,7 @@
                 '">' +
                 '<span class="search-suggestion-icon" style="--icon-url:url(' + item.icon + ')" aria-hidden="true"></span>' +
                 "<span>" +
-                item.label +
+                ((translations[localStorage.getItem("yb_lang") || "en"] || translations.en)[item.labelKey] || item.label) +
                 "</span>" +
                 "</button>",
             )
@@ -3649,15 +3926,15 @@
 
       function renderHomeMenu() {
         if (savedHome) {
-          homeMenuDescription.textContent = "Your home is saved. Click Home to return to it.";
+          homeMenuDescription.textContent = (translations[localStorage.getItem("yb_lang") || "en"] || translations.en).homeSavedDescription;
           homeSavedItem.style.display = "flex";
-          homePrimaryBtn.textContent = "Add a New Home";
+          homePrimaryBtn.textContent = (translations[localStorage.getItem("yb_lang") || "en"] || translations.en).homeAddBtn;
           homeCancelBtn.style.display = "none";
           homeRemoveBtn.style.display = "block";
         } else {
-          homeMenuDescription.textContent = "Set a home location to quickly return to it.";
+          homeMenuDescription.textContent = (translations[localStorage.getItem("yb_lang") || "en"] || translations.en).homeSetDescription;
           homeSavedItem.style.display = "none";
-          homePrimaryBtn.textContent = "Set Home";
+          homePrimaryBtn.textContent = (translations[localStorage.getItem("yb_lang") || "en"] || translations.en).homeSetBtn;
           homeCancelBtn.style.display = "none";
           homeRemoveBtn.style.display = "none";
         }
@@ -3681,8 +3958,9 @@
         homeMenu.classList.add("show");
         homeMenu.setAttribute("aria-hidden", "false");
         if (replaceMode) {
-          homeMenuDescription.textContent = "Choose a new location to replace your current home.";
-          homePrimaryBtn.textContent = "Add a New Home";
+          const homeDict = translations[localStorage.getItem("yb_lang") || "en"] || translations.en;
+          homeMenuDescription.textContent = homeDict.homeReplaceDescription;
+          homePrimaryBtn.textContent = homeDict.homeAddBtn;
           homeCancelBtn.style.display = "block";
         }
       }
