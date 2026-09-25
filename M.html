@@ -3698,14 +3698,21 @@
             const results = await searchLocalized(query, { limit: 6 });
             searchCache.set(cacheKey, results);
             const normalizedQuery = query.toLowerCase();
-            for (let i = 2; i <= normalizedQuery.length; i++) searchPrefixCache.set(`${searchLanguage}:${normalizedQuery.slice(0, i)}`, results);
+            for (let i = 2; i <= normalizedQuery.length; i++) {
+              searchPrefixCache.set(
+                `${searchLanguage}:${normalizedQuery.slice(0, i)}`,
+                results,
+              );
+            }
             renderSearchResults(results, query);
           } catch (err) {
-            searchResults.innerHTML = `<div class="search-result-item">${getUiText("nearbyUnavailable")}</div>`;
+            searchResults.innerHTML =
+              `<div class="search-result-item">${getUiText("noLocationsFound")}</div>`;
             searchResults.style.display = "block";
           }
           return;
         }
+
         if (searchCache.has(cacheKey)) {
           renderSearchResults(searchCache.get(cacheKey), query);
           return;
@@ -4210,6 +4217,61 @@
 
         if (shouldUseLocalizedSearch()) {
           try {
+            const lonPad = 0.18;
+            const latPad = 0.15;
+            const bbox = `${lon - lonPad},${lat - latPad},${lon + lonPad},${lat + latPad}`;
+            const queries =
+              item.query === "tourism"
+                ? ["tourism", "attraction", "leisure"]
+                : [item.query];
+
+            const localizedResults = [];
+            for (const q of queries) {
+              localizedResults.push(
+                ...await searchLocalized(q, { limit: 12, lat, lon, bbox }),
+              );
+            }
+
+            const unique = [];
+            const seen = new Set();
+
+            for (const place of localizedResults) {
+              const key =
+                `${normalizeSearchText(place.name)}|${place.lat.toFixed(5)}|${place.lon.toFixed(5)}`;
+              if (seen.has(key)) continue;
+              seen.add(key);
+
+              const dx =
+                (place.lon - lon) * Math.cos((lat * Math.PI) / 180);
+              const dy = place.lat - lat;
+              place.distanceScore = dx * dx + dy * dy;
+              unique.push(place);
+            }
+
+            unique.sort((a, b) => a.distanceScore - b.distanceScore);
+            const results = unique.slice(0, 6);
+
+            if (results.length) {
+              searchCache.set(
+                `${searchLanguage}:${item.label.toLowerCase()}`,
+                results,
+              );
+              renderSearchResults(results, localizedItemLabel);
+            } else {
+              searchResults.innerHTML =
+                `<div class="search-result-item">${getUiText("nearbyNone")}</div>`;
+            }
+
+            searchResults.style.display = "block";
+          } catch (err) {
+            searchResults.innerHTML =
+              `<div class="search-result-item">${getUiText("nearbyUnavailable")}</div>`;
+            searchResults.style.display = "block";
+          }
+          return;
+        }
+
+        try {
             const viewbox = `${lon + 0.18},${lat + 0.15},${lon - 0.18},${lat - 0.15}`;
             const queries = item.query === "tourism" ? ["tourism", "attraction", "leisure"] : [item.query];
             const localizedResults = [];
