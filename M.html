@@ -249,12 +249,12 @@
 
       .compass-needle {
         position: absolute;
-        width: 6px;
+        width: 0;
         height: 28px;
         top: calc(50% - 14px);
-        left: calc(50% - 3px);
+        left: 50%;
         transform: rotate(0rad);
-        transform-origin: 3px 14px;
+        transform-origin: 0 14px;
         transition: none;
         will-change: transform;
         pointer-events: none;
@@ -264,7 +264,7 @@
         content: "";
         position: absolute;
         top: 0;
-        left: 0;
+        left: -3px;
         width: 0;
         height: 0;
         border-left: 3px solid transparent;
@@ -276,7 +276,7 @@
         content: "";
         position: absolute;
         bottom: 0;
-        left: 0;
+        left: -3px;
         width: 0;
         height: 0;
         border-left: 3px solid transparent;
@@ -2735,8 +2735,9 @@
           return;
         }
 
-        if (searchCache.has(query)) {
-          renderSearchResults(searchCache.get(query), query);
+        const cacheKey = query.toLowerCase();
+        if (searchCache.has(cacheKey)) {
+          renderSearchResults(searchCache.get(cacheKey), query);
           return;
         }
 
