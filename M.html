@@ -2746,7 +2746,11 @@
 
           const resp = await fetch(
             `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=6`,
-            { signal: searchAbortController.signal },
+            {
+              signal: searchAbortController.signal,
+              cache: "force-cache",
+              priority: "high",
+            },
           );
           const data = await resp.json();
 
@@ -3180,7 +3184,8 @@
         }
 
         clearTimeout(searchDebounceTimer);
-        searchDebounceTimer = setTimeout(() => performSearch(value), 0);
+        searchDebounceTimer = null;
+        performSearch(value);
       });
 
       // --- ROUTING SYSTEM ---
