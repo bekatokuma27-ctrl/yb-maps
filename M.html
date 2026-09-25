@@ -149,117 +149,6 @@
           0 20px 50px rgba(0, 0, 0, 0.5);
       }
 
-      /* Street View mode controls */
-      #streetview-coverage.sniper-mode,
-      #streetview-coverage.sniper-mode * {
-        cursor:
-          url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'></circle><line x1='12' y1='2' x2='12' y2='6'></line><line x1='12' y1='18' x2='12' y2='22'></line><line x1='2' y1='12' x2='6' y2='12'></line><line x1='18' y1='12' x2='22' y2='12'></line><circle cx='12' cy='12' r='2' fill='white'></circle></svg>")
-            16 16,
-          crosshair !important;
-      }
-
-
-      #streetview-toggle {
-        display: none;
-        align-items: center;
-        justify-content: space-between;
-        width: 320px;
-        max-width: calc(100vw - 84px);
-        min-height: 42px;
-        padding: 8px 12px 8px 16px;
-        border-radius: 21px;
-        margin-top: 0;
-        gap: 12px;
-      }
-
-      #streetview-toggle.show {
-        display: flex;
-      }
-
-      .streetview-toggle-label {
-        font-size: 13px;
-        font-weight: 600;
-        color: rgba(255, 255, 255, 0.9);
-      }
-
-      #streetview-toggle-btn {
-        border: 0;
-        border-radius: 999px;
-        padding: 6px 14px;
-        font-size: 12px;
-        font-weight: 700;
-        color: #fff;
-        background: #10b981;
-        cursor: pointer;
-      }
-
-      #streetview-toggle-btn.off {
-        background: rgba(255, 255, 255, 0.14);
-      }
-
-      #streetview-coverage {
-        position: absolute;
-        inset: 0;
-        z-index: 2;
-        pointer-events: none;
-        display: none;
-      }
-
-      #streetview-panorama {
-        position: absolute;
-        inset: 0;
-        z-index: 3000;
-        display: none;
-        background: #05080f;
-      }
-
-      #streetview-panorama.show {
-        display: block;
-      }
-
-      #streetview-panorama-view {
-        position: absolute;
-        inset: 0;
-      }
-
-      #streetview-close {
-        position: absolute;
-        top: 18px;
-        right: 18px;
-        z-index: 3002;
-        width: 48px;
-        height: 48px;
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        border-radius: 50%;
-        background: rgba(10, 15, 25, 0.9);
-        color: #fff;
-        font-size: 28px;
-        line-height: 1;
-        cursor: pointer;
-        backdrop-filter: blur(18px);
-      }
-
-      #streetview-status {
-        position: absolute;
-        left: 50%;
-        top: 18px;
-        transform: translateX(-50%);
-        z-index: 3002;
-        padding: 10px 16px;
-        border-radius: 18px;
-        background: rgba(10, 15, 25, 0.88);
-        color: #fff;
-        font-size: 13px;
-        display: none;
-        pointer-events: none;
-      }
-
-      @media (max-width: 700px) {
-        #streetview-toggle {
-          width: min(320px, calc(100vw - 78px));
-        }
-      }
-
       #search-input {
         width: 100%;
         background: transparent;
@@ -1212,12 +1101,6 @@
   <body>
     <!-- Map Container -->
     <div id="map"></div>
-    <div id="streetview-coverage" aria-hidden="true"></div>
-    <div id="streetview-panorama" aria-hidden="true">
-      <div id="streetview-panorama-view"></div>
-      <div id="streetview-status"></div>
-      <button id="streetview-close" type="button" aria-label="Close Street View">&times;</button>
-    </div>
 
     <!-- Notification Banner -->
     <div id="notification-banner"></div>
@@ -1231,6 +1114,7 @@
           type="button"
           title="About YB-Maps"
           aria-label="About YB-Maps"
+          data-i18n-title="aboutBtn"
         >
           <img
             src="https://lh3.googleusercontent.com/d/14iNGatHLM9B7CmN0KzFkiFK9meJYshdw"
@@ -1247,10 +1131,7 @@
           />
           <div id="search-results"></div>
         </div>
-        <div id="streetview-toggle" class="glass-ui" aria-hidden="true">
-          <span class="streetview-toggle-label">Street View</span>
-          <button id="streetview-toggle-btn" type="button">ON</button>
-        </div>
+
       </div>
 
       <div class="toolbar-buttons">
@@ -1277,6 +1158,7 @@
           type="button"
           title="Home"
           aria-label="Home"
+          data-i18n-title="homeTitle"
         >
           <img
             class="toolbar-icon-img"
@@ -1315,20 +1197,6 @@
         </button>
 
         <button
-          id="streetview-btn"
-          class="glass-ui circle-btn"
-          type="button"
-          title="Street View"
-          aria-label="Street View"
-        >
-          <img
-            class="toolbar-icon-img"
-            src="https://cdn-icons-png.flaticon.com/512/12784/12784696.png"
-            alt="Street View"
-          />
-        </button>
-
-        <button
           id="btn-directions"
           class="glass-ui circle-btn"
           type="button"
@@ -1346,7 +1214,7 @@
 
     <!-- Home Menu -->
     <div id="home-menu" class="glass-ui" aria-hidden="true">
-      <div class="home-menu-title">Home</div>
+      <div class="home-menu-title" data-i18n="homeTitle">Home</div>
       <div id="home-menu-description" class="home-menu-description">Set a home location to quickly return to it.</div>
       <div id="home-saved-item" class="home-saved-item" style="display: none;">
         <span class="home-saved-dot"></span><span>Home location saved</span>
@@ -1981,6 +1849,7 @@
                 access.</span
               >
             </li>
+            <li><strong data-i18n="h8Title">Home:</strong> <span data-i18n="h8Text">Set your home on the map, then click Home to return to it.</span></li>
           </ul>
         </div>
 
@@ -2041,21 +1910,6 @@
 
     <!-- OpenLayers JS -->
     <script src="https://cdn.jsdelivr.net/npm/ol@v10.2.1/dist/ol.js"></script>
-    <script>
-      window.YBMapsGoogleReady = new Promise((resolve, reject) => {
-        window.__ybMapsGoogleInit = () => resolve();
-        window.gm_authFailure = () =>
-          reject(new Error("Google Maps authentication failed. Check the API key, Maps JavaScript API, billing, or website restrictions."));
-        const script = document.createElement("script");
-        script.src =
-          "https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY_HERE&v=weekly&loading=async&callback=__ybMapsGoogleInit";
-        script.async = true;
-        script.defer = true;
-        script.onerror = () =>
-          reject(new Error("Google Maps JavaScript API failed to load."));
-        document.head.appendChild(script);
-      });
-    </script>
 
     <script>
       // Localization Dictionary (16 Languages)
@@ -2078,6 +1932,8 @@
           designer: "Designer",
           designedBy: "Designed & Developed by",
           allRights: "© YB-Maps. All rights reserved.",
+          aboutBtn: "About YB-Maps",
+          homeTitle: "Home",
           helpBtn: "Help",
           helpTitle: "YB-Maps Help & Support",
           helpPhone: "Phone",
@@ -2104,6 +1960,8 @@
           h7Title: "Route Planning:",
           h7Text:
             "Name your commute and save custom driving routes for quick access.",
+          h8Title: "Home",
+          h8Text: "Set your home on the map, then click Home to return to it.",
           bugText: "If you find a bug or issue, contact:",
         },
         am: {
@@ -2124,6 +1982,8 @@
           designer: "ዲዛይነር",
           designedBy: "የተሰራው እና የተዳበረው በ",
           allRights: "© YB-Maps. መብቱ በህግ የተጠበቀ።",
+          aboutBtn: "ስለ YB-Maps",
+          homeTitle: "ቤት",
           helpBtn: "እርዳታ",
           helpTitle: "የYB-Maps እርዳታ እና ድጋፍ",
           helpPhone: "ስልክ",
@@ -2144,6 +2004,8 @@
           h6Text: "በማውስ ወይም + / - አዝራሮች ያጉሉ።",
           h7Title: "የመንገድ እቅድ:",
           h7Text: "የመንገድ ስም በመስጠት ያስቀምጡ።",
+          h8Title: "ቤት",
+          h8Text: "Set your home on the map, then click Home to return to it.",
           bugText: "ችግር ካጋጠመዎት እባክዎን ያነጋግሩን:",
         },
         om: {
@@ -2164,6 +2026,8 @@
           designer: "Dizaayinerii",
           designedBy: "Kan qopheessee fi Guddise",
           allRights: "© YB-Maps. Mirgi hundaa seeraan kan eegamaadha.",
+          aboutBtn: "Waa'ee YB-Maps",
+          homeTitle: "Mana",
           helpBtn: "Gargaarsa",
           helpTitle: "Gargaarsa YB-Maps",
           helpPhone: "Bilbila",
@@ -2184,6 +2048,8 @@
           h6Text: "Mallattoolee + / - fayyadamaa.",
           h7Title: "Karaa Karoorsuu:",
           h7Text: "Maqaa karaa kennuun olkaa'adhaa.",
+          h8Title: "Mana",
+          h8Text: "Set your home on the map, then click Home to return to it.",
           bugText: "Rakkon yoo jiraate asiin nu qunnamaa:",
         },
         es: {
@@ -2204,6 +2070,8 @@
           designer: "Diseñador",
           designedBy: "Diseñado y desarrollado por",
           allRights: "© YB-Maps. Todos los derechos reservados.",
+          aboutBtn: "Acerca de YB-Maps",
+          homeTitle: "Inicio",
           helpBtn: "Ayuda",
           helpTitle: "Ayuda de YB-Maps",
           helpPhone: "Teléfono",
@@ -2224,6 +2092,8 @@
           h6Text: "Utilice los botones + y - para ajustar zoom.",
           h7Title: "Guardar rutas:",
           h7Text: "Guarde sus trayectos favoritos.",
+          h8Title: "Inicio",
+          h8Text: "Set your home on the map, then click Home to return to it.",
           bugText: "Si encuentra algún error, contacte:",
         },
         fr: {
@@ -2244,6 +2114,8 @@
           designer: "Designer",
           designedBy: "Conçu et développé par",
           allRights: "© YB-Maps. Tous droits réservés.",
+          aboutBtn: "À propos de YB-Maps",
+          homeTitle: "Accueil",
           helpBtn: "Aide",
           helpTitle: "Aide YB-Maps",
           helpPhone: "Téléphone",
@@ -2264,6 +2136,8 @@
           h6Text: "Utilisez les boutons + / -.",
           h7Title: "Sauvegarder:",
           h7Text: "Enregistrez vos trajets habituels.",
+          h8Title: "Accueil",
+          h8Text: "Set your home on the map, then click Home to return to it.",
           bugText: "Si vous trouvez un bug, contactez:",
         },
         de: {
@@ -2284,6 +2158,8 @@
           designer: "Designer",
           designedBy: "Entworfen und entwickelt von",
           allRights: "© YB-Maps. Alle Rechte vorbehalten.",
+          aboutBtn: "Über YB-Maps",
+          homeTitle: "Startseite",
           helpBtn: "Hilfe",
           helpTitle: "YB-Maps Hilfe",
           helpPhone: "Telefon",
@@ -2304,6 +2180,8 @@
           h6Text: "Nützen Sie die + / - Tasten.",
           h7Title: "Routen speichern:",
           h7Text: "Speichern Sie Ihre Wege ab.",
+          h8Title: "Startseite",
+          h8Text: "Set your home on the map, then click Home to return to it.",
           bugText: "Bei Fehlern kontaktieren Sie:",
         },
         ar: {
@@ -2324,6 +2202,8 @@
           designer: "مصمم",
           designedBy: "تصميم وتطوير",
           allRights: "© YB-Maps. جميع الحقوق محفوظة.",
+          aboutBtn: "حول YB-Maps",
+          homeTitle: "المنزل",
           helpBtn: "مساعدة",
           helpTitle: "مساعدة YB-Maps",
           helpPhone: "الهاتف",
@@ -2344,6 +2224,8 @@
           h6Text: "استخدم أزرار + و - للتكبير.",
           h7Title: "حفظ المسارات:",
           h7Text: "احفظ الطرق الخاصة بك.",
+          h8Title: "المنزل",
+          h8Text: "Set your home on the map, then click Home to return to it.",
           bugText: "إذا وجدت أي خطأ، يرجى التواصل:",
         },
         zh: {
@@ -2364,6 +2246,8 @@
           designer: "设计师",
           designedBy: "设计与开发：",
           allRights: "© YB-Maps. 保留所有权利。",
+          aboutBtn: "关于 YB-Maps",
+          homeTitle: "家",
           helpBtn: "帮助",
           helpTitle: "YB-Maps 帮助与支持",
           helpPhone: "手机",
@@ -2384,6 +2268,8 @@
           h6Text: "使用 +/- 按钮轻松缩放。",
           h7Title: "保存路线：",
           h7Text: "保存常用的出行路线。",
+          h8Title: "家",
+          h8Text: "Set your home on the map, then click Home to return to it.",
           bugText: "如果遇到问题，请联系：",
         },
         ja: {
@@ -2404,6 +2290,8 @@
           designer: "デザイナー",
           designedBy: "設計・開発：",
           allRights: "© YB-Maps. 全著作権所有。",
+          aboutBtn: "YB-Mapsについて",
+          homeTitle: "ホーム",
           helpBtn: "ヘルプ",
           helpTitle: "YB-Maps ヘルプ",
           helpPhone: "スマホ",
@@ -2424,6 +2312,8 @@
           h6Text: "+ / - ボタンで拡大縮小。",
           h7Title: "保存：",
           h7Text: "ルート를 保存できます。",
+          h8Title: "ホーム",
+          h8Text: "Set your home on the map, then click Home to return to it.",
           bugText: "バグ報告・お問い合わせ：",
         },
         ru: {
@@ -2444,6 +2334,8 @@
           designer: "Дизайнер",
           designedBy: "Дизайн и разработка:",
           allRights: "© YB-Maps. Все права защищены.",
+          aboutBtn: "О YB-Maps",
+          homeTitle: "Домой",
           helpBtn: "Помощь",
           helpTitle: "Помощь YB-Maps",
           helpPhone: "Телефон",
@@ -2464,6 +2356,8 @@
           h6Text: "Используйте кнопки + и -.",
           h7Title: "Сохранение:",
           h7Text: "Сохраняйте нужные маршруты.",
+          h8Title: "Домой",
+          h8Text: "Set your home on the map, then click Home to return to it.",
           bugText: "Если вы нашли ошибку, напишите:",
         },
         pt: {
@@ -2484,6 +2378,8 @@
           designer: "Designer",
           designedBy: "Projetado e desenvolvido por",
           allRights: "© YB-Maps. Todos os direitos reservados.",
+          aboutBtn: "Sobre o YB-Maps",
+          homeTitle: "Casa",
           helpBtn: "Ajuda",
           helpTitle: "Ajuda YB-Maps",
           helpPhone: "Celular",
@@ -2504,6 +2400,8 @@
           h6Text: "Utilize os botões de + e -.",
           h7Title: "Salvar Rotas:",
           h7Text: "Guarde seus trajetos favoritos.",
+          h8Title: "Casa",
+          h8Text: "Set your home on the map, then click Home to return to it.",
           bugText: "Encontrou um erro? Entre em contato:",
         },
         hi: {
@@ -2524,6 +2422,8 @@
           designer: "डिज़ाइनर",
           designedBy: "डिजाइन और विकसित द्वारा",
           allRights: "© YB-Maps. सर्वाधिकार सुरक्षित।",
+          aboutBtn: "YB-Maps के बारे में",
+          homeTitle: "घर",
           helpBtn: "सहायता",
           helpTitle: "YB-Maps सहायता",
           helpPhone: "फोन",
@@ -2544,6 +2444,8 @@
           h6Text: "+ / - बटन का उपयोग करें।",
           h7Title: "मार्ग सहेजें:",
           h7Text: "अपने मार्गों को सुरक्षित रखें।",
+          h8Title: "घर",
+          h8Text: "Set your home on the map, then click Home to return to it.",
           bugText: "यदि कोई समस्या हो तो संपर्क करें:",
         },
         it: {
@@ -2564,6 +2466,8 @@
           designer: "Designer",
           designedBy: "Progettato e sviluppato da",
           allRights: "© YB-Maps. Tutti i diritti riservati.",
+          aboutBtn: "Informazioni su YB-Maps",
+          homeTitle: "Casa",
           helpBtn: "Aiuto",
           helpTitle: "Supporto YB-Maps",
           helpPhone: "Telefono",
@@ -2584,6 +2488,8 @@
           h6Text: "Usa i pulsanti + e -.",
           h7Title: "Salva Percorsi:",
           h7Text: "Salva i tuoi tragitti frequenti.",
+          h8Title: "Casa",
+          h8Text: "Set your home on the map, then click Home to return to it.",
           bugText: "Per segnalare un errore, scrivi a:",
         },
         tr: {
@@ -2604,6 +2510,8 @@
           designer: "Tasarımcı",
           designedBy: "Tasarlayan ve Geliştiren",
           allRights: "© YB-Maps. Tüm hakları saklıdır.",
+          aboutBtn: "YB-Maps Hakkında",
+          homeTitle: "Ev",
           helpBtn: "Yardım",
           helpTitle: "YB-Maps Yardım",
           helpPhone: "Telefon",
@@ -2624,6 +2532,8 @@
           h6Text: "+ ve - butonlarını kullanın.",
           h7Title: "Rota Kaydetme:",
           h7Text: "Sık kullandığınız yolları kaydedin.",
+          h8Title: "Ev",
+          h8Text: "Set your home on the map, then click Home to return to it.",
           bugText: "Bir hata bulursanız iletişim:",
         },
         ko: {
@@ -2644,6 +2554,8 @@
           designer: "디자이너",
           designedBy: "디자인 및 개발:",
           allRights: "© YB-Maps. 모든 권리 보유.",
+          aboutBtn: "YB-Maps 정보",
+          homeTitle: "집",
           helpBtn: "도움말",
           helpTitle: "YB-Maps 도움말",
           helpPhone: "모바일",
@@ -2664,6 +2576,8 @@
           h6Text: "+ 및 - 버튼으로 쉽게 조절합니다.",
           h7Title: "경로 저장:",
           h7Text: "자주 다니는 경로를 저장하세요.",
+          h8Title: "집",
+          h8Text: "Set your home on the map, then click Home to return to it.",
           bugText: "버그 제보 및 문의 사항:",
         },
         sw: {
@@ -2684,6 +2598,8 @@
           designer: "Mbunifu",
           designedBy: "Imeundwa na Kuendelezwa na",
           allRights: "© YB-Maps. Haki zote zimehifadhiwa.",
+          aboutBtn: "Kuhusu YB-Maps",
+          homeTitle: "Nyumbani",
           helpBtn: "Msaada",
           helpTitle: "Msaada wa YB-Maps",
           helpPhone: "Simu",
@@ -2704,6 +2620,8 @@
           h6Text: "Tumia vitufe vya + na -.",
           h7Title: "Hifadhi Njia:",
           h7Text: "Hifadhi njia zako za kila siku.",
+          h8Title: "Nyumbani",
+          h8Text: "Set your home on the map, then click Home to return to it.",
           bugText: "Kama ukipata tatizo, wasiliana nasi:",
         },
       };
@@ -2716,6 +2634,14 @@
           const key = el.getAttribute("data-i18n");
           if (dict[key]) {
             el.textContent = dict[key];
+          }
+        });
+
+        document.querySelectorAll("[data-i18n-title]").forEach((el) => {
+          const key = el.getAttribute("data-i18n-title");
+          if (dict[key]) {
+            el.title = dict[key];
+            el.setAttribute("aria-label", dict[key]);
           }
         });
 
@@ -2894,892 +2820,6 @@
         }
       }
 
-      // --- STREET VIEW ---
-      const streetViewBtn = document.getElementById("streetview-btn");
-      const streetViewToggle = document.getElementById("streetview-toggle");
-      const streetViewToggleBtn = document.getElementById("streetview-toggle-btn");
-      const streetViewCoverage = document.getElementById("streetview-coverage");
-      const streetViewPanorama = document.getElementById("streetview-panorama");
-      const streetViewPanoramaView = document.getElementById("streetview-panorama-view");
-      const streetViewClose = document.getElementById("streetview-close");
-      const streetViewStatus = document.getElementById("streetview-status");
-
-      let streetViewMode = false;
-      let googleStreetMap = null;
-      let googleStreetCoverage = null;
-      let googleStreetService = null;
-      let streetViewPano = null;
-      let streetViewGoogleMapReady = false;
-
-      function setStreetViewStatus(message, visible = true) {
-        streetViewStatus.textContent = message;
-        streetViewStatus.style.display = visible ? "block" : "none";
-      }
-
-      function syncGoogleStreetMap() {
-        if (!googleStreetMap) return;
-        const [lng, lat] = ol.proj.toLonLat(view.getCenter());
-        googleStreetMap.setCenter({ lat, lng });
-        const zoom = Math.max(0, Math.min(21, Math.round(view.getZoom() || 3)));
-        googleStreetMap.setZoom(zoom);
-      }
-
-      function refreshStreetViewCoverage() {
-        if (!streetViewMode || !googleStreetMap) return;
-        syncGoogleStreetMap();
-        if (window.google && google.maps && google.maps.event) {
-          google.maps.event.trigger(googleStreetMap, "resize");
-        }
-        if (googleStreetCoverage) {
-          googleStreetCoverage.setMap(googleStreetMap);
-        }
-      }
-
-      async function initializeStreetView() {
-        if (streetViewGoogleMapReady) return true;
-
-        try {
-          await window.YBMapsGoogleReady;
-
-          const [{ Map }, { StreetViewCoverageLayer, StreetViewService, StreetViewPanorama }] =
-            await Promise.all([
-              google.maps.importLibrary("maps"),
-              google.maps.importLibrary("streetView"),
-            ]);
-
-          const [lng, lat] = ol.proj.toLonLat(view.getCenter());
-
-          googleStreetMap = new Map(streetViewCoverage, {
-            center: { lat, lng },
-            zoom: Math.max(0, Math.min(21, Math.round(view.getZoom() || 3))),
-            disableDefaultUI: true,
-            clickableIcons: false,
-            gestureHandling: "none",
-            keyboardShortcuts: false,
-            streetViewControl: false,
-            fullscreenControl: false,
-            backgroundColor: "transparent",
-            mapTypeId: "roadmap",
-            styles: [
-              {
-                featureType: "all",
-                elementType: "labels",
-                stylers: [{ visibility: "off" }],
-              },
-              {
-                featureType: "poi",
-                elementType: "all",
-                stylers: [{ visibility: "off" }],
-              },
-            ],
-          });
-
-          googleStreetCoverage = new StreetViewCoverageLayer();
-          googleStreetCoverage.setMap(googleStreetMap);
-
-          googleStreetService = new StreetViewService();
-          google.maps.event.trigger(googleStreetMap, "resize");
-
-          streetViewPano = new StreetViewPanorama(
-            streetViewPanoramaView,
-            {
-              visible: false,
-              addressControl: true,
-              fullscreenControl: true,
-              linksControl: true,
-              motionTracking: false,
-              panControl: true,
-              zoomControl: true,
-            },
-          );
-
-          streetViewGoogleMapReady = true;
-          return true;
-        } catch (error) {
-          console.error("YB Maps Street View initialization failed:", error);
-          const message = error?.message || "Google Street View could not be loaded.";
-          showNotification(message, true);
-          return false;
-        }
-      }
-      async function setStreetViewMode(enabled) {
-        if (enabled) {
-          const ready = await initializeStreetView();
-          if (!ready) return;
-
-          streetViewMode = true;
-          streetViewCoverage.style.display = "block";
-          streetViewToggle.classList.add("show");
-          streetViewToggle.setAttribute("aria-hidden", "false");
-          streetViewToggleBtn.classList.remove("off");
-          streetViewToggleBtn.textContent = "ON";
-          document.getElementById("map").classList.add("sniper-mode");
-          streetViewCoverage.classList.add("sniper-mode");
-          syncGoogleStreetMap();
-          refreshStreetViewCoverage();
-          showNotification("Street View coverage is ready. Blue roads show available Street View.");
-        } else {
-          streetViewMode = false;
-          streetViewCoverage.style.display = "none";
-          streetViewToggle.classList.remove("show");
-          streetViewToggle.setAttribute("aria-hidden", "true");
-          streetViewToggleBtn.classList.add("off");
-          streetViewToggleBtn.textContent = "OFF";
-          document.getElementById("map").classList.remove("sniper-mode");
-          streetViewCoverage.classList.remove("sniper-mode");
-          if (streetViewPano) streetViewPano.setVisible(false);
-          streetViewPanorama.classList.remove("show");
-          streetViewPanorama.setAttribute("aria-hidden", "true");
-        }
-      }
-
-      async function openStreetViewAtCoordinate(coordinate) {
-        if (!streetViewMode || !googleStreetService) return;
-
-        const [lng, lat] = ol.proj.toLonLat(coordinate);
-        setStreetViewStatus("Loading Street View...");
-
-        try {
-          const response = await googleStreetService.getPanorama({
-            location: { lat, lng },
-            radius: 50,
-            preference: google.maps.StreetViewPreference.NEAREST,
-            source: google.maps.StreetViewSource.DEFAULT,
-          });
-
-          if (!response || !response.data || !response.data.location) {
-            setStreetViewStatus("Street View is not available here.");
-            setTimeout(() => setStreetViewStatus("", false), 2200);
-            return;
-          }
-
-          const location = response.data.location;
-          streetViewPano.setPano(location.pano);
-          streetViewPano.setPosition(location.latLng);
-          streetViewPano.setPov({ heading: 0, pitch: 0 });
-          streetViewPano.setVisible(true);
-
-          streetViewPanorama.classList.add("show");
-          streetViewPanorama.setAttribute("aria-hidden", "false");
-          setStreetViewStatus("", false);
-          document.getElementById("map").classList.remove("sniper-mode");
-        } catch (error) {
-          console.error("Street View lookup failed:", error);
-          setStreetViewStatus("Street View is not available here.");
-          setTimeout(() => setStreetViewStatus("", false), 2200);
-        }
-      }
-
-      streetViewBtn.addEventListener("click", async function (e) {
-        e.stopPropagation();
-        closeAllPanels();
-        await setStreetViewMode(!streetViewMode);
-      });
-
-      streetViewToggleBtn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        setStreetViewMode(!streetViewMode);
-      });
-
-      streetViewClose.addEventListener("click", function () {
-        if (streetViewPano) streetViewPano.setVisible(false);
-        streetViewPanorama.classList.remove("show");
-        streetViewPanorama.setAttribute("aria-hidden", "true");
-        if (streetViewMode) {
-          document.getElementById("map").classList.add("sniper-mode");
-          streetViewCoverage.classList.add("sniper-mode");
-        }
-      });
-
-      map.on("moveend", refreshStreetViewCoverage);
-
-      map.on("click", function (evt) {
-        if (homeSelectionActive) {
-          saveHomeAtCoordinate(evt.coordinate);
-          return;
-        }
-
-        if (streetViewMode && !isRoutingActive) {
-          openStreetViewAtCoordinate(evt.coordinate);
-          return;
-        }
-
-        if (!isRoutingActive || routeStep >= 2) return;
-
-        if (routeStep === 0) {
-          departureCoord = evt.coordinate;
-          startMarkerFeature = new ol.Feature({
-            geometry: new ol.geom.Point(departureCoord),
-            type: "start-pin",
-          });
-          vectorSource.addFeature(startMarkerFeature);
-          routeStep = 1;
-          showNotification("Departure set! Click map for Destination.");
-        } else if (routeStep === 1) {
-          destinationCoord = evt.coordinate;
-          endMarkerFeature = new ol.Feature({
-            geometry: new ol.geom.Point(destinationCoord),
-            type: "end-pin",
-          });
-          vectorSource.addFeature(endMarkerFeature);
-          routeStep = 2;
-          document.getElementById("map").classList.remove("sniper-mode");
-
-          fetchRouteOSRM(departureCoord, destinationCoord);
-        }
-      });
-
-      // --- COMPASS & VIEW ROTATION ---
-      const compassNeedle = document.getElementById("compass-needle");
-      const compassBtn = document.getElementById("compass-btn");
-      let compassVisualRotation = 0;
-      let compassTargetRotation = 0;
-      let compassFrame = null;
-      let compassLastFrameTime = 0;
-
-      function normalizeAngle(angle) {
-        return Math.atan2(Math.sin(angle), Math.cos(angle));
-      }
-
-      function updateCompassNeedle() {
-        if (compassFrame !== null) return;
-
-        compassFrame = requestAnimationFrame(
-          function animateCompass(timestamp) {
-            compassFrame = null;
-
-            const deltaTime = compassLastFrameTime
-              ? Math.min(timestamp - compassLastFrameTime, 50)
-              : 16.67;
-            compassLastFrameTime = timestamp;
-
-            const delta = normalizeAngle(
-              compassTargetRotation - compassVisualRotation,
-            );
-
-            // Smooth, frame-rate-independent follow so the needle stays centered
-            // and does not jump or glitch around West/South.
-            const smoothing = 1 - Math.exp(-deltaTime / 90);
-            compassVisualRotation += delta * smoothing;
-
-            compassNeedle.style.transform = `rotate(${compassVisualRotation}rad)`;
-
-            if (Math.abs(delta) > 0.0005) {
-              compassFrame = requestAnimationFrame(animateCompass);
-            } else {
-              compassVisualRotation = compassTargetRotation;
-              compassNeedle.style.transform = `rotate(${compassVisualRotation}rad)`;
-              compassLastFrameTime = 0;
-            }
-          },
-        );
-      }
-
-      map.getView().on("change:rotation", function () {
-        compassTargetRotation = -map.getView().getRotation();
-        updateCompassNeedle();
-      });
-
-      compassBtn.addEventListener("click", function () {
-        map.getView().animate({ rotation: 0, duration: 350 });
-        showNotification("Map aligned to North");
-      });
-
-      compassNeedle.style.transform = "rotate(0rad)";
-
-      // Country Flag Emoji Helper
-      function getCountryFlagEmoji(countryCode) {
-        if (!countryCode || countryCode.length !== 2) return "";
-        const code = countryCode.toLowerCase();
-        return `<img src="https://flagcdn.com/w40/${code}.png" alt="" style="width: 24px; height: 16px; object-fit: cover; border-radius: 3px; display: block;" loading="lazy">`;
-      }
-
-      // --- SEARCH ENGINE ---
-      const searchInput = document.getElementById("search-input");
-      const searchResults = document.getElementById("search-results");
-      const searchCache = new Map();
-      const searchPrefixCache = new Map();
-      let searchDebounceTimer = null;
-
-      const CONTINENTS = [
-        "asia",
-        "africa",
-        "north america",
-        "south america",
-        "antarctica",
-        "europe",
-        "australia",
-        "oceania",
-      ];
-
-      let searchAbortController = null;
-
-      async function performSearch(query) {
-        query = query.trim();
-        if (!query) {
-          searchResults.style.display = "none";
-          clearSearchPin();
-          return;
-        }
-
-        const cacheKey = query.toLowerCase();
-        if (searchCache.has(cacheKey)) {
-          renderSearchResults(searchCache.get(cacheKey), query);
-          return;
-        }
-
-        try {
-          if (searchAbortController) searchAbortController.abort();
-          searchAbortController = new AbortController();
-
-          const resp = await fetch(
-            `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=6`,
-            {
-              signal: searchAbortController.signal,
-              cache: "force-cache",
-              priority: "high",
-            },
-          );
-          const data = await resp.json();
-
-          const results = (data.features || [])
-            .map((f) => {
-              const props = f.properties;
-              return {
-                name: props.name || props.city || props.country || "Location",
-                city: props.city || props.state || props.county || "",
-                country: props.country || "",
-                countryCode: (props.countrycode || "").toUpperCase(),
-                type: props.type || "",
-                osm_value: props.osm_value || "",
-                lon: f.geometry.coordinates[0],
-                lat: f.geometry.coordinates[1],
-              };
-            })
-            // Filter out continent entries strictly
-            .filter((item) => {
-              const nameLower = item.name.toLowerCase().trim();
-              const typeLower = (item.type || "").toLowerCase();
-              const osmVal = (item.osm_value || "").toLowerCase();
-              return (
-                !CONTINENTS.includes(nameLower) &&
-                typeLower !== "continent" &&
-                osmVal !== "continent"
-              );
-            })
-            .slice(0, 6);
-
-          searchCache.set(query.toLowerCase(), results);
-          const normalizedQuery = query.toLowerCase();
-          for (let i = 2; i <= normalizedQuery.length; i++) {
-            searchPrefixCache.set(normalizedQuery.slice(0, i), results);
-          }
-          renderSearchResults(results, query);
-        } catch (err) {
-          if (err.name === "AbortError") return;
-          fetch(
-            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=6`,
-          )
-            .then((res) => res.json())
-            .then((data) => {
-              const results = data
-                .map((item) => ({
-                  name: item.display_name.split(",")[0],
-                  city: item.display_name.split(",")[0],
-                  country:
-                    item.display_name.split(",").slice(-1)[0]?.trim() || "",
-                  countryCode: (item.address?.country_code || "").toUpperCase(),
-                  type: item.type || "",
-                  lon: parseFloat(item.lon),
-                  lat: parseFloat(item.lat),
-                }))
-                .filter(
-                  (item) =>
-                    !CONTINENTS.includes(item.name.toLowerCase().trim()) &&
-                    item.type !== "continent",
-                );
-              searchCache.set(query.toLowerCase(), results);
-              const normalizedQuery = query.toLowerCase();
-              for (let i = 2; i <= normalizedQuery.length; i++) {
-                searchPrefixCache.set(normalizedQuery.slice(0, i), results);
-              }
-              renderSearchResults(results, query);
-            })
-            .catch(() => {});
-        }
-      }
-
-      // --- COPY LOCATION ---
-      async function copyLocationLink(item) {
-        if (!item || item.lat == null || item.lon == null) return;
-
-        const lat = Number(item.lat);
-        const lon = Number(item.lon);
-        const copyText = `${lat}, ${lon}`;
-
-        try {
-          if (navigator.clipboard && window.isSecureContext) {
-            await navigator.clipboard.writeText(copyText);
-          } else {
-            const textarea = document.createElement("textarea");
-            textarea.value = copyText;
-            textarea.style.position = "fixed";
-            textarea.style.opacity = "0";
-            document.body.appendChild(textarea);
-            textarea.focus();
-            textarea.select();
-            document.execCommand("copy");
-            textarea.remove();
-          }
-          showNotification("Coordinates copied.");
-        } catch (err) {
-          showNotification("Could not copy coordinates.");
-        }
-      }
-
-      // --- COUNTRY INFORMATION ---
-      const countryInfoModal = document.getElementById("country-info-modal");
-      const countryInfoClose = document.getElementById("country-info-close");
-
-      const countryInfoLabels = {
-        en: {
-          timezone: "Timezone",
-          country: "Country",
-          capital: "Country capital",
-          continent: "Continent",
-          economy: "ECONOMY",
-        },
-        am: {
-          timezone: "የሰዓት ዞን",
-          country: "አገር",
-          capital: "የአገሩ ዋና ከተማ",
-          continent: "አህጉር",
-          economy: "ኢኮኖሚ",
-        },
-        om: {
-          timezone: "Sa'aatii",
-          country: "Biyya",
-          capital: "Magaalaa guddoo biyya",
-          continent: "Qaaradda",
-          economy: "DINAGDEE",
-        },
-        es: {
-          timezone: "Zona horaria",
-          country: "País",
-          capital: "Capital",
-          continent: "Continente",
-          economy: "ECONOMÍA",
-        },
-        fr: {
-          timezone: "Fuseau horaire",
-          country: "Pays",
-          capital: "Capitale",
-          continent: "Continent",
-          economy: "ÉCONOMIE",
-        },
-        de: {
-          timezone: "Zeitzone",
-          country: "Land",
-          capital: "Hauptstadt",
-          continent: "Kontinent",
-          economy: "WIRTSCHAFT",
-        },
-        ar: {
-          timezone: "المنطقة الزمنية",
-          country: "الدولة",
-          capital: "عاصمة الدولة",
-          continent: "القارة",
-          economy: "الاقتصاد",
-        },
-        zh: {
-          timezone: "时区",
-          country: "国家",
-          capital: "国家首都",
-          continent: "洲",
-          economy: "经济",
-        },
-        ja: {
-          timezone: "タイムゾーン",
-          country: "国",
-          capital: "首都",
-          continent: "大陸",
-          economy: "経済",
-        },
-        ru: {
-          timezone: "Часовой пояс",
-          country: "Страна",
-          capital: "Столица",
-          continent: "Континент",
-          economy: "ЭКОНОМИКА",
-        },
-        pt: {
-          timezone: "Fuso horário",
-          country: "País",
-          capital: "Capital",
-          continent: "Continente",
-          economy: "ECONOMIA",
-        },
-        hi: {
-          timezone: "समय क्षेत्र",
-          country: "देश",
-          capital: "राजधानी",
-          continent: "महाद्वीप",
-          economy: "अर्थव्यवस्था",
-        },
-        it: {
-          timezone: "Fuso orario",
-          country: "Paese",
-          capital: "Capitale",
-          continent: "Continente",
-          economy: "ECONOMIA",
-        },
-        tr: {
-          timezone: "Saat dilimi",
-          country: "Ülke",
-          capital: "Başkent",
-          continent: "Kıta",
-          economy: "EKONOMİ",
-        },
-        ko: {
-          timezone: "시간대",
-          country: "국가",
-          capital: "수도",
-          continent: "대륙",
-          economy: "경제",
-        },
-        sw: {
-          timezone: "Saa za eneo",
-          country: "Nchi",
-          capital: "Mji mkuu",
-          continent: "Bara",
-          economy: "UCHUMI",
-        },
-      };
-
-      function formatMoney(value) {
-        if (typeof value !== "number" || !Number.isFinite(value)) return "—";
-        if (value >= 1e12) return "$" + (value / 1e12).toFixed(2) + "T";
-        if (value >= 1e9) return "$" + (value / 1e9).toFixed(2) + "B";
-        if (value >= 1e6) return "$" + (value / 1e6).toFixed(2) + "M";
-        return "$" + Math.round(value).toLocaleString();
-      }
-
-      async function showCountryInfo(item) {
-        if (!item || !item.countryCode) return;
-
-        const lang = localStorage.getItem("yb_lang") || "en";
-        const labels = countryInfoLabels[lang] || countryInfoLabels.en;
-
-        document.getElementById("country-info-timezone").textContent =
-          labels.timezone;
-        document.getElementById("country-info-country").textContent =
-          labels.country;
-        document.getElementById("country-info-capital").textContent =
-          labels.capital;
-        document.getElementById("country-info-continent").textContent =
-          labels.continent;
-        document.getElementById("country-info-economy-title").textContent =
-          labels.economy;
-        document.getElementById("country-info-economy-value").textContent =
-          "Loading…";
-        countryInfoModal.style.display = "flex";
-
-        try {
-          const code = item.countryCode.toLowerCase();
-          const countryResp = await fetch(
-            `https://restcountries.com/v3.1/alpha/${encodeURIComponent(code)}`,
-          );
-          if (!countryResp.ok) throw new Error("Country lookup failed");
-          const countryData = await countryResp.json();
-          const country = Array.isArray(countryData)
-            ? countryData[0]
-            : countryData;
-
-          const flagUrl =
-            country?.flags?.png || `https://flagcdn.com/w640/${code}.png`;
-          const flag = document.getElementById("country-info-flag");
-          flag.src = flagUrl;
-          flag.alt = country?.name?.common || item.country || "Country flag";
-
-          const countryName =
-            country?.name?.common || item.country || item.name;
-          const capital = country?.capital?.join(", ") || "—";
-          const timezone = country?.timezones?.join(", ") || "—";
-          const continent =
-            country?.continents?.join(", ") || country?.region || "—";
-
-          document.getElementById("country-info-timezone").textContent =
-            `${labels.timezone}: ${timezone}`;
-          document.getElementById("country-info-country").textContent =
-            `${labels.country}: ${countryName}`;
-          document.getElementById("country-info-capital").textContent =
-            `${labels.capital}: ${capital}`;
-          document.getElementById("country-info-continent").textContent =
-            `${labels.continent}: ${continent}`;
-
-          // World Bank public GDP data fills the large economy box.
-          let economyText = "—";
-          try {
-            const [gdpResp, pcResp] = await Promise.all([
-              fetch(
-                `https://api.worldbank.org/v2/country/${encodeURIComponent(code)}/indicator/NY.GDP.MKTP.CD?format=json&per_page=1`,
-              ),
-              fetch(
-                `https://api.worldbank.org/v2/country/${encodeURIComponent(code)}/indicator/NY.GDP.PCAP.CD?format=json&per_page=1`,
-              ),
-            ]);
-            const gdpData = await gdpResp.json();
-            const pcData = await pcResp.json();
-            const gdp = gdpData?.[1]?.find((x) => x.value != null)?.value;
-            const perCapita = pcData?.[1]?.find((x) => x.value != null)?.value;
-            economyText = `GDP: ${formatMoney(gdp)}\nGDP per capita: ${formatMoney(perCapita)}`;
-          } catch (e) {}
-
-          document.getElementById("country-info-economy-value").textContent =
-            economyText;
-        } catch (e) {
-          document.getElementById("country-info-economy-value").textContent =
-            "Country information unavailable.";
-        }
-      }
-
-      countryInfoClose.addEventListener("click", () => {
-        countryInfoModal.style.display = "none";
-      });
-
-      countryInfoModal.addEventListener("click", (e) => {
-        if (e.target === countryInfoModal)
-          countryInfoModal.style.display = "none";
-      });
-
-      async function renderSearchResults(items, query) {
-        if (!items || items.length === 0) {
-          searchResults.innerHTML =
-            '<div class="search-result-item">No locations found</div>';
-          searchResults.style.display = "block";
-          return;
-        }
-
-        const queryLower = query.toLowerCase().trim();
-
-        searchResults.innerHTML = items
-          .map((item, index) => {
-            const isCountryQuery =
-              item.type === "country" ||
-              (item.country && item.country.toLowerCase() === queryLower);
-
-            let primary = item.name;
-            let secondary = "";
-
-            if (isCountryQuery) {
-              primary = item.country || item.name;
-              secondary = item.city ? `${item.city}` : "Country";
-            } else {
-              if (item.city && item.country) {
-                secondary = `${item.city}, ${item.country}`;
-              } else if (item.country) {
-                secondary = item.country;
-              } else if (item.city) {
-                secondary = item.city;
-              }
-            }
-
-            const flagImage = getCountryFlagEmoji(item.countryCode);
-
-            return `
-            <div class="search-result-item" data-index="${index}">
-              <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-                <span style="font-size: 18px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">${flagImage}</span>
-                <div style="flex: 1; min-width: 0; overflow: hidden;">
-                  <div style="font-weight: 600; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; color: #ffffff;">
-                    ${primary}
-                  </div>
-                  <div style="font-size: 11px; opacity: 0.65; margin-top: 1px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
-                    ${secondary}
-                  </div>
-                </div>
-                <button class="search-copy-btn" type="button" data-copy-index="${index}" aria-label="Copy location" title="Copy location">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="9" y="9" width="10" height="10" rx="2"></rect>
-                    <path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"></path>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          `;
-          })
-          .join("");
-
-        searchResults.style.display = "block";
-
-        searchResults.querySelectorAll(".search-copy-btn").forEach((btn) => {
-          btn.addEventListener("click", function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            const idx = parseInt(this.getAttribute("data-copy-index"), 10);
-            const target = items[idx];
-            if (target) copyLocationLink(target);
-          });
-        });
-
-        const itemEls = searchResults.querySelectorAll(".search-result-item");
-        itemEls.forEach((el) => {
-          el.addEventListener("click", function () {
-            const idx = parseInt(this.getAttribute("data-index"), 10);
-            const target = items[idx];
-            if (target) {
-              const coord = ol.proj.fromLonLat([target.lon, target.lat]);
-              map.getView().animate({ center: coord, zoom: 12, duration: 600 });
-
-              clearSearchPin();
-              const searchPin = new ol.Feature({
-                geometry: new ol.geom.Point(coord),
-                type: "search-pin",
-              });
-              vectorSource.addFeature(searchPin);
-
-              searchResults.style.display = "none";
-              searchInput.value = target.name;
-            }
-          });
-        });
-      }
-
-      // Fast search input: show cached partial results immediately, then refresh with the exact query.
-      searchInput.addEventListener("input", function () {
-        const value = this.value.trim();
-        if (!value) {
-          searchResults.style.display = "none";
-          clearSearchPin();
-          return;
-        }
-
-        const normalized = value.toLowerCase();
-        if (normalized.length >= 2) {
-          let prefixResults = searchPrefixCache.get(normalized);
-          if (!prefixResults) {
-            for (let i = normalized.length - 1; i >= 2; i--) {
-              const cached = searchPrefixCache.get(normalized.slice(0, i));
-              if (cached) {
-                prefixResults = cached;
-                break;
-              }
-            }
-          }
-          if (prefixResults && prefixResults.length) {
-            renderSearchResults(prefixResults, value);
-          }
-        }
-
-        clearTimeout(searchDebounceTimer);
-        searchDebounceTimer = null;
-        performSearch(value);
-      });
-
-      // --- HOME LOCATION ---
-      const homeBtn = document.getElementById("home-btn");
-      const homeMenu = document.getElementById("home-menu");
-      const homeMenuDescription = document.getElementById("home-menu-description");
-      const homeSavedItem = document.getElementById("home-saved-item");
-      const homePrimaryBtn = document.getElementById("home-primary-btn");
-      const homeCancelBtn = document.getElementById("home-cancel-btn");
-      let savedHome = null;
-      let homeSelectionActive = false;
-      let homeClickTimer = null;
-
-      try {
-        const storedHome = JSON.parse(localStorage.getItem("yb_home_location") || "null");
-        if (storedHome && Array.isArray(storedHome) && storedHome.length === 2) savedHome = storedHome;
-      } catch (error) {
-        savedHome = null;
-      }
-
-      function renderHomeMenu() {
-        if (savedHome) {
-          homeMenuDescription.textContent = "Your home is saved. Click Home to return to it.";
-          homeSavedItem.style.display = "flex";
-          homePrimaryBtn.textContent = "Add a New Home";
-          homeCancelBtn.style.display = "none";
-        } else {
-          homeMenuDescription.textContent = "Set a home location to quickly return to it.";
-          homeSavedItem.style.display = "none";
-          homePrimaryBtn.textContent = "Set Home";
-          homeCancelBtn.style.display = "none";
-        }
-      }
-
-      function openHomeMenu(replaceMode = false) {
-        closeAllPanels();
-        renderHomeMenu();
-        homeMenu.classList.add("show");
-        homeMenu.setAttribute("aria-hidden", "false");
-        if (replaceMode) {
-          homeMenuDescription.textContent = "Choose a new location to replace your current home.";
-          homePrimaryBtn.textContent = "Add a New Home";
-          homeCancelBtn.style.display = "block";
-        }
-      }
-
-      function closeHomeMenu() {
-        homeMenu.classList.remove("show");
-        homeMenu.setAttribute("aria-hidden", "true");
-      }
-
-      function startHomeSelection() {
-        closeHomeMenu();
-        homeSelectionActive = true;
-        document.getElementById("map").classList.add("sniper-mode");
-        showNotification("Click your home on the map to save it.");
-      }
-
-      function goToSavedHome() {
-        if (!savedHome) return;
-        map.getView().animate({ center: savedHome, zoom: 19, duration: 700 });
-        closeHomeMenu();
-      }
-
-      function saveHomeAtCoordinate(coordinate) {
-        savedHome = coordinate.slice();
-        localStorage.setItem("yb_home_location", JSON.stringify(savedHome));
-        homeSelectionActive = false;
-        document.getElementById("map").classList.remove("sniper-mode");
-        renderHomeMenu();
-        closeHomeMenu();
-        showNotification("Home location saved.");
-      }
-
-      homePrimaryBtn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        startHomeSelection();
-      });
-
-      homeCancelBtn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        closeHomeMenu();
-      });
-
-      homeBtn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        if (homeClickTimer) clearTimeout(homeClickTimer);
-        homeClickTimer = setTimeout(() => {
-          homeClickTimer = null;
-          if (savedHome) goToSavedHome();
-          else openHomeMenu(false);
-        }, 350);
-      });
-
-      homeBtn.addEventListener("dblclick", function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (homeClickTimer) {
-          clearTimeout(homeClickTimer);
-          homeClickTimer = null;
-        }
-        if (savedHome) openHomeMenu(true);
-        else openHomeMenu(false);
-      });
-
-      renderHomeMenu();
 
       // --- ROUTING SYSTEM ---
       let isRoutingActive = false;
