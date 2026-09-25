@@ -4135,6 +4135,35 @@
           `<div class="search-result-item">${getUiText("nearbyFinding")}</div>`;
         searchResults.style.display = "block";
 
+        if (shouldUseLocalizedSearch()) {
+          try {
+            const viewbox = `${lon + 0.18},${lat + 0.15},${lon - 0.18},${lat - 0.15}`;
+            const queries = item.query === "tourism" ? ["tourism", "attraction", "leisure"] : [item.query];
+            const localizedResults = [];
+            for (const q of queries) localizedResults.push(...await searchLocalized(q, { limit: 12, viewbox }));
+            const unique = [];
+            const seen = new Set();
+            for (const place of localizedResults) {
+              const key = `${place.name.toLowerCase()}|${place.lat.toFixed(5)}|${place.lon.toFixed(5)}`;
+              if (seen.has(key)) continue;
+              seen.add(key);
+              const dx = (place.lon - lon) * Math.cos((lat * Math.PI) / 180);
+              const dy = place.lat - lat;
+              place.distanceScore = dx * dx + dy * dy;
+              unique.push(place);
+            }
+            unique.sort((a,b) => a.distanceScore - b.distanceScore);
+            const results = unique.slice(0, 6);
+            if (results.length) renderSearchResults(results, localizedItemLabel);
+            else searchResults.innerHTML = `<div class="search-result-item">${getUiText("nearbyNone")}</div>`;
+            searchResults.style.display = "block";
+          } catch (err) {
+            searchResults.innerHTML = `<div class="search-result-item">${getUiText("nearbyUnavailable")}</div>`;
+            searchResults.style.display = "block";
+          }
+          return;
+        }
+
         try {
           // Reverse-geocode the saved Home first so nearby results stay inside
           // the user's actual surrounding city instead of jumping to another city.
