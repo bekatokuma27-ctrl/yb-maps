@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <title>YB-Maps</title>
     <!-- Favicon & Touch Icons -->
@@ -38,6 +38,13 @@
         margin: 0;
         padding: 0;
       }
+      /* Keep the application UI at its designed scale when supported by the browser. */
+      @supports (zoom: reset) {
+        html {
+          zoom: reset;
+        }
+      }
+
       body,
       html {
         width: 100%;
@@ -1664,7 +1671,7 @@
             "
           >
             <li>
-              <strong data-i18n="h1Title">Search &amp; Weather:</strong>
+              <strong data-i18n="h1Title">Search:</strong>
               <span data-i18n="h1Text"
                 >Type any city or country in top left bar to view results with
                 flags and live °C temperature.</span
