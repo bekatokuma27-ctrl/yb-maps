@@ -58,7 +58,6 @@
       textarea {
         font-family: inherit;
       }
-
       #map {
         width: 100%;
         height: 100%;
@@ -1314,33 +1313,138 @@
       <!-- Language Selector -->
       <div class="setting-group">
         <div class="setting-label" data-i18n="langLabel">Language</div>
-        <div class="custom-select-wrapper language-custom-select" id="lang-custom-select">
+        <div
+          class="custom-select-wrapper language-custom-select"
+          id="lang-custom-select"
+        >
           <div class="custom-select-trigger" id="lang-select-trigger">
-            <span id="lang-selected-text"><img src="https://flagcdn.com/w40/gb-eng.png" alt="" class="language-flag" />English</span>
+            <span id="lang-selected-text"
+              ><img
+                src="https://flagcdn.com/w40/gb-eng.png"
+                alt=""
+                class="language-flag"
+              />English</span
+            >
             <svg class="dropdown-chevron" viewBox="0 0 24 24">
               <path d="M6 9l6 6 6-6" />
             </svg>
           </div>
           <div class="custom-select-menu" id="lang-select-menu">
-            <div class="custom-select-option language-option" data-value="en"><img src="https://flagcdn.com/w40/gb-eng.png" alt="" class="language-flag" />English</div>
-            <div class="custom-select-option language-option" data-value="am"><img src="https://flagcdn.com/w40/et.png" alt="" class="language-flag" />Amharic (አማርኛ)</div>
-            <div class="custom-select-option language-option" data-value="om"><img src="https://flagcdn.com/w40/et.png" alt="" class="language-flag" />Afaan Oromoo</div>
-            <div class="custom-select-option language-option" data-value="es"><img src="https://flagcdn.com/w40/es.png" alt="" class="language-flag" />Spanish (Español)</div>
-            <div class="custom-select-option language-option" data-value="fr"><img src="https://flagcdn.com/w40/fr.png" alt="" class="language-flag" />French (Français)</div>
-            <div class="custom-select-option language-option" data-value="de"><img src="https://flagcdn.com/w40/de.png" alt="" class="language-flag" />German (Deutsch)</div>
-            <div class="custom-select-option language-option" data-value="ar"><img src="https://flagcdn.com/w40/sa.png" alt="" class="language-flag" />Arabic (العربية)</div>
-            <div class="custom-select-option language-option" data-value="zh"><img src="https://flagcdn.com/w40/cn.png" alt="" class="language-flag" />Chinese (中文)</div>
-            <div class="custom-select-option language-option" data-value="ja"><img src="https://flagcdn.com/w40/jp.png" alt="" class="language-flag" />Japanese (日本語)</div>
-            <div class="custom-select-option language-option" data-value="ru"><img src="https://flagcdn.com/w40/ru.png" alt="" class="language-flag" />Russian (Русский)</div>
-            <div class="custom-select-option language-option" data-value="pt"><img src="https://flagcdn.com/w40/pt.png" alt="" class="language-flag" />Portuguese (Português)</div>
-            <div class="custom-select-option language-option" data-value="hi"><img src="https://flagcdn.com/w40/in.png" alt="" class="language-flag" />Hindi (हिन्दी)</div>
-            <div class="custom-select-option language-option" data-value="it"><img src="https://flagcdn.com/w40/it.png" alt="" class="language-flag" />Italian (Italiano)</div>
-            <div class="custom-select-option language-option" data-value="tr"><img src="https://flagcdn.com/w40/tr.png" alt="" class="language-flag" />Turkish (Türkçe)</div>
-            <div class="custom-select-option language-option" data-value="ko"><img src="https://flagcdn.com/w40/kr.png" alt="" class="language-flag" />Korean (한국어)</div>
-            <div class="custom-select-option language-option" data-value="sw"><img src="https://flagcdn.com/w40/tz.png" alt="" class="language-flag" />Swahili (Kiswahili)</div>
+            <div class="custom-select-option language-option" data-value="en">
+              <img
+                src="https://flagcdn.com/w40/gb-eng.png"
+                alt=""
+                class="language-flag"
+              />English
+            </div>
+            <div class="custom-select-option language-option" data-value="am">
+              <img
+                src="https://flagcdn.com/w40/et.png"
+                alt=""
+                class="language-flag"
+              />Amharic (አማርኛ)
+            </div>
+            <div class="custom-select-option language-option" data-value="om">
+              <img
+                src="https://flagcdn.com/w40/et.png"
+                alt=""
+                class="language-flag"
+              />Afaan Oromoo
+            </div>
+            <div class="custom-select-option language-option" data-value="es">
+              <img
+                src="https://flagcdn.com/w40/es.png"
+                alt=""
+                class="language-flag"
+              />Spanish (Español)
+            </div>
+            <div class="custom-select-option language-option" data-value="fr">
+              <img
+                src="https://flagcdn.com/w40/fr.png"
+                alt=""
+                class="language-flag"
+              />French (Français)
+            </div>
+            <div class="custom-select-option language-option" data-value="de">
+              <img
+                src="https://flagcdn.com/w40/de.png"
+                alt=""
+                class="language-flag"
+              />German (Deutsch)
+            </div>
+            <div class="custom-select-option language-option" data-value="ar">
+              <img
+                src="https://flagcdn.com/w40/sa.png"
+                alt=""
+                class="language-flag"
+              />Arabic (العربية)
+            </div>
+            <div class="custom-select-option language-option" data-value="zh">
+              <img
+                src="https://flagcdn.com/w40/cn.png"
+                alt=""
+                class="language-flag"
+              />Chinese (中文)
+            </div>
+            <div class="custom-select-option language-option" data-value="ja">
+              <img
+                src="https://flagcdn.com/w40/jp.png"
+                alt=""
+                class="language-flag"
+              />Japanese (日本語)
+            </div>
+            <div class="custom-select-option language-option" data-value="ru">
+              <img
+                src="https://flagcdn.com/w40/ru.png"
+                alt=""
+                class="language-flag"
+              />Russian (Русский)
+            </div>
+            <div class="custom-select-option language-option" data-value="pt">
+              <img
+                src="https://flagcdn.com/w40/pt.png"
+                alt=""
+                class="language-flag"
+              />Portuguese (Português)
+            </div>
+            <div class="custom-select-option language-option" data-value="hi">
+              <img
+                src="https://flagcdn.com/w40/in.png"
+                alt=""
+                class="language-flag"
+              />Hindi (हिन्दी)
+            </div>
+            <div class="custom-select-option language-option" data-value="it">
+              <img
+                src="https://flagcdn.com/w40/it.png"
+                alt=""
+                class="language-flag"
+              />Italian (Italiano)
+            </div>
+            <div class="custom-select-option language-option" data-value="tr">
+              <img
+                src="https://flagcdn.com/w40/tr.png"
+                alt=""
+                class="language-flag"
+              />Turkish (Türkçe)
+            </div>
+            <div class="custom-select-option language-option" data-value="ko">
+              <img
+                src="https://flagcdn.com/w40/kr.png"
+                alt=""
+                class="language-flag"
+              />Korean (한국어)
+            </div>
+            <div class="custom-select-option language-option" data-value="sw">
+              <img
+                src="https://flagcdn.com/w40/tz.png"
+                alt=""
+                class="language-flag"
+              />Swahili (Kiswahili)
+            </div>
           </div>
         </div>
-        <select id="lang-select" class="setting-select" style="display:none;">
+        <select id="lang-select" class="setting-select" style="display: none">
           <option value="en">English</option>
           <option value="am">Amharic (አማርኛ)</option>
           <option value="om">Afaan Oromoo</option>
@@ -1459,7 +1563,8 @@
         </div>
         <div class="credits-names">
           Beka Tokuma<br />
-          <span class="credits-role" data-i18n="developer">Developer</span><br />
+          <span class="credits-role" data-i18n="developer">Developer</span
+          ><br />
           &amp;<br />
           Yomiyu Mesfin<br />
           <span class="credits-role" data-i18n="designer">Designer</span>
@@ -1559,10 +1664,10 @@
             "
           >
             <li>
-              <strong data-i18n="h1Title">Search:</strong>
+              <strong data-i18n="h1Title">Search &amp; Weather:</strong>
               <span data-i18n="h1Text"
                 >Type any city or country in top left bar to view results with
-                flags and location details.</span
+                flags and live °C temperature.</span
               >
             </li>
             <li>
@@ -1615,7 +1720,7 @@
               <strong data-i18n="h5Title">Fast Search Engine:</strong>
               <span data-i18n="h5Text"
                 >Instant location searching showing city, country, flag, and
-                location results.</span
+                live weather.</span
               >
             </li>
             <li>
@@ -1656,16 +1761,33 @@
     </div>
 
     <!-- Country Information Modal -->
-    <div id="country-info-modal" role="dialog" aria-modal="true" aria-label="Country information">
+    <div
+      id="country-info-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Country information"
+    >
       <div id="country-info-card" class="glass-ui">
-        <button id="country-info-close" type="button" aria-label="Close">×</button>
+        <button id="country-info-close" type="button" aria-label="Close">
+          ×
+        </button>
         <div id="country-info-flag-wrap" class="country-info-cell">
           <img id="country-info-flag" src="" alt="" />
         </div>
-        <div id="country-info-continent" class="country-info-cell no-right-border">Continent</div>
+        <div
+          id="country-info-continent"
+          class="country-info-cell no-right-border"
+        >
+          Continent
+        </div>
         <div id="country-info-timezone" class="country-info-cell">Timezone</div>
         <div id="country-info-country" class="country-info-cell">Country</div>
-        <div id="country-info-capital" class="country-info-cell no-bottom-border">Country capital</div>
+        <div
+          id="country-info-capital"
+          class="country-info-cell no-bottom-border"
+        >
+          Country capital
+        </div>
         <div id="country-info-economy" class="country-info-cell">
           <div id="country-info-economy-title">ECONOMY</div>
           <div id="country-info-economy-value">—</div>
@@ -1703,9 +1825,9 @@
           helpLaptop: "Laptop",
           phoneGuideTitle: "Mobile / Phone Navigation Guide:",
           laptopGuideTitle: "Desktop / Laptop Master Guide:",
-          h1Title: "Search:",
+          h1Title: "Search & Weather:",
           h1Text:
-            "Type any city or country in the top left bar to search locations with flags and details.",
+            "Type any city or country in top left bar to view results with flags and live °C temperature.",
           h2Title: "Map Views:",
           h2Text:
             "Tap layers button to choose Default, Satellite, or Satellite with Names.",
@@ -1714,9 +1836,9 @@
             "Open directions panel, click Start, then tap two locations on the map to calculate route.",
           h4Title: "Compass Alignment:",
           h4Text: "Tap compass icon anytime to re-align map to exact North.",
-          h5Title: "Fast Search:",
+          h5Title: "Fast Search Engine:",
           h5Text:
-            "Instant location searching showing city, country, and flag.",
+            "Instant location searching showing city, country, flag, and live weather.",
           h6Title: "Pan & Zoom Controls:",
           h6Text:
             "Use mouse scroll wheel or bottom zoom +/- buttons for smooth navigation.",
@@ -1749,8 +1871,8 @@
           helpLaptop: "ላፕቶፕ",
           phoneGuideTitle: "የስልክ መመሪያ:",
           laptopGuideTitle: "የላፕቶፕ መመሪያ:",
-          h1Title: "ፍለጋ:",
-          h1Text: "ማንኛውንም ከተማ ወይም ሀገር ይፈልጉ፣ ባንዲራ እና የቦታ ዝርዝሮችን ይመልከቱ።",
+          h1Title: "ፍለጋ እና አየር ሁኔታ:",
+          h1Text: "ማንኛውንም ከተማ ወይም ሀገር በመፈለግ ባንዲራ እና ወቅታዊ የሙቀት መጠን ይመልከቱ።",
           h2Title: "የካርታ እይታዎች:",
           h2Text: "መደበኛ፣ ሳተላይት ወይም ሳተላይት ከስሞች ጋር ይምረጡ።",
           h3Title: "አቅጣጫዎች:",
@@ -1758,7 +1880,7 @@
           h4Title: "ኮምፓስ alignment:",
           h4Text: "ካርታውን ወደ ሰሜን ለማስተካከል ኮምፓሱን ይጫኑ።",
           h5Title: "ፈጣን ፍለጋ:",
-          h5Text: "የከተማ፣ ሀገር እና ባንዲራ ፈጣን ፍለጋ።",
+          h5Text: "የከተማ፣ ሀገር፣ ባንዲራ እና የአየር ሁኔታ ፈጣን ፍለጋ።",
           h6Title: "ማጉያ ቁጥጥሮች:",
           h6Text: "በማውስ ወይም + / - አዝራሮች ያጉሉ።",
           h7Title: "የመንገድ እቅድ:",
@@ -1789,8 +1911,8 @@
           helpLaptop: "Laaptopii",
           phoneGuideTitle: "Qajeelfama Bilbilaa:",
           laptopGuideTitle: "Qajeelfama Kompiutaraa:",
-          h1Title: "Barbaacha:",
-          h1Text: "Magaalaa fi biyya barbaaduun faajjii fi odeeffannoo bakka ilaalaa.",
+          h1Title: "Barbaacha & Haala Qilleensaa:",
+          h1Text: "Magaalaa fi biyya barbaaduun faajjii fi ho'a °C ilaalaa.",
           h2Title: "Muldhisa Kaartaa:",
           h2Text: "Kaartaa Baramaa ykn Sateelayitii filadhaa.",
           h3Title: "Qajeelfama Karaa:",
@@ -1798,7 +1920,7 @@
           h4Title: "Koompaasii:",
           h4Text: "Koompaasii tuquun gara Kaabaatti qajeelchaa.",
           h5Title: "Barbaacha Saffisaa:",
-          h5Text: "Bakka, biyya fi faajjii saffisaan barbaadaa."
+          h5Text: "Bakka fi haala qilleensaa saffisaan barbaadaa.",
           h6Title: "Guddisuu & Xiqqessuu:",
           h6Text: "Mallattoolee + / - fayyadamaa.",
           h7Title: "Karaa Karoorsuu:",
@@ -1829,7 +1951,7 @@
           helpLaptop: "Portátil",
           phoneGuideTitle: "Guía para móviles:",
           laptopGuideTitle: "Guía para ordenador:",
-          h1Title: "Búsqueda:",
+          h1Title: "Búsqueda y Clima:",
           h1Text: "Busque cualquier ciudad con bandera y clima en °C.",
           h2Title: "Capas de mapa:",
           h2Text: "Seleccione mapa estándar o satelital.",
@@ -1869,7 +1991,7 @@
           helpLaptop: "Ordinateur",
           phoneGuideTitle: "Guide mobile:",
           laptopGuideTitle: "Guide ordinateur:",
-          h1Title: "Recherche:",
+          h1Title: "Recherche et Météo:",
           h1Text: "Cherchez une ville avec drapeau et météo en °C.",
           h2Title: "Vues de carte:",
           h2Text: "Basculez entre carte standard et satellite.",
@@ -1909,7 +2031,7 @@
           helpLaptop: "Laptop",
           phoneGuideTitle: "Anleitung für Mobilgeräte:",
           laptopGuideTitle: "Anleitung für Desktop:",
-          h1Title: "Suche:",
+          h1Title: "Suche & Wetter:",
           h1Text: "Suche nach Orten mit Flagge und Live-Temperatur in °C.",
           h2Title: "Kartenansichten:",
           h2Text: "Wählen Sie Standard oder Satellit.",
@@ -2069,7 +2191,7 @@
           helpLaptop: "Ноутбук",
           phoneGuideTitle: "Инструкция для телефона:",
           laptopGuideTitle: "Инструкция для компьютера:",
-          h1Title: "Поиск:",
+          h1Title: "Поиск и погода:",
           h1Text: "Поиск города с флагом и температурой в °C.",
           h2Title: "Слои карты:",
           h2Text: "Выбор между стандартной картой и спутником.",
@@ -2109,7 +2231,7 @@
           helpLaptop: "Computador",
           phoneGuideTitle: "Guia para Celular:",
           laptopGuideTitle: "Guia para Computador:",
-          h1Title: "Pesquisa:",
+          h1Title: "Pesquisa e Clima:",
           h1Text: "Pesquise cidades com bandeira e temperatura °C.",
           h2Title: "Modos de Mapa:",
           h2Text: "Escolha entre mapa padrão e satélite.",
@@ -2189,7 +2311,7 @@
           helpLaptop: "Computer",
           phoneGuideTitle: "Guida Smartphone:",
           laptopGuideTitle: "Guida PC:",
-          h1Title: "Ricerca:",
+          h1Title: "Ricerca e Meteo:",
           h1Text: "Cerca città per vedere bandiera e temperatura °C.",
           h2Title: "Viste Mappa:",
           h2Text: "Passa da mappa standard a satellitare.",
@@ -2229,7 +2351,7 @@
           helpLaptop: "Laptoptan",
           phoneGuideTitle: "Mobil Rehber:",
           laptopGuideTitle: "Masaüstü Rehberi:",
-          h1Title: "Arama:",
+          h1Title: "Arama ve Hava Durumu:",
           h1Text: "Bayrak ve canlı °C sıcaklık bilgisiyle arama yapın.",
           h2Title: "Harita Katmanları:",
           h2Text: "Uydu ve standart harita arasında geçiş yapın.",
@@ -2269,7 +2391,7 @@
           helpLaptop: "컴퓨터",
           phoneGuideTitle: "모바일 안내:",
           laptopGuideTitle: "컴퓨터 안내:",
-          h1Title: "검색:",
+          h1Title: "검색 및 날씨:",
           h1Text: "국기와 실시간 °C 기온을 함께 확인하세요.",
           h2Title: "지도 레이어:",
           h2Text: "기본 지도와 위성 지도를 전환하세요.",
@@ -2472,7 +2594,9 @@
 
       // Keep OpenLayers' built-in map navigation active:
       // drag to pan, mouse wheel to zoom, double-click to zoom, and pinch to zoom.
-      map.getInteractions().forEach((interaction) => interaction.setActive(true));
+      map
+        .getInteractions()
+        .forEach((interaction) => interaction.setActive(true));
 
       // Explicitly keep the map viewport touch-enabled on phones.
       const mapViewport = map.getViewport();
@@ -2547,7 +2671,7 @@
         "antarctica",
         "europe",
         "australia",
-        "oceania"
+        "oceania",
       ];
 
       let searchAbortController = null;
@@ -2629,7 +2753,7 @@
                 .filter(
                   (item) =>
                     !CONTINENTS.includes(item.name.toLowerCase().trim()) &&
-                    item.type !== "continent"
+                    item.type !== "continent",
                 );
               searchCache.set(query, results);
               const normalizedQuery = query.toLowerCase();
@@ -2675,22 +2799,118 @@
       const countryInfoClose = document.getElementById("country-info-close");
 
       const countryInfoLabels = {
-        en: { timezone: "Timezone", country: "Country", capital: "Country capital", continent: "Continent", economy: "ECONOMY" },
-        am: { timezone: "የሰዓት ዞን", country: "አገር", capital: "የአገሩ ዋና ከተማ", continent: "አህጉር", economy: "ኢኮኖሚ" },
-        om: { timezone: "Sa'aatii", country: "Biyya", capital: "Magaalaa guddoo biyya", continent: "Qaaradda", economy: "DINAGDEE" },
-        es: { timezone: "Zona horaria", country: "País", capital: "Capital", continent: "Continente", economy: "ECONOMÍA" },
-        fr: { timezone: "Fuseau horaire", country: "Pays", capital: "Capitale", continent: "Continent", economy: "ÉCONOMIE" },
-        de: { timezone: "Zeitzone", country: "Land", capital: "Hauptstadt", continent: "Kontinent", economy: "WIRTSCHAFT" },
-        ar: { timezone: "المنطقة الزمنية", country: "الدولة", capital: "عاصمة الدولة", continent: "القارة", economy: "الاقتصاد" },
-        zh: { timezone: "时区", country: "国家", capital: "国家首都", continent: "洲", economy: "经济" },
-        ja: { timezone: "タイムゾーン", country: "国", capital: "首都", continent: "大陸", economy: "経済" },
-        ru: { timezone: "Часовой пояс", country: "Страна", capital: "Столица", continent: "Континент", economy: "ЭКОНОМИКА" },
-        pt: { timezone: "Fuso horário", country: "País", capital: "Capital", continent: "Continente", economy: "ECONOMIA" },
-        hi: { timezone: "समय क्षेत्र", country: "देश", capital: "राजधानी", continent: "महाद्वीप", economy: "अर्थव्यवस्था" },
-        it: { timezone: "Fuso orario", country: "Paese", capital: "Capitale", continent: "Continente", economy: "ECONOMIA" },
-        tr: { timezone: "Saat dilimi", country: "Ülke", capital: "Başkent", continent: "Kıta", economy: "EKONOMİ" },
-        ko: { timezone: "시간대", country: "국가", capital: "수도", continent: "대륙", economy: "경제" },
-        sw: { timezone: "Saa za eneo", country: "Nchi", capital: "Mji mkuu", continent: "Bara", economy: "UCHUMI" },
+        en: {
+          timezone: "Timezone",
+          country: "Country",
+          capital: "Country capital",
+          continent: "Continent",
+          economy: "ECONOMY",
+        },
+        am: {
+          timezone: "የሰዓት ዞን",
+          country: "አገር",
+          capital: "የአገሩ ዋና ከተማ",
+          continent: "አህጉር",
+          economy: "ኢኮኖሚ",
+        },
+        om: {
+          timezone: "Sa'aatii",
+          country: "Biyya",
+          capital: "Magaalaa guddoo biyya",
+          continent: "Qaaradda",
+          economy: "DINAGDEE",
+        },
+        es: {
+          timezone: "Zona horaria",
+          country: "País",
+          capital: "Capital",
+          continent: "Continente",
+          economy: "ECONOMÍA",
+        },
+        fr: {
+          timezone: "Fuseau horaire",
+          country: "Pays",
+          capital: "Capitale",
+          continent: "Continent",
+          economy: "ÉCONOMIE",
+        },
+        de: {
+          timezone: "Zeitzone",
+          country: "Land",
+          capital: "Hauptstadt",
+          continent: "Kontinent",
+          economy: "WIRTSCHAFT",
+        },
+        ar: {
+          timezone: "المنطقة الزمنية",
+          country: "الدولة",
+          capital: "عاصمة الدولة",
+          continent: "القارة",
+          economy: "الاقتصاد",
+        },
+        zh: {
+          timezone: "时区",
+          country: "国家",
+          capital: "国家首都",
+          continent: "洲",
+          economy: "经济",
+        },
+        ja: {
+          timezone: "タイムゾーン",
+          country: "国",
+          capital: "首都",
+          continent: "大陸",
+          economy: "経済",
+        },
+        ru: {
+          timezone: "Часовой пояс",
+          country: "Страна",
+          capital: "Столица",
+          continent: "Континент",
+          economy: "ЭКОНОМИКА",
+        },
+        pt: {
+          timezone: "Fuso horário",
+          country: "País",
+          capital: "Capital",
+          continent: "Continente",
+          economy: "ECONOMIA",
+        },
+        hi: {
+          timezone: "समय क्षेत्र",
+          country: "देश",
+          capital: "राजधानी",
+          continent: "महाद्वीप",
+          economy: "अर्थव्यवस्था",
+        },
+        it: {
+          timezone: "Fuso orario",
+          country: "Paese",
+          capital: "Capitale",
+          continent: "Continente",
+          economy: "ECONOMIA",
+        },
+        tr: {
+          timezone: "Saat dilimi",
+          country: "Ülke",
+          capital: "Başkent",
+          continent: "Kıta",
+          economy: "EKONOMİ",
+        },
+        ko: {
+          timezone: "시간대",
+          country: "국가",
+          capital: "수도",
+          continent: "대륙",
+          economy: "경제",
+        },
+        sw: {
+          timezone: "Saa za eneo",
+          country: "Nchi",
+          capital: "Mji mkuu",
+          continent: "Bara",
+          economy: "UCHUMI",
+        },
       };
 
       function formatMoney(value) {
@@ -2707,44 +2927,63 @@
         const lang = localStorage.getItem("yb_lang") || "en";
         const labels = countryInfoLabels[lang] || countryInfoLabels.en;
 
-        document.getElementById("country-info-timezone").textContent = labels.timezone;
-        document.getElementById("country-info-country").textContent = labels.country;
-        document.getElementById("country-info-capital").textContent = labels.capital;
-        document.getElementById("country-info-continent").textContent = labels.continent;
-        document.getElementById("country-info-economy-title").textContent = labels.economy;
-        document.getElementById("country-info-economy-value").textContent = "Loading…";
+        document.getElementById("country-info-timezone").textContent =
+          labels.timezone;
+        document.getElementById("country-info-country").textContent =
+          labels.country;
+        document.getElementById("country-info-capital").textContent =
+          labels.capital;
+        document.getElementById("country-info-continent").textContent =
+          labels.continent;
+        document.getElementById("country-info-economy-title").textContent =
+          labels.economy;
+        document.getElementById("country-info-economy-value").textContent =
+          "Loading…";
         countryInfoModal.style.display = "flex";
 
         try {
           const code = item.countryCode.toLowerCase();
           const countryResp = await fetch(
-            `https://restcountries.com/v3.1/alpha/${encodeURIComponent(code)}`
+            `https://restcountries.com/v3.1/alpha/${encodeURIComponent(code)}`,
           );
           if (!countryResp.ok) throw new Error("Country lookup failed");
           const countryData = await countryResp.json();
-          const country = Array.isArray(countryData) ? countryData[0] : countryData;
+          const country = Array.isArray(countryData)
+            ? countryData[0]
+            : countryData;
 
-          const flagUrl = country?.flags?.png || `https://flagcdn.com/w640/${code}.png`;
+          const flagUrl =
+            country?.flags?.png || `https://flagcdn.com/w640/${code}.png`;
           const flag = document.getElementById("country-info-flag");
           flag.src = flagUrl;
           flag.alt = country?.name?.common || item.country || "Country flag";
 
-          const countryName = country?.name?.common || item.country || item.name;
+          const countryName =
+            country?.name?.common || item.country || item.name;
           const capital = country?.capital?.join(", ") || "—";
           const timezone = country?.timezones?.join(", ") || "—";
-          const continent = country?.continents?.join(", ") || country?.region || "—";
+          const continent =
+            country?.continents?.join(", ") || country?.region || "—";
 
-          document.getElementById("country-info-timezone").textContent = `${labels.timezone}: ${timezone}`;
-          document.getElementById("country-info-country").textContent = `${labels.country}: ${countryName}`;
-          document.getElementById("country-info-capital").textContent = `${labels.capital}: ${capital}`;
-          document.getElementById("country-info-continent").textContent = `${labels.continent}: ${continent}`;
+          document.getElementById("country-info-timezone").textContent =
+            `${labels.timezone}: ${timezone}`;
+          document.getElementById("country-info-country").textContent =
+            `${labels.country}: ${countryName}`;
+          document.getElementById("country-info-capital").textContent =
+            `${labels.capital}: ${capital}`;
+          document.getElementById("country-info-continent").textContent =
+            `${labels.continent}: ${continent}`;
 
           // World Bank public GDP data fills the large economy box.
           let economyText = "—";
           try {
             const [gdpResp, pcResp] = await Promise.all([
-              fetch(`https://api.worldbank.org/v2/country/${encodeURIComponent(code)}/indicator/NY.GDP.MKTP.CD?format=json&per_page=1`),
-              fetch(`https://api.worldbank.org/v2/country/${encodeURIComponent(code)}/indicator/NY.GDP.PCAP.CD?format=json&per_page=1`)
+              fetch(
+                `https://api.worldbank.org/v2/country/${encodeURIComponent(code)}/indicator/NY.GDP.MKTP.CD?format=json&per_page=1`,
+              ),
+              fetch(
+                `https://api.worldbank.org/v2/country/${encodeURIComponent(code)}/indicator/NY.GDP.PCAP.CD?format=json&per_page=1`,
+              ),
             ]);
             const gdpData = await gdpResp.json();
             const pcData = await pcResp.json();
@@ -2753,9 +2992,11 @@
             economyText = `GDP: ${formatMoney(gdp)}\nGDP per capita: ${formatMoney(perCapita)}`;
           } catch (e) {}
 
-          document.getElementById("country-info-economy-value").textContent = economyText;
+          document.getElementById("country-info-economy-value").textContent =
+            economyText;
         } catch (e) {
-          document.getElementById("country-info-economy-value").textContent = "Country information unavailable.";
+          document.getElementById("country-info-economy-value").textContent =
+            "Country information unavailable.";
         }
       }
 
@@ -2764,10 +3005,11 @@
       });
 
       countryInfoModal.addEventListener("click", (e) => {
-        if (e.target === countryInfoModal) countryInfoModal.style.display = "none";
+        if (e.target === countryInfoModal)
+          countryInfoModal.style.display = "none";
       });
 
-            async function renderSearchResults(items, query) {
+      async function renderSearchResults(items, query) {
         if (!items || items.length === 0) {
           searchResults.innerHTML =
             '<div class="search-result-item">No locations found</div>';
@@ -2887,7 +3129,7 @@
         }
 
         clearTimeout(searchDebounceTimer);
-        searchDebounceTimer = setTimeout(() => performSearch(value), 0);
+        searchDebounceTimer = setTimeout(() => performSearch(value), 80);
       });
 
       // --- ROUTING SYSTEM ---
@@ -3093,13 +3335,9 @@
         document.getElementById("settings-panel").style.display = "none";
         document.getElementById("directions-panel").style.display = "none";
         searchResults.style.display = "none";
-        document
-          .getElementById("font-custom-select")
-          .classList.remove("open");
+        document.getElementById("font-custom-select").classList.remove("open");
         closeStandalonePicker(false);
-        document
-          .getElementById("lang-custom-select")
-          .classList.remove("open");
+        document.getElementById("lang-custom-select").classList.remove("open");
         const fontMenu = document.getElementById("font-select-menu");
         const langMenu = document.getElementById("lang-select-menu");
         fontMenu.style.display = "none";
@@ -3236,9 +3474,7 @@
 
         const sourceMenu = type === "language" ? langMenu : fontMenu;
         const optionSelector =
-          type === "language"
-            ? ".language-option"
-            : ".custom-select-option";
+          type === "language" ? ".language-option" : ".custom-select-option";
 
         const optionsContainer = document.createElement("div");
         optionsContainer.style.maxHeight = "calc(100vh - 210px)";
@@ -3254,7 +3490,9 @@
               const value = sourceOption.getAttribute("data-value");
               const sourceFlag = sourceOption.querySelector("img");
               const flag = sourceFlag ? sourceFlag.cloneNode(true) : null;
-              const label = document.createTextNode(sourceOption.textContent.trim());
+              const label = document.createTextNode(
+                sourceOption.textContent.trim(),
+              );
 
               langSelectedText.innerHTML = "";
               if (flag) langSelectedText.appendChild(flag);
@@ -3298,7 +3536,7 @@
       applyStoredFont();
 
       // Zoom Controls
-      
+
       document
         .getElementById("btn-zoom-in")
         .addEventListener("click", function () {
@@ -3362,10 +3600,16 @@
       // Initialize Stored Language
       const storedLang = localStorage.getItem("yb_lang") || "en";
       langSelect.value = storedLang;
-      const storedLangOption = langWrapper.querySelector(`.language-option[data-value="${storedLang}"]`);
+      const storedLangOption = langWrapper.querySelector(
+        `.language-option[data-value="${storedLang}"]`,
+      );
       if (storedLangOption) {
-        const storedFlag = storedLangOption.querySelector("img").cloneNode(true);
-        const storedLabel = document.createTextNode(" " + storedLangOption.textContent.trim());
+        const storedFlag = storedLangOption
+          .querySelector("img")
+          .cloneNode(true);
+        const storedLabel = document.createTextNode(
+          " " + storedLangOption.textContent.trim(),
+        );
         langSelectedText.innerHTML = "";
         langSelectedText.appendChild(storedFlag);
         langSelectedText.appendChild(storedLabel);
