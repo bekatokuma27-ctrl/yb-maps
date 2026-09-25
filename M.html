@@ -197,9 +197,10 @@
       }
 
       .search-suggestion-title { padding: 6px 10px 8px; font-size: 11px; font-weight: 600; color: rgba(255,255,255,.45); text-transform: uppercase; letter-spacing: .5px; }
-      .search-suggestion-item { display:grid; grid-template-columns:34px 1fr; align-items:center; width:100%; min-height:46px; padding:6px; margin-bottom:6px; border:1px solid rgba(255,255,255,.10); border-radius:10px; background:rgba(255,255,255,.045); color:rgba(255,255,255,.58); font:inherit; font-size:11px; text-align:left; cursor:pointer; transition:background .2s ease, border-color .2s ease; }
-      .search-suggestion-item:hover { background:rgba(255,255,255,.11); border-color:rgba(255,255,255,.16); color:rgba(255,255,255,.82); }
-      .search-suggestion-icon { width:22px; height:22px; margin:0 auto; opacity:.7; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+      .search-suggestions-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+      .search-suggestion-item { display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; min-height:96px; padding:10px 7px; border:1px solid rgba(255,255,255,.10); border-radius:14px; background:rgba(255,255,255,.045); color:rgba(255,255,255,.68); font:inherit; font-size:10px; font-weight:500; line-height:1.25; text-align:center; cursor:pointer; transition:background .2s ease, border-color .2s ease, transform .2s ease; }
+      .search-suggestion-item:hover { background:rgba(255,255,255,.10); border-color:rgba(255,255,255,.18); color:rgba(255,255,255,.92); transform:translateY(-1px); }
+      .search-suggestion-icon { width:34px; height:34px; margin:0 0 8px; object-fit:contain; opacity:.88; display:block; }
 
       .profile-btn {
         overflow: hidden;
@@ -3381,34 +3382,71 @@
       }
 
       const nearbySearchCategories = [
-        { label: "Restaurants near me", query: "restaurant" },
-        { label: "Hotels near me", query: "hotel" },
-        { label: "Museums near me", query: "museum" },
-        { label: "Pharmacies near me", query: "pharmacy" },
-        { label: "ATMs near me", query: "atm" },
-        { label: "Things to do around me", query: "things to do" },
+        {
+          label: "Restaurants near me",
+          query: "restaurant",
+          icon: "https://cdn-icons-png.flaticon.com/512/710/710923.png",
+        },
+        {
+          label: "Hotels near me",
+          query: "hotel",
+          icon: "https://cdn-icons-png.flaticon.com/512/5867/5867132.png",
+        },
+        {
+          label: "Museums near me",
+          query: "museum",
+          icon: "https://cdn-icons-png.flaticon.com/512/5236/5236884.png",
+        },
+        {
+          label: "Pharmacies near me",
+          query: "pharmacy",
+          icon: "https://cdn-icons-png.flaticon.com/512/14599/14599222.png",
+        },
+        {
+          label: "Things to do around me",
+          query: "tourism",
+          icon: "https://cdn-icons-png.flaticon.com/512/7695/7695065.png",
+        },
       ];
 
       function showSearchSuggestions() {
         if (searchInput.value.trim()) return;
-        const nearbyIcons = [
-          '<svg class="search-suggestion-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5"></path><path d="M6.5 9.5V20h11V9.5"></path><path d="M9.5 20v-5h5v5"></path></svg>',
-          '<svg class="search-suggestion-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16"></path><path d="M5 10V7l2-2h10l2 2v3"></path><path d="M5 10v9h14v-9"></path><path d="M9 19v-5h6v5"></path></svg>',
-          '<svg class="search-suggestion-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5h16v14"></path><path d="M8 8h8M8 12h5"></path></svg>',
-          '<svg class="search-suggestion-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V8h16v12"></path><path d="M7 8V5h10v3M8 12h8M8 16h5"></path></svg>',
-          '<svg class="search-suggestion-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"></rect><path d="M7 9h10M7 13h4"></path></svg>',
-          '<svg class="search-suggestion-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"></path></svg>'
-        ];
-        searchResults.innerHTML = '<div class="search-suggestion-title">Nearby</div>' + nearbySearchCategories.map((item, index) => '<button class="search-suggestion-item" type="button" data-nearby-index="' + index + '">' + nearbyIcons[index] + '<span>' + item.label + '</span></button>').join("");
+
+        searchResults.innerHTML =
+          '<div class="search-suggestion-title">Nearby</div>' +
+          '<div class="search-suggestions-grid">' +
+          nearbySearchCategories
+            .map(
+              (item, index) =>
+                '<button class="search-suggestion-item" type="button" data-nearby-index="' +
+                index +
+                '">' +
+                '<img class="search-suggestion-icon" src="' +
+                item.icon +
+                '" alt="" loading="lazy" />' +
+                "<span>" +
+                item.label +
+                "</span>" +
+                "</button>",
+            )
+            .join("") +
+          "</div>";
+
         searchResults.style.display = "block";
-        searchResults.querySelectorAll(".search-suggestion-item").forEach((btn) => {
-          btn.addEventListener("click", function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            const item = nearbySearchCategories[parseInt(this.getAttribute("data-nearby-index"), 10)];
-            if (item) performNearbyCategorySearch(item);
+
+        searchResults
+          .querySelectorAll(".search-suggestion-item")
+          .forEach((btn) => {
+            btn.addEventListener("click", function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              const item =
+                nearbySearchCategories[
+                  parseInt(this.getAttribute("data-nearby-index"), 10)
+                ];
+              if (item) performNearbyCategorySearch(item);
+            });
           });
-        });
       }
 
       async function performNearbyCategorySearch(item) {
@@ -3416,31 +3454,141 @@
           showNotification("Set Home first to search nearby places.");
           return;
         }
+
         const [lon, lat] = ol.proj.toLonLat(savedHome);
         searchInput.value = item.label;
-        searchResults.innerHTML = '<div class="search-result-item">Finding nearby places...</div>';
+        searchResults.innerHTML =
+          '<div class="search-result-item">Finding nearby places...</div>';
         searchResults.style.display = "block";
+
         try {
-          const resp = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(item.query)}&lat=${lat}&lon=${lon}&limit=6`, { cache: "force-cache", priority: "high" });
-          const data = await resp.json();
-          const results = (data.features || []).map((f) => {
-            const props = f.properties || {};
-            return { name: props.name || props.city || props.country || "Location", city: props.city || props.state || props.county || "", country: props.country || "", countryCode: (props.countrycode || "").toUpperCase(), type: props.type || "", osm_value: props.osm_value || "", lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1] };
-          }).filter((place) => {
-            const nameLower = place.name.toLowerCase().trim();
-            const typeLower = (place.type || "").toLowerCase();
-            const osmVal = (place.osm_value || "").toLowerCase();
-            return !CONTINENTS.includes(nameLower) && typeLower !== "continent" && osmVal !== "continent";
-          }).slice(0, 6);
+          // Reverse-geocode the saved Home first so nearby results stay inside
+          // the user's actual surrounding city instead of jumping to another city.
+          let city = "";
+          try {
+            const reverseResp = await fetch(
+              `https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}`,
+              { cache: "force-cache", priority: "high" },
+            );
+            const reverseData = await reverseResp.json();
+            const reverseProps =
+              reverseData.features?.[0]?.properties || {};
+            city =
+              reverseProps.city ||
+              reverseProps.town ||
+              reverseProps.village ||
+              reverseProps.municipality ||
+              "";
+          } catch (reverseErr) {
+            city = "";
+          }
+
+          // Keep the search geographically bounded around Home. Photon can
+          // otherwise return a similarly named place from another city.
+          const lonPad = 0.18;
+          const latPad = 0.15;
+          const bbox = `${lon - lonPad},${lat - latPad},${lon + lonPad},${lat + latPad}`;
+
+          const queries =
+            item.query === "tourism"
+              ? ["tourism", "attraction", "leisure"]
+              : [item.query];
+
+          const allResults = [];
+
+          for (const query of queries) {
+            const url =
+              `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&lat=${lat}&lon=${lon}&bbox=${encodeURIComponent(bbox)}&limit=12`;
+            const resp = await fetch(url, {
+              cache: "force-cache",
+              priority: "high",
+            });
+            const data = await resp.json();
+
+            for (const f of data.features || []) {
+              const props = f.properties || {};
+              const coords = f.geometry?.coordinates || [];
+              if (coords.length < 2) continue;
+
+              const place = {
+                name:
+                  props.name ||
+                  props.street ||
+                  props.city ||
+                  props.country ||
+                  "Location",
+                city:
+                  props.city ||
+                  props.town ||
+                  props.village ||
+                  props.municipality ||
+                  props.state ||
+                  "",
+                country: props.country || "",
+                countryCode: (props.countrycode || "").toUpperCase(),
+                type: props.type || "",
+                osm_value: props.osm_value || "",
+                lon: coords[0],
+                lat: coords[1],
+              };
+
+              const nameLower = place.name.toLowerCase().trim();
+              const typeLower = place.type.toLowerCase();
+              const osmVal = place.osm_value.toLowerCase();
+
+              if (
+                CONTINENTS.includes(nameLower) ||
+                typeLower === "continent" ||
+                osmVal === "continent"
+              ) {
+                continue;
+              }
+
+              allResults.push(place);
+            }
+          }
+
+          // Prefer results explicitly assigned to the same city returned by
+          // reverse geocoding, then sort everything by distance from Home.
+          const unique = [];
+          const seen = new Set();
+
+          for (const place of allResults) {
+            const key =
+              `${place.name.toLowerCase()}|${place.lat.toFixed(5)}|${place.lon.toFixed(5)}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+
+            const dx = (place.lon - lon) * Math.cos((lat * Math.PI) / 180);
+            const dy = place.lat - lat;
+            place.distanceScore = dx * dx + dy * dy;
+            place.sameCity =
+              !!city &&
+              place.city &&
+              place.city.toLowerCase().trim() === city.toLowerCase().trim();
+
+            unique.push(place);
+          }
+
+          unique.sort(
+            (a, b) =>
+              Number(b.sameCity) - Number(a.sameCity) ||
+              a.distanceScore - b.distanceScore,
+          );
+
+          const results = unique.slice(0, 6);
+
           if (results.length) {
             searchCache.set(item.label.toLowerCase(), results);
             renderSearchResults(results, item.label);
           } else {
-            searchResults.innerHTML = '<div class="search-result-item">No nearby places found.</div>';
+            searchResults.innerHTML =
+              '<div class="search-result-item">No nearby places found.</div>';
             searchResults.style.display = "block";
           }
         } catch (err) {
-          searchResults.innerHTML = '<div class="search-result-item">Nearby search is unavailable right now.</div>';
+          searchResults.innerHTML =
+            '<div class="search-result-item">Nearby search is unavailable right now.</div>';
           searchResults.style.display = "block";
         }
       }
