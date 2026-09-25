@@ -58,6 +58,14 @@
       textarea {
         font-family: inherit;
       }
+
+      /* Keep YB-Maps visually at its original page scale when browser page zoom changes. */
+      html {
+        --yb-browser-zoom-compensation: 1;
+      }
+      body {
+        zoom: var(--yb-browser-zoom-compensation);
+      }
       #map {
         width: 100%;
         height: 100%;
@@ -1558,10 +1566,10 @@
             "
           >
             <li>
-              <strong data-i18n="h1Title">Search &amp; Weather:</strong>
+              <strong data-i18n="h1Title">Search:</strong>
               <span data-i18n="h1Text"
                 >Type any city or country in top left bar to view results with
-                flags and live °C temperature.</span
+                flags and location details.</span
               >
             </li>
             <li>
@@ -1614,7 +1622,7 @@
               <strong data-i18n="h5Title">Fast Search Engine:</strong>
               <span data-i18n="h5Text"
                 >Instant location searching showing city, country, flag, and
-                live weather.</span
+                location results.</span
               >
             </li>
             <li>
@@ -1702,9 +1710,9 @@
           helpLaptop: "Laptop",
           phoneGuideTitle: "Mobile / Phone Navigation Guide:",
           laptopGuideTitle: "Desktop / Laptop Master Guide:",
-          h1Title: "Search & Weather:",
+          h1Title: "Search:",
           h1Text:
-            "Type any city or country in top left bar to view results with flags and live °C temperature.",
+            "Type any city or country in the top left bar to search locations with flags and details.",
           h2Title: "Map Views:",
           h2Text:
             "Tap layers button to choose Default, Satellite, or Satellite with Names.",
@@ -1713,9 +1721,9 @@
             "Open directions panel, click Start, then tap two locations on the map to calculate route.",
           h4Title: "Compass Alignment:",
           h4Text: "Tap compass icon anytime to re-align map to exact North.",
-          h5Title: "Fast Search Engine:",
+          h5Title: "Fast Search:",
           h5Text:
-            "Instant location searching showing city, country, flag, and live weather.",
+            "Instant location searching showing city, country, and flag.",
           h6Title: "Pan & Zoom Controls:",
           h6Text:
             "Use mouse scroll wheel or bottom zoom +/- buttons for smooth navigation.",
@@ -1748,8 +1756,8 @@
           helpLaptop: "ላፕቶፕ",
           phoneGuideTitle: "የስልክ መመሪያ:",
           laptopGuideTitle: "የላፕቶፕ መመሪያ:",
-          h1Title: "ፍለጋ እና አየር ሁኔታ:",
-          h1Text: "ማንኛውንም ከተማ ወይም ሀገር በመፈለግ ባንዲራ እና ወቅታዊ የሙቀት መጠን ይመልከቱ።",
+          h1Title: "ፍለጋ:",
+          h1Text: "ማንኛውንም ከተማ ወይም ሀገር ይፈልጉ፣ ባንዲራ እና የቦታ ዝርዝሮችን ይመልከቱ።",
           h2Title: "የካርታ እይታዎች:",
           h2Text: "መደበኛ፣ ሳተላይት ወይም ሳተላይት ከስሞች ጋር ይምረጡ።",
           h3Title: "አቅጣጫዎች:",
@@ -1757,7 +1765,7 @@
           h4Title: "ኮምፓስ alignment:",
           h4Text: "ካርታውን ወደ ሰሜን ለማስተካከል ኮምፓሱን ይጫኑ።",
           h5Title: "ፈጣን ፍለጋ:",
-          h5Text: "የከተማ፣ ሀገር፣ ባንዲራ እና የአየር ሁኔታ ፈጣን ፍለጋ።",
+          h5Text: "የከተማ፣ ሀገር እና ባንዲራ ፈጣን ፍለጋ።",
           h6Title: "ማጉያ ቁጥጥሮች:",
           h6Text: "በማውስ ወይም + / - አዝራሮች ያጉሉ።",
           h7Title: "የመንገድ እቅድ:",
@@ -1788,8 +1796,8 @@
           helpLaptop: "Laaptopii",
           phoneGuideTitle: "Qajeelfama Bilbilaa:",
           laptopGuideTitle: "Qajeelfama Kompiutaraa:",
-          h1Title: "Barbaacha & Haala Qilleensaa:",
-          h1Text: "Magaalaa fi biyya barbaaduun faajjii fi ho'a °C ilaalaa.",
+          h1Title: "Barbaacha:",
+          h1Text: "Magaalaa fi biyya barbaaduun faajjii fi odeeffannoo bakka ilaalaa.",
           h2Title: "Muldhisa Kaartaa:",
           h2Text: "Kaartaa Baramaa ykn Sateelayitii filadhaa.",
           h3Title: "Qajeelfama Karaa:",
@@ -1797,7 +1805,7 @@
           h4Title: "Koompaasii:",
           h4Text: "Koompaasii tuquun gara Kaabaatti qajeelchaa.",
           h5Title: "Barbaacha Saffisaa:",
-          h5Text: "Bakka fi haala qilleensaa saffisaan barbaadaa.",
+          h5Text: "Bakka, biyya fi faajjii saffisaan barbaadaa."
           h6Title: "Guddisuu & Xiqqessuu:",
           h6Text: "Mallattoolee + / - fayyadamaa.",
           h7Title: "Karaa Karoorsuu:",
@@ -1828,7 +1836,7 @@
           helpLaptop: "Portátil",
           phoneGuideTitle: "Guía para móviles:",
           laptopGuideTitle: "Guía para ordenador:",
-          h1Title: "Búsqueda y Clima:",
+          h1Title: "Búsqueda:",
           h1Text: "Busque cualquier ciudad con bandera y clima en °C.",
           h2Title: "Capas de mapa:",
           h2Text: "Seleccione mapa estándar o satelital.",
@@ -1868,7 +1876,7 @@
           helpLaptop: "Ordinateur",
           phoneGuideTitle: "Guide mobile:",
           laptopGuideTitle: "Guide ordinateur:",
-          h1Title: "Recherche et Météo:",
+          h1Title: "Recherche:",
           h1Text: "Cherchez une ville avec drapeau et météo en °C.",
           h2Title: "Vues de carte:",
           h2Text: "Basculez entre carte standard et satellite.",
@@ -1908,7 +1916,7 @@
           helpLaptop: "Laptop",
           phoneGuideTitle: "Anleitung für Mobilgeräte:",
           laptopGuideTitle: "Anleitung für Desktop:",
-          h1Title: "Suche & Wetter:",
+          h1Title: "Suche:",
           h1Text: "Suche nach Orten mit Flagge und Live-Temperatur in °C.",
           h2Title: "Kartenansichten:",
           h2Text: "Wählen Sie Standard oder Satellit.",
@@ -2068,7 +2076,7 @@
           helpLaptop: "Ноутбук",
           phoneGuideTitle: "Инструкция для телефона:",
           laptopGuideTitle: "Инструкция для компьютера:",
-          h1Title: "Поиск и погода:",
+          h1Title: "Поиск:",
           h1Text: "Поиск города с флагом и температурой в °C.",
           h2Title: "Слои карты:",
           h2Text: "Выбор между стандартной картой и спутником.",
@@ -2108,7 +2116,7 @@
           helpLaptop: "Computador",
           phoneGuideTitle: "Guia para Celular:",
           laptopGuideTitle: "Guia para Computador:",
-          h1Title: "Pesquisa e Clima:",
+          h1Title: "Pesquisa:",
           h1Text: "Pesquise cidades com bandeira e temperatura °C.",
           h2Title: "Modos de Mapa:",
           h2Text: "Escolha entre mapa padrão e satélite.",
@@ -2188,7 +2196,7 @@
           helpLaptop: "Computer",
           phoneGuideTitle: "Guida Smartphone:",
           laptopGuideTitle: "Guida PC:",
-          h1Title: "Ricerca e Meteo:",
+          h1Title: "Ricerca:",
           h1Text: "Cerca città per vedere bandiera e temperatura °C.",
           h2Title: "Viste Mappa:",
           h2Text: "Passa da mappa standard a satellitare.",
@@ -2228,7 +2236,7 @@
           helpLaptop: "Laptoptan",
           phoneGuideTitle: "Mobil Rehber:",
           laptopGuideTitle: "Masaüstü Rehberi:",
-          h1Title: "Arama ve Hava Durumu:",
+          h1Title: "Arama:",
           h1Text: "Bayrak ve canlı °C sıcaklık bilgisiyle arama yapın.",
           h2Title: "Harita Katmanları:",
           h2Text: "Uydu ve standart harita arasında geçiş yapın.",
@@ -2268,7 +2276,7 @@
           helpLaptop: "컴퓨터",
           phoneGuideTitle: "모바일 안내:",
           laptopGuideTitle: "컴퓨터 안내:",
-          h1Title: "검색 및 날씨:",
+          h1Title: "검색:",
           h1Text: "국기와 실시간 °C 기온을 함께 확인하세요.",
           h2Title: "지도 레이어:",
           h2Text: "기본 지도와 위성 지도를 전환하세요.",
@@ -2529,6 +2537,31 @@
         if (!countryCode || countryCode.length !== 2) return "";
         const code = countryCode.toLowerCase();
         return `<img src="https://flagcdn.com/w40/${code}.png" alt="" style="width: 24px; height: 16px; object-fit: cover; border-radius: 3px; display: block;" loading="lazy">`;
+      }
+
+      // --- BROWSER ZOOM PROTECTION ---
+      // A normal webpage cannot change the browser's own 90%/110% menu value,
+      // so YB-Maps compensates its rendered page scale back to the original size.
+      const originalDevicePixelRatio = window.devicePixelRatio || 1;
+      let browserZoomResetTimer = null;
+
+      function restoreOriginalPageScale() {
+        clearTimeout(browserZoomResetTimer);
+        browserZoomResetTimer = setTimeout(() => {
+          const currentRatio = window.devicePixelRatio || originalDevicePixelRatio;
+          const compensation = originalDevicePixelRatio / currentRatio;
+          document.documentElement.style.setProperty(
+            "--yb-browser-zoom-compensation",
+            String(compensation),
+          );
+          if (typeof map !== "undefined" && map) map.updateSize();
+        }, 500);
+      }
+
+      restoreOriginalPageScale();
+      window.addEventListener("resize", restoreOriginalPageScale);
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", restoreOriginalPageScale);
       }
 
       // --- SEARCH ENGINE ---
@@ -2886,7 +2919,7 @@
         }
 
         clearTimeout(searchDebounceTimer);
-        searchDebounceTimer = setTimeout(() => performSearch(value), 80);
+        searchDebounceTimer = setTimeout(() => performSearch(value), 0);
       });
 
       // --- ROUTING SYSTEM ---
