@@ -150,6 +150,15 @@
       }
 
       /* Street View mode controls */
+      #streetview-coverage.sniper-mode,
+      #streetview-coverage.sniper-mode * {
+        cursor:
+          url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'></circle><line x1='12' y1='2' x2='12' y2='6'></line><line x1='12' y1='18' x2='12' y2='22'></line><line x1='2' y1='12' x2='6' y2='12'></line><line x1='18' y1='12' x2='22' y2='12'></line><circle cx='12' cy='12' r='2' fill='white'></circle></svg>")
+            16 16,
+          crosshair !important;
+      }
+
+
       #streetview-toggle {
         display: none;
         align-items: center;
@@ -1987,7 +1996,7 @@
           reject(new Error("Google Maps authentication failed. Check the API key, Maps JavaScript API, billing, or website restrictions."));
         const script = document.createElement("script");
         script.src =
-          "https://maps.googleapis.com/maps/api/js?key=AIzaSyB6JLBRjOnw2Quc_OYmtWhPUVIzTLSPqsA&v=weekly&loading=async&callback=__ybMapsGoogleInit";
+          "https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY_HERE&v=weekly&loading=async&callback=__ybMapsGoogleInit";
         script.async = true;
         script.defer = true;
         script.onerror = () =>
@@ -2866,20 +2875,12 @@
       function refreshStreetViewCoverage() {
         if (!streetViewMode || !googleStreetMap) return;
         syncGoogleStreetMap();
-        googleStreetMap.setOptions({
-          styles: [
-            {
-              featureType: "all",
-              elementType: "labels",
-              stylers: [{ visibility: "off" }],
-            },
-            {
-              featureType: "all",
-              elementType: "geometry",
-              stylers: [{ visibility: "off" }],
-            },
-          ],
-        });
+        if (window.google && google.maps && google.maps.event) {
+          google.maps.event.trigger(googleStreetMap, "resize");
+        }
+        if (googleStreetCoverage) {
+          googleStreetCoverage.setMap(googleStreetMap);
+        }
       }
 
       async function initializeStreetView() {
@@ -2906,6 +2907,7 @@
             streetViewControl: false,
             fullscreenControl: false,
             backgroundColor: "transparent",
+            mapTypeId: "roadmap",
             styles: [
               {
                 featureType: "all",
@@ -2913,8 +2915,8 @@
                 stylers: [{ visibility: "off" }],
               },
               {
-                featureType: "all",
-                elementType: "geometry",
+                featureType: "poi",
+                elementType: "all",
                 stylers: [{ visibility: "off" }],
               },
             ],
@@ -2924,6 +2926,7 @@
           googleStreetCoverage.setMap(googleStreetMap);
 
           googleStreetService = new StreetViewService();
+          google.maps.event.trigger(googleStreetMap, "resize");
 
           streetViewPano = new StreetViewPanorama(
             streetViewPanoramaView,
@@ -2959,8 +2962,10 @@
           streetViewToggleBtn.classList.remove("off");
           streetViewToggleBtn.textContent = "ON";
           document.getElementById("map").classList.add("sniper-mode");
+          streetViewCoverage.classList.add("sniper-mode");
           syncGoogleStreetMap();
-          showNotification("Street View coverage is ready. Click a blue road.");
+          refreshStreetViewCoverage();
+          showNotification("Street View coverage is ready. Blue roads show available Street View.");
         } else {
           streetViewMode = false;
           streetViewCoverage.style.display = "none";
@@ -2969,6 +2974,7 @@
           streetViewToggleBtn.classList.add("off");
           streetViewToggleBtn.textContent = "OFF";
           document.getElementById("map").classList.remove("sniper-mode");
+          streetViewCoverage.classList.remove("sniper-mode");
           if (streetViewPano) streetViewPano.setVisible(false);
           streetViewPanorama.classList.remove("show");
           streetViewPanorama.setAttribute("aria-hidden", "true");
@@ -3029,6 +3035,7 @@
         streetViewPanorama.setAttribute("aria-hidden", "true");
         if (streetViewMode) {
           document.getElementById("map").classList.add("sniper-mode");
+          streetViewCoverage.classList.add("sniper-mode");
         }
       });
 
