@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no"
+    />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <title>YB-Maps</title>
     <!-- Favicon & Touch Icons -->
@@ -206,98 +209,142 @@
         border-radius: 50%;
       }
 
-      /* Compass Widget Design */
+  /* Compass Widget Design - Pro Vector (Compact Needle) */
       .compass-face {
         position: relative;
-        width: 44px;
-        height: 44px;
+        width: 48px;
+        height: 48px;
         border-radius: 50%;
-        background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
-        border: 2px solid #3b82f6;
+        background: radial-gradient(
+          circle at center,
+          rgba(15, 23, 42, 0.65) 0%,
+          rgba(15, 23, 42, 0.95) 100%
+        );
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 2px solid #38bdf8;
         box-shadow:
-          inset 0 0 6px rgba(0, 0, 0, 0.8),
-          0 4px 12px rgba(0, 0, 0, 0.4);
+          0 0 14px rgba(56, 189, 248, 0.3),
+          inset 0 0 10px rgba(0, 0, 0, 0.6),
+          0 4px 16px rgba(0, 0, 0, 0.4);
         display: flex;
         align-items: center;
         justify-content: center;
         overflow: hidden;
-      }
-
-      .compass-label {
-        position: absolute;
-        font-size: 8px;
-        font-weight: 900;
-        line-height: 1;
         user-select: none;
       }
-      .compass-n {
-        top: 3px;
-        color: #ef4444;
-      }
-      .compass-e {
-        right: 4px;
-        color: rgba(255, 255, 255, 0.7);
-      }
-      .compass-s {
-        bottom: 3px;
-        color: rgba(255, 255, 255, 0.7);
-      }
-      .compass-w {
-        left: 4px;
-        color: rgba(255, 255, 255, 0.7);
-      }
 
-      .compass-needle {
+      /* Precision Sub-Ticks Around Dial */
+      .compass-face::before {
+        content: "";
         position: absolute;
-        width: 6px;
-        height: 28px;
-        top: calc(50% - 14px);
-        left: 50%;
-        margin-left: -3px;
-        transform: rotate(0rad);
-        transform-origin: 3px 14px;
-        transition: none;
-        will-change: transform;
+        inset: 2px;
+        border-radius: 50%;
+        background: repeating-conic-gradient(
+          from 0deg,
+          rgba(255, 255, 255, 0.45) 0deg 1.5deg,
+          transparent 1.5deg 30deg
+        );
+        mask: radial-gradient(circle, transparent 61%, black 62%);
+        -webkit-mask: radial-gradient(circle, transparent 61%, black 62%);
         pointer-events: none;
       }
 
+      /* Inner Accent Ring */
+      .compass-face::after {
+        content: "";
+        position: absolute;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        border: 1.5px solid rgba(56, 189, 248, 0.4);
+        pointer-events: none;
+      }
+
+      /* Cardinal Labels */
+      .compass-label {
+        position: absolute;
+        font-size: 8.5px;
+        font-weight: 800;
+        line-height: 1;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, sans-serif;
+        letter-spacing: 0.5px;
+        user-select: none;
+        z-index: 2;
+      }
+      .compass-n {
+        top: 3.5px;
+        color: #ff3b30;
+        text-shadow: 0 0 6px rgba(255, 59, 48, 0.7);
+      }
+      .compass-e {
+        right: 4.5px;
+        color: #f1f5f9;
+      }
+      .compass-s {
+        bottom: 3.5px;
+        color: #cbd5e1;
+      }
+      .compass-w {
+        left: 4.5px;
+        color: #f1f5f9;
+      }
+
+      /* Scaled-Down 3D Diamond Needle */
+      .compass-needle {
+        position: absolute;
+        width: 6px;
+        height: 24px;
+        top: calc(50% - 12px);
+        left: calc(50% - 3px);
+        transform: rotate(0rad);
+        transform-origin: 3px 12px;
+        transition: none;
+        will-change: transform;
+        pointer-events: none;
+        z-index: 3;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+      }
+
+      /* North Pointer (Split Light/Dark Red) */
       .compass-needle::before {
         content: "";
         position: absolute;
         top: 0;
         left: 0;
-        width: 0;
-        height: 0;
-        border-left: 3px solid transparent;
-        border-right: 3px solid transparent;
-        border-bottom: 14px solid #ef4444;
+        width: 6px;
+        height: 12px;
+        background: linear-gradient(90deg, #ff4b4b 50%, #dc2626 50%);
+        clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
       }
 
+      /* South Pointer (Split Light/Dark Silver) */
       .compass-needle::after {
         content: "";
         position: absolute;
         bottom: 0;
         left: 0;
-        width: 0;
-        height: 0;
-        border-left: 3px solid transparent;
-        border-right: 3px solid transparent;
-        border-top: 14px solid #3b82f6;
+        width: 6px;
+        height: 12px;
+        background: linear-gradient(90deg, #f1f5f9 50%, #94a3b8 50%);
+        clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
       }
 
+      /* Center Pivot Cap */
       .compass-center-dot {
         position: absolute;
         top: 50%;
         left: 50%;
-        width: 6px;
-        height: 6px;
+        width: 4px;
+        height: 4px;
         border-radius: 50%;
         background: #ffffff;
-        border: 1px solid #0f172a;
+        border: 1px solid rgba(15, 23, 42, 0.9);
+        box-shadow: 0 0 6px rgba(0, 0, 0, 0.8);
         transform: translate(-50%, -50%);
         z-index: 5;
       }
-
       /* Circular Action Buttons */
       .circle-btn {
         width: 56px;
@@ -2660,33 +2707,35 @@
       function updateCompassNeedle() {
         if (compassFrame !== null) return;
 
-        compassFrame = requestAnimationFrame(function animateCompass(timestamp) {
-          compassFrame = null;
+        compassFrame = requestAnimationFrame(
+          function animateCompass(timestamp) {
+            compassFrame = null;
 
-          const deltaTime = compassLastFrameTime
-            ? Math.min(timestamp - compassLastFrameTime, 50)
-            : 16.67;
-          compassLastFrameTime = timestamp;
+            const deltaTime = compassLastFrameTime
+              ? Math.min(timestamp - compassLastFrameTime, 50)
+              : 16.67;
+            compassLastFrameTime = timestamp;
 
-          const delta = normalizeAngle(
-            compassTargetRotation - compassVisualRotation,
-          );
+            const delta = normalizeAngle(
+              compassTargetRotation - compassVisualRotation,
+            );
 
-          // Smooth, frame-rate-independent follow so the needle stays centered
-          // and does not jump or glitch around West/South.
-          const smoothing = 1 - Math.exp(-deltaTime / 90);
-          compassVisualRotation += delta * smoothing;
+            // Smooth, frame-rate-independent follow so the needle stays centered
+            // and does not jump or glitch around West/South.
+            const smoothing = 1 - Math.exp(-deltaTime / 90);
+            compassVisualRotation += delta * smoothing;
 
-          compassNeedle.style.transform = `rotate(${compassVisualRotation}rad)`;
-
-          if (Math.abs(delta) > 0.0005) {
-            compassFrame = requestAnimationFrame(animateCompass);
-          } else {
-            compassVisualRotation = compassTargetRotation;
             compassNeedle.style.transform = `rotate(${compassVisualRotation}rad)`;
-            compassLastFrameTime = 0;
-          }
-        });
+
+            if (Math.abs(delta) > 0.0005) {
+              compassFrame = requestAnimationFrame(animateCompass);
+            } else {
+              compassVisualRotation = compassTargetRotation;
+              compassNeedle.style.transform = `rotate(${compassVisualRotation}rad)`;
+              compassLastFrameTime = 0;
+            }
+          },
+        );
       }
 
       map.getView().on("change:rotation", function () {
