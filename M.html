@@ -149,6 +149,117 @@
           0 20px 50px rgba(0, 0, 0, 0.5);
       }
 
+      /* Street View mode controls */
+      #streetview-coverage.sniper-mode,
+      #streetview-coverage.sniper-mode * {
+        cursor:
+          url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'></circle><line x1='12' y1='2' x2='12' y2='6'></line><line x1='12' y1='18' x2='12' y2='22'></line><line x1='2' y1='12' x2='6' y2='12'></line><line x1='18' y1='12' x2='22' y2='12'></line><circle cx='12' cy='12' r='2' fill='white'></circle></svg>")
+            16 16,
+          crosshair !important;
+      }
+
+
+      #streetview-toggle {
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        width: 320px;
+        max-width: calc(100vw - 84px);
+        min-height: 42px;
+        padding: 8px 12px 8px 16px;
+        border-radius: 21px;
+        margin-top: 0;
+        gap: 12px;
+      }
+
+      #streetview-toggle.show {
+        display: flex;
+      }
+
+      .streetview-toggle-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      #streetview-toggle-btn {
+        border: 0;
+        border-radius: 999px;
+        padding: 6px 14px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #fff;
+        background: #10b981;
+        cursor: pointer;
+      }
+
+      #streetview-toggle-btn.off {
+        background: rgba(255, 255, 255, 0.14);
+      }
+
+      #streetview-coverage {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+        display: none;
+      }
+
+      #streetview-panorama {
+        position: absolute;
+        inset: 0;
+        z-index: 3000;
+        display: none;
+        background: #05080f;
+      }
+
+      #streetview-panorama.show {
+        display: block;
+      }
+
+      #streetview-panorama-view {
+        position: absolute;
+        inset: 0;
+      }
+
+      #streetview-close {
+        position: absolute;
+        top: 18px;
+        right: 18px;
+        z-index: 3002;
+        width: 48px;
+        height: 48px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 50%;
+        background: rgba(10, 15, 25, 0.9);
+        color: #fff;
+        font-size: 28px;
+        line-height: 1;
+        cursor: pointer;
+        backdrop-filter: blur(18px);
+      }
+
+      #streetview-status {
+        position: absolute;
+        left: 50%;
+        top: 18px;
+        transform: translateX(-50%);
+        z-index: 3002;
+        padding: 10px 16px;
+        border-radius: 18px;
+        background: rgba(10, 15, 25, 0.88);
+        color: #fff;
+        font-size: 13px;
+        display: none;
+        pointer-events: none;
+      }
+
+      @media (max-width: 700px) {
+        #streetview-toggle {
+          width: min(320px, calc(100vw - 78px));
+        }
+      }
+
       #search-input {
         width: 100%;
         background: transparent;
@@ -345,20 +456,6 @@
         transform: translate(-50%, -50%);
         z-index: 5;
       }
-      /* Home location menu */
-      #home-menu { position:absolute; top:92px; left:88px; width:280px; display:none; flex-direction:column; gap:10px; padding:16px; z-index:1003; border-radius:18px; }
-      #home-menu.show { display:flex; }
-      .home-menu-title { font-size:16px; font-weight:700; color:#fff; }
-      .home-menu-description { font-size:13px; line-height:1.45; color:rgba(255,255,255,.62); }
-      .home-menu-actions { display:flex; gap:8px; }
-      .home-menu-btn { flex:1; min-height:40px; border:1px solid rgba(255,255,255,.14); border-radius:11px; background:rgba(255,255,255,.07); color:#fff; font-size:13px; font-weight:600; cursor:pointer; }
-      .home-menu-btn.primary { background:#10b981; border-color:#10b981; }
-      .home-menu-btn:hover { background:rgba(255,255,255,.14); }
-      .home-menu-btn.primary:hover { background:#059669; }
-      .home-saved-item { display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:11px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08); color:rgba(255,255,255,.9); font-size:13px; }
-      .home-saved-dot { width:8px; height:8px; border-radius:50%; background:#10b981; flex-shrink:0; }
-      @media (max-width:700px) { #home-menu { left:80px; width:min(280px,calc(100vw - 96px)); } }
-
       /* Circular Action Buttons */
       .circle-btn {
         width: 56px;
@@ -1090,6 +1187,13 @@
   <body>
     <!-- Map Container -->
     <div id="map"></div>
+    <div id="streetview-coverage" aria-hidden="true"></div>
+    <div id="streetview-panorama" aria-hidden="true">
+      <div id="streetview-panorama-view"></div>
+      <div id="streetview-status"></div>
+      <button id="streetview-close" type="button" aria-label="Close Street View">&times;</button>
+    </div>
+
     <!-- Notification Banner -->
     <div id="notification-banner"></div>
 
@@ -1118,6 +1222,12 @@
           />
           <div id="search-results"></div>
         </div>
+        <div id="streetview-toggle" class="glass-ui" aria-hidden="true">
+          <span class="streetview-toggle-label">Street View</span>
+          <button id="streetview-toggle-btn" type="button">ON</button>
+        </div>
+      </div>
+
       <div class="toolbar-buttons">
         <button
           id="compass-btn"
@@ -1134,20 +1244,6 @@
             <span class="compass-needle" id="compass-needle"></span>
             <span class="compass-center-dot"></span>
           </span>
-        </button>
-
-        <button
-          id="home-btn"
-          class="glass-ui circle-btn"
-          type="button"
-          title="Home"
-          aria-label="Home"
-        >
-          <img
-            class="toolbar-icon-img"
-            src="https://cdn-icons-png.flaticon.com/512/15665/15665454.png"
-            alt="Home"
-          />
         </button>
 
         <button
@@ -1180,6 +1276,20 @@
         </button>
 
         <button
+          id="streetview-btn"
+          class="glass-ui circle-btn"
+          type="button"
+          title="Street View"
+          aria-label="Street View"
+        >
+          <img
+            class="toolbar-icon-img"
+            src="https://cdn-icons-png.flaticon.com/512/12784/12784696.png"
+            alt="Street View"
+          />
+        </button>
+
+        <button
           id="btn-directions"
           class="glass-ui circle-btn"
           type="button"
@@ -1192,18 +1302,6 @@
             alt="Directions"
           />
         </button>
-      </div>
-    </div>
-
-    <div id="home-menu" class="glass-ui" aria-hidden="true">
-      <div class="home-menu-title">Home</div>
-      <div id="home-menu-description" class="home-menu-description">Set a home location to quickly return to it.</div>
-      <div id="home-saved-item" class="home-saved-item" style="display:none;">
-        <span class="home-saved-dot"></span><span>Home location saved</span>
-      </div>
-      <div id="home-menu-actions" class="home-menu-actions">
-        <button id="home-primary-btn" class="home-menu-btn primary" type="button">Set Home</button>
-        <button id="home-cancel-btn" class="home-menu-btn" type="button" style="display:none;">Cancel</button>
       </div>
     </div>
 
@@ -1891,7 +1989,21 @@
 
     <!-- OpenLayers JS -->
     <script src="https://cdn.jsdelivr.net/npm/ol@v10.2.1/dist/ol.js"></script>
-
+    <script>
+      window.YBMapsGoogleReady = new Promise((resolve, reject) => {
+        window.__ybMapsGoogleInit = () => resolve();
+        window.gm_authFailure = () =>
+          reject(new Error("Google Maps authentication failed. Check the API key, Maps JavaScript API, billing, or website restrictions."));
+        const script = document.createElement("script");
+        script.src =
+          "https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY_HERE&v=weekly&loading=async&callback=__ybMapsGoogleInit";
+        script.async = true;
+        script.defer = true;
+        script.onerror = () =>
+          reject(new Error("Google Maps JavaScript API failed to load."));
+        document.head.appendChild(script);
+      });
+    </script>
 
     <script>
       // Localization Dictionary (16 Languages)
@@ -2730,114 +2842,208 @@
         }
       }
 
-      // --- HOME LOCATION ---
-      const homeBtn = document.getElementById("home-btn");
-      const homeMenu = document.getElementById("home-menu");
-      const homeMenuDescription = document.getElementById("home-menu-description");
-      const homeSavedItem = document.getElementById("home-saved-item");
-      const homePrimaryBtn = document.getElementById("home-primary-btn");
-      const homeCancelBtn = document.getElementById("home-cancel-btn");
-      let savedHome = null;
-      let homeSelectionActive = false;
-      let homeClickTimer = null;
+      // --- STREET VIEW ---
+      const streetViewBtn = document.getElementById("streetview-btn");
+      const streetViewToggle = document.getElementById("streetview-toggle");
+      const streetViewToggleBtn = document.getElementById("streetview-toggle-btn");
+      const streetViewCoverage = document.getElementById("streetview-coverage");
+      const streetViewPanorama = document.getElementById("streetview-panorama");
+      const streetViewPanoramaView = document.getElementById("streetview-panorama-view");
+      const streetViewClose = document.getElementById("streetview-close");
+      const streetViewStatus = document.getElementById("streetview-status");
 
-      try {
-        const storedHome = JSON.parse(localStorage.getItem("yb_home_location") || "null");
-        if (storedHome && Array.isArray(storedHome) && storedHome.length === 2) savedHome = storedHome;
-      } catch (error) {
-        savedHome = null;
+      let streetViewMode = false;
+      let googleStreetMap = null;
+      let googleStreetCoverage = null;
+      let googleStreetService = null;
+      let streetViewPano = null;
+      let streetViewGoogleMapReady = false;
+
+      function setStreetViewStatus(message, visible = true) {
+        streetViewStatus.textContent = message;
+        streetViewStatus.style.display = visible ? "block" : "none";
       }
 
-      function renderHomeMenu() {
-        if (savedHome) {
-          homeMenuDescription.textContent = "Your home is saved. Click Home to return to it.";
-          homeSavedItem.style.display = "flex";
-          homePrimaryBtn.textContent = "Add a New Home";
-          homeCancelBtn.style.display = "none";
+      function syncGoogleStreetMap() {
+        if (!googleStreetMap) return;
+        const [lng, lat] = ol.proj.toLonLat(view.getCenter());
+        googleStreetMap.setCenter({ lat, lng });
+        const zoom = Math.max(0, Math.min(21, Math.round(view.getZoom() || 3)));
+        googleStreetMap.setZoom(zoom);
+      }
+
+      function refreshStreetViewCoverage() {
+        if (!streetViewMode || !googleStreetMap) return;
+        syncGoogleStreetMap();
+        if (window.google && google.maps && google.maps.event) {
+          google.maps.event.trigger(googleStreetMap, "resize");
+        }
+        if (googleStreetCoverage) {
+          googleStreetCoverage.setMap(googleStreetMap);
+        }
+      }
+
+      async function initializeStreetView() {
+        if (streetViewGoogleMapReady) return true;
+
+        try {
+          await window.YBMapsGoogleReady;
+
+          const [{ Map }, { StreetViewCoverageLayer, StreetViewService, StreetViewPanorama }] =
+            await Promise.all([
+              google.maps.importLibrary("maps"),
+              google.maps.importLibrary("streetView"),
+            ]);
+
+          const [lng, lat] = ol.proj.toLonLat(view.getCenter());
+
+          googleStreetMap = new Map(streetViewCoverage, {
+            center: { lat, lng },
+            zoom: Math.max(0, Math.min(21, Math.round(view.getZoom() || 3))),
+            disableDefaultUI: true,
+            clickableIcons: false,
+            gestureHandling: "none",
+            keyboardShortcuts: false,
+            streetViewControl: false,
+            fullscreenControl: false,
+            backgroundColor: "transparent",
+            mapTypeId: "roadmap",
+            styles: [
+              {
+                featureType: "all",
+                elementType: "labels",
+                stylers: [{ visibility: "off" }],
+              },
+              {
+                featureType: "poi",
+                elementType: "all",
+                stylers: [{ visibility: "off" }],
+              },
+            ],
+          });
+
+          googleStreetCoverage = new StreetViewCoverageLayer();
+          googleStreetCoverage.setMap(googleStreetMap);
+
+          googleStreetService = new StreetViewService();
+          google.maps.event.trigger(googleStreetMap, "resize");
+
+          streetViewPano = new StreetViewPanorama(
+            streetViewPanoramaView,
+            {
+              visible: false,
+              addressControl: true,
+              fullscreenControl: true,
+              linksControl: true,
+              motionTracking: false,
+              panControl: true,
+              zoomControl: true,
+            },
+          );
+
+          streetViewGoogleMapReady = true;
+          return true;
+        } catch (error) {
+          console.error("YB Maps Street View initialization failed:", error);
+          const message = error?.message || "Google Street View could not be loaded.";
+          showNotification(message, true);
+          return false;
+        }
+      }
+      async function setStreetViewMode(enabled) {
+        if (enabled) {
+          const ready = await initializeStreetView();
+          if (!ready) return;
+
+          streetViewMode = true;
+          streetViewCoverage.style.display = "block";
+          streetViewToggle.classList.add("show");
+          streetViewToggle.setAttribute("aria-hidden", "false");
+          streetViewToggleBtn.classList.remove("off");
+          streetViewToggleBtn.textContent = "ON";
+          document.getElementById("map").classList.add("sniper-mode");
+          streetViewCoverage.classList.add("sniper-mode");
+          syncGoogleStreetMap();
+          refreshStreetViewCoverage();
+          showNotification("Street View coverage is ready. Blue roads show available Street View.");
         } else {
-          homeMenuDescription.textContent = "Set a home location to quickly return to it.";
-          homeSavedItem.style.display = "none";
-          homePrimaryBtn.textContent = "Set Home";
-          homeCancelBtn.style.display = "none";
+          streetViewMode = false;
+          streetViewCoverage.style.display = "none";
+          streetViewToggle.classList.remove("show");
+          streetViewToggle.setAttribute("aria-hidden", "true");
+          streetViewToggleBtn.classList.add("off");
+          streetViewToggleBtn.textContent = "OFF";
+          document.getElementById("map").classList.remove("sniper-mode");
+          streetViewCoverage.classList.remove("sniper-mode");
+          if (streetViewPano) streetViewPano.setVisible(false);
+          streetViewPanorama.classList.remove("show");
+          streetViewPanorama.setAttribute("aria-hidden", "true");
         }
       }
 
-      function openHomeMenu(replaceMode = false) {
+      async function openStreetViewAtCoordinate(coordinate) {
+        if (!streetViewMode || !googleStreetService) return;
+
+        const [lng, lat] = ol.proj.toLonLat(coordinate);
+        setStreetViewStatus("Loading Street View...");
+
+        try {
+          const response = await googleStreetService.getPanorama({
+            location: { lat, lng },
+            radius: 50,
+            preference: google.maps.StreetViewPreference.NEAREST,
+            source: google.maps.StreetViewSource.DEFAULT,
+          });
+
+          if (!response || !response.data || !response.data.location) {
+            setStreetViewStatus("Street View is not available here.");
+            setTimeout(() => setStreetViewStatus("", false), 2200);
+            return;
+          }
+
+          const location = response.data.location;
+          streetViewPano.setPano(location.pano);
+          streetViewPano.setPosition(location.latLng);
+          streetViewPano.setPov({ heading: 0, pitch: 0 });
+          streetViewPano.setVisible(true);
+
+          streetViewPanorama.classList.add("show");
+          streetViewPanorama.setAttribute("aria-hidden", "false");
+          setStreetViewStatus("", false);
+          document.getElementById("map").classList.remove("sniper-mode");
+        } catch (error) {
+          console.error("Street View lookup failed:", error);
+          setStreetViewStatus("Street View is not available here.");
+          setTimeout(() => setStreetViewStatus("", false), 2200);
+        }
+      }
+
+      streetViewBtn.addEventListener("click", async function (e) {
+        e.stopPropagation();
         closeAllPanels();
-        renderHomeMenu();
-        homeMenu.classList.add("show");
-        homeMenu.setAttribute("aria-hidden", "false");
-        if (replaceMode) {
-          homeMenuDescription.textContent = "Choose a new location to replace your current home.";
-          homePrimaryBtn.textContent = "Add a New Home";
-          homeCancelBtn.style.display = "block";
+        await setStreetViewMode(!streetViewMode);
+      });
+
+      streetViewToggleBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        setStreetViewMode(!streetViewMode);
+      });
+
+      streetViewClose.addEventListener("click", function () {
+        if (streetViewPano) streetViewPano.setVisible(false);
+        streetViewPanorama.classList.remove("show");
+        streetViewPanorama.setAttribute("aria-hidden", "true");
+        if (streetViewMode) {
+          document.getElementById("map").classList.add("sniper-mode");
+          streetViewCoverage.classList.add("sniper-mode");
         }
-      }
-
-      function closeHomeMenu() {
-        homeMenu.classList.remove("show");
-        homeMenu.setAttribute("aria-hidden", "true");
-      }
-
-      function startHomeSelection() {
-        closeHomeMenu();
-        homeSelectionActive = true;
-        document.getElementById("map").classList.add("sniper-mode");
-        showNotification("Click your home on the map to save it.");
-      }
-
-      function goToSavedHome() {
-        if (!savedHome) return;
-        map.getView().animate({ center: savedHome, zoom: 16, duration: 600 });
-        closeHomeMenu();
-      }
-
-      function saveHomeAtCoordinate(coordinate) {
-        savedHome = coordinate.slice();
-        localStorage.setItem("yb_home_location", JSON.stringify(savedHome));
-        homeSelectionActive = false;
-        document.getElementById("map").classList.remove("sniper-mode");
-        renderHomeMenu();
-        closeHomeMenu();
-        showNotification("Home location saved.");
-      }
-
-      homePrimaryBtn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        startHomeSelection();
       });
 
-      homeCancelBtn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        closeHomeMenu();
-      });
-
-      homeBtn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        if (homeClickTimer) clearTimeout(homeClickTimer);
-        homeClickTimer = setTimeout(() => {
-          homeClickTimer = null;
-          if (savedHome) goToSavedHome();
-          else openHomeMenu(false);
-        }, 350);
-      });
-
-      homeBtn.addEventListener("dblclick", function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (homeClickTimer) {
-          clearTimeout(homeClickTimer);
-          homeClickTimer = null;
-        }
-        if (savedHome) openHomeMenu(true);
-        else openHomeMenu(false);
-      });
-
-      renderHomeMenu();
+      map.on("moveend", refreshStreetViewCoverage);
 
       map.on("click", function (evt) {
-        if (homeSelectionActive) {
-          saveHomeAtCoordinate(evt.coordinate);
+        if (streetViewMode && !isRoutingActive) {
+          openStreetViewAtCoordinate(evt.coordinate);
           return;
         }
 
@@ -3589,7 +3795,6 @@
         document.getElementById("layers-menu").style.display = "none";
         document.getElementById("settings-panel").style.display = "none";
         document.getElementById("directions-panel").style.display = "none";
-        if (!homeSelectionActive) closeHomeMenu();
         searchResults.style.display = "none";
         document.getElementById("font-custom-select").classList.remove("open");
         closeStandalonePicker(false);
@@ -3644,7 +3849,6 @@
           !layersMenu.contains(e.target) &&
           !settingsPanel.contains(e.target) &&
           !directionsPanel.contains(e.target) &&
-          !homeMenu.contains(e.target) &&
           !(standalonePicker && standalonePicker.contains(e.target))
         ) {
           closeAllPanels();
