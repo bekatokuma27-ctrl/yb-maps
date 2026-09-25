@@ -3280,20 +3280,93 @@
         return getSearchLanguage() !== "en";
       }
 
+      function normalizeSearchText(value) {
+        return String(value || "")
+          .normalize("NFKD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .replace(/[^\p{L}\p{N}]+/gu, " ")
+          .trim();
+      }
+
       async function searchLocalized(query, options = {}) {
         const lang = getSearchLanguage();
-        const params = new URLSearchParams({
-          format: "jsonv2", q: query, limit: String(options.limit || 6),
-          "accept-language": `${lang},en`, addressdetails: "1", namedetails: "1"
+        const limit = options.limit || 6;
+        const base = new URLSearchParams({
+          q: query,
+          limit: String(limit),
+          lang,
         });
-        if (options.viewbox) { params.set("viewbox", options.viewbox); params.set("bounded", "1"); }
-        const resp = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, { cache: "force-cache", priority: "high" });
-        const data = await resp.json();
-        return data.map((item) => {
-          const details = item.namedetails || {}, address = item.address || {};
-          const localizedName = details[`name:${lang}`] || details[`official_name:${lang}`] || details[`short_name:${lang}`] || item.display_name.split(",")[0];
-          return { name: localizedName, city: address.city || address.town || address.village || address.municipality || address.state || "", country: address.country || "", countryCode: (address.country_code || "").toUpperCase(), type: item.type || "", osm_value: item.category || "", lon: parseFloat(item.lon), lat: parseFloat(item.lat) };
-        }).filter((item) => !CONTINENTS.includes(item.name.toLowerCase().trim()) && item.type !== "continent");
+
+        if (options.lat != null) base.set("lat", String(options.lat));
+        if (options.lon != null) base.set("lon", String(options.lon));
+        if (options.bbox) base.set("bbox", options.bbox);
+
+        const requests = [
+          fetch(`https://photon.komoot.io/api/?${base.toString()}`, {
+            cache: "force-cache",
+            priority: "high",
+          }),
+        ];
+
+        if (lang !== "en") {
+          const english = new URLSearchParams(base);
+          english.set("lang", "en");
+          requests.push(
+            fetch(`https://photon.komoot.io/api/?${english.toString()}`, {
+              cache: "force-cache",
+              priority: "high",
+            }),
+          );
+        }
+
+        const payloads = await Promise.all(
+          (await Promise.all(requests)).map((resp) => resp.json()),
+        );
+
+        const merged = [];
+        const seen = new Set();
+
+        for (const data of payloads) {
+          for (const feature of data.features || []) {
+            const props = feature.properties || {};
+            const coords = feature.geometry?.coordinates || [];
+            if (coords.length < 2) continue;
+
+            const place = {
+              name: props.name || props.street || props.city || props.country || "Location",
+              city: props.city || props.town || props.village || props.municipality || props.state || "",
+              country: props.country || "",
+              countryCode: (props.countrycode || "").toUpperCase(),
+              type: props.type || "",
+              osm_value: props.osm_value || "",
+              lon: Number(coords[0]),
+              lat: Number(coords[1]),
+            };
+
+            if (!Number.isFinite(place.lat) || !Number.isFinite(place.lon)) continue;
+
+            const key = `${normalizeSearchText(place.name)}|${place.lat.toFixed(5)}|${place.lon.toFixed(5)}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+
+            const nameLower = normalizeSearchText(place.name);
+            const typeLower = String(place.type).toLowerCase();
+            const osmVal = String(place.osm_value).toLowerCase();
+
+            if (
+              CONTINENTS.includes(nameLower) ||
+              typeLower === "continent" ||
+              osmVal === "continent"
+            ) {
+              continue;
+            }
+
+            merged.push(place);
+          }
+        }
+
+        return merged.slice(0, limit);
       }
 
       function setLanguage(lang) {
