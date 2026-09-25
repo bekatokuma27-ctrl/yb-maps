@@ -2174,15 +2174,15 @@
           homeSavedDescription: "Manan kee olkaa'ameera. Gara isaatti deebi'uuf Mana tuqi.",
           homeSetDescription: "Bakka mana kee saffisaan deebi'uuf olkaa'i.",
           homeReplaceDescription: "Mana ammaa bakka buusuuf bakka haaraa filadhu.",
-          h9Title: "Barbaacha Naannoo",
-          h9Text: "Yeroo Mana olkaa'ame, yaadonni barbaachaa mana nyaataa, hoteelota, muziyeemota, mana qorichaa fi wantoota naannoo kee keessatti hojjetaman ni agarsiisu.",
-          h10Title: "Bu'aa Barbaachaa Dhihoo",
-          h10Text: "Bu'aa barbaachaa tuquun amma bakka filatametti dhihoo godha.",
-          nearbyRestaurants: "Mana nyaataa naannoo koo",
-          nearbyHotels: "Hoteelota naannoo koo",
-          nearbyMuseums: "Muziyeemota naannoo koo",
-          nearbyPharmacies: "Mana qorichaa naannoo koo",
-          nearbyThings: "Wantoota naannoo koo keessatti hojjetaman",
+          h9Title: "Nearby Search",
+          h9Text: "When Home is saved, search suggestions include restaurants, hotels, museums, pharmacies, and things to do around you.",
+          h10Title: "Close Search Results",
+          h10Text: "Clicking a search result now zooms closely to the selected place.",
+          nearbyRestaurants: "Restaurants near me",
+          nearbyHotels: "Hotels near me",
+          nearbyMuseums: "Museums near me",
+          nearbyPharmacies: "Pharmacies near me",
+          nearbyThings: "Things to do around me",
           bugText: "Rakkon yoo jiraate asiin nu qunnamaa:",
         },
         es: {
@@ -3276,99 +3276,6 @@
         return lang === "om" ? "om" : lang;
       }
 
-      function shouldUseLocalizedSearch() {
-        return getSearchLanguage() !== "en";
-      }
-
-      function normalizeSearchText(value) {
-        return String(value || "")
-          .normalize("NFKD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .toLowerCase()
-          .replace(/[^\p{L}\p{N}]+/gu, " ")
-          .trim();
-      }
-
-      async function searchLocalized(query, options = {}) {
-        const lang = getSearchLanguage();
-        const limit = options.limit || 6;
-        const base = new URLSearchParams({
-          q: query,
-          limit: String(limit),
-          lang,
-        });
-
-        if (options.lat != null) base.set("lat", String(options.lat));
-        if (options.lon != null) base.set("lon", String(options.lon));
-        if (options.bbox) base.set("bbox", options.bbox);
-
-        const requests = [
-          fetch(`https://photon.komoot.io/api/?${base.toString()}`, {
-            cache: "force-cache",
-            priority: "high",
-          }),
-        ];
-
-        if (lang !== "en") {
-          const english = new URLSearchParams(base);
-          english.set("lang", "en");
-          requests.push(
-            fetch(`https://photon.komoot.io/api/?${english.toString()}`, {
-              cache: "force-cache",
-              priority: "high",
-            }),
-          );
-        }
-
-        const payloads = await Promise.all(
-          (await Promise.all(requests)).map((resp) => resp.json()),
-        );
-
-        const merged = [];
-        const seen = new Set();
-
-        for (const data of payloads) {
-          for (const feature of data.features || []) {
-            const props = feature.properties || {};
-            const coords = feature.geometry?.coordinates || [];
-            if (coords.length < 2) continue;
-
-            const place = {
-              name: props.name || props.street || props.city || props.country || "Location",
-              city: props.city || props.town || props.village || props.municipality || props.state || "",
-              country: props.country || "",
-              countryCode: (props.countrycode || "").toUpperCase(),
-              type: props.type || "",
-              osm_value: props.osm_value || "",
-              lon: Number(coords[0]),
-              lat: Number(coords[1]),
-            };
-
-            if (!Number.isFinite(place.lat) || !Number.isFinite(place.lon)) continue;
-
-            const key = `${normalizeSearchText(place.name)}|${place.lat.toFixed(5)}|${place.lon.toFixed(5)}`;
-            if (seen.has(key)) continue;
-            seen.add(key);
-
-            const nameLower = normalizeSearchText(place.name);
-            const typeLower = String(place.type).toLowerCase();
-            const osmVal = String(place.osm_value).toLowerCase();
-
-            if (
-              CONTINENTS.includes(nameLower) ||
-              typeLower === "continent" ||
-              osmVal === "continent"
-            ) {
-              continue;
-            }
-
-            merged.push(place);
-          }
-        }
-
-        return merged.slice(0, limit);
-      }
-
       function setLanguage(lang) {
         if (!translations[lang]) lang = "en";
         const dict = translations[lang];
@@ -3692,27 +3599,6 @@
 
         const searchLanguage = getSearchLanguage();
         const cacheKey = `${searchLanguage}:${query.toLowerCase()}`;
-
-        if (shouldUseLocalizedSearch()) {
-          try {
-            const results = await searchLocalized(query, { limit: 6 });
-            searchCache.set(cacheKey, results);
-            const normalizedQuery = query.toLowerCase();
-            for (let i = 2; i <= normalizedQuery.length; i++) {
-              searchPrefixCache.set(
-                `${searchLanguage}:${normalizedQuery.slice(0, i)}`,
-                results,
-              );
-            }
-            renderSearchResults(results, query);
-          } catch (err) {
-            searchResults.innerHTML =
-              `<div class="search-result-item">${getUiText("noLocationsFound")}</div>`;
-            searchResults.style.display = "block";
-          }
-          return;
-        }
-
         if (searchCache.has(cacheKey)) {
           renderSearchResults(searchCache.get(cacheKey), query);
           return;
@@ -4214,90 +4100,6 @@
         searchResults.innerHTML =
           `<div class="search-result-item">${getUiText("nearbyFinding")}</div>`;
         searchResults.style.display = "block";
-
-        if (shouldUseLocalizedSearch()) {
-          try {
-            const lonPad = 0.18;
-            const latPad = 0.15;
-            const bbox = `${lon - lonPad},${lat - latPad},${lon + lonPad},${lat + latPad}`;
-            const queries =
-              item.query === "tourism"
-                ? ["tourism", "attraction", "leisure"]
-                : [item.query];
-
-            const localizedResults = [];
-            for (const q of queries) {
-              localizedResults.push(
-                ...await searchLocalized(q, { limit: 12, lat, lon, bbox }),
-              );
-            }
-
-            const unique = [];
-            const seen = new Set();
-
-            for (const place of localizedResults) {
-              const key =
-                `${normalizeSearchText(place.name)}|${place.lat.toFixed(5)}|${place.lon.toFixed(5)}`;
-              if (seen.has(key)) continue;
-              seen.add(key);
-
-              const dx =
-                (place.lon - lon) * Math.cos((lat * Math.PI) / 180);
-              const dy = place.lat - lat;
-              place.distanceScore = dx * dx + dy * dy;
-              unique.push(place);
-            }
-
-            unique.sort((a, b) => a.distanceScore - b.distanceScore);
-            const results = unique.slice(0, 6);
-
-            if (results.length) {
-              searchCache.set(
-                `${searchLanguage}:${item.label.toLowerCase()}`,
-                results,
-              );
-              renderSearchResults(results, localizedItemLabel);
-            } else {
-              searchResults.innerHTML =
-                `<div class="search-result-item">${getUiText("nearbyNone")}</div>`;
-            }
-
-            searchResults.style.display = "block";
-          } catch (err) {
-            searchResults.innerHTML =
-              `<div class="search-result-item">${getUiText("nearbyUnavailable")}</div>`;
-            searchResults.style.display = "block";
-          }
-          return;
-        }
-
-        try {
-            const viewbox = `${lon + 0.18},${lat + 0.15},${lon - 0.18},${lat - 0.15}`;
-            const queries = item.query === "tourism" ? ["tourism", "attraction", "leisure"] : [item.query];
-            const localizedResults = [];
-            for (const q of queries) localizedResults.push(...await searchLocalized(q, { limit: 12, viewbox }));
-            const unique = [];
-            const seen = new Set();
-            for (const place of localizedResults) {
-              const key = `${place.name.toLowerCase()}|${place.lat.toFixed(5)}|${place.lon.toFixed(5)}`;
-              if (seen.has(key)) continue;
-              seen.add(key);
-              const dx = (place.lon - lon) * Math.cos((lat * Math.PI) / 180);
-              const dy = place.lat - lat;
-              place.distanceScore = dx * dx + dy * dy;
-              unique.push(place);
-            }
-            unique.sort((a,b) => a.distanceScore - b.distanceScore);
-            const results = unique.slice(0, 6);
-            if (results.length) renderSearchResults(results, localizedItemLabel);
-            else searchResults.innerHTML = `<div class="search-result-item">${getUiText("nearbyNone")}</div>`;
-            searchResults.style.display = "block";
-          } catch (err) {
-            searchResults.innerHTML = `<div class="search-result-item">${getUiText("nearbyUnavailable")}</div>`;
-            searchResults.style.display = "block";
-          }
-          return;
-        }
 
         try {
           // Reverse-geocode the saved Home first so nearby results stay inside
