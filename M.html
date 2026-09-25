@@ -249,12 +249,13 @@
 
       .compass-needle {
         position: absolute;
-        width: 4px;
+        width: 6px;
         height: 28px;
         top: calc(50% - 14px);
-        left: calc(50% - 2px);
-        transform-origin: 50% 50%;
-        transition: transform 0.1s linear;
+        left: calc(50% - 3px);
+        transform-origin: center center;
+        transition: none;
+        will-change: transform;
         pointer-events: none;
       }
 
@@ -2645,16 +2646,37 @@
       // --- COMPASS & VIEW ROTATION ---
       const compassNeedle = document.getElementById("compass-needle");
       const compassBtn = document.getElementById("compass-btn");
+      let compassVisualRotation = 0;
+      let compassTargetRotation = 0;
+      let compassFrame = null;
+
+      function normalizeAngle(angle) {
+        return Math.atan2(Math.sin(angle), Math.cos(angle));
+      }
+
+      function updateCompassNeedle() {
+        if (compassFrame !== null) return;
+        compassFrame = requestAnimationFrame(() => {
+          compassFrame = null;
+
+          const delta = normalizeAngle(compassTargetRotation - compassVisualRotation);
+          compassVisualRotation += delta;
+
+          compassNeedle.style.transform = `rotate(${compassVisualRotation}rad)`;
+        });
+      }
 
       map.getView().on("change:rotation", function () {
-        const rotation = map.getView().getRotation();
-        compassNeedle.style.transform = `rotate(${-rotation}rad)`;
+        compassTargetRotation = -map.getView().getRotation();
+        updateCompassNeedle();
       });
 
       compassBtn.addEventListener("click", function () {
         map.getView().animate({ rotation: 0, duration: 350 });
         showNotification("Map aligned to North");
       });
+
+      compassNeedle.style.transform = "rotate(0rad)";
 
       // Country Flag Emoji Helper
       function getCountryFlagEmoji(countryCode) {
