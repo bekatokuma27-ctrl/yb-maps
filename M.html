@@ -251,8 +251,9 @@
         position: absolute;
         width: 6px;
         height: 28px;
-        top: calc(50% - 14px);
-        left: calc(50% - 3px);
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(0rad);
         transform-origin: center center;
         transition: none;
         will-change: transform;
@@ -2649,6 +2650,7 @@
       let compassVisualRotation = 0;
       let compassTargetRotation = 0;
       let compassFrame = null;
+      let compassLastFrameTime = 0;
 
       function normalizeAngle(angle) {
         return Math.atan2(Math.sin(angle), Math.cos(angle));
@@ -2656,13 +2658,33 @@
 
       function updateCompassNeedle() {
         if (compassFrame !== null) return;
-        compassFrame = requestAnimationFrame(() => {
+
+        compassFrame = requestAnimationFrame(function animateCompass(timestamp) {
           compassFrame = null;
 
-          const delta = normalizeAngle(compassTargetRotation - compassVisualRotation);
-          compassVisualRotation += delta;
+          const deltaTime = compassLastFrameTime
+            ? Math.min(timestamp - compassLastFrameTime, 50)
+            : 16.67;
+          compassLastFrameTime = timestamp;
 
-          compassNeedle.style.transform = `rotate(${compassVisualRotation}rad)`;
+          const delta = normalizeAngle(
+            compassTargetRotation - compassVisualRotation,
+          );
+
+          // Smooth, frame-rate-independent follow so the needle stays centered
+          // and does not jump or glitch around West/South.
+          const smoothing = 1 - Math.exp(-deltaTime / 90);
+          compassVisualRotation += delta * smoothing;
+
+          compassNeedle.style.transform = `translate(-50%, -50%) rotate(${compassVisualRotation}rad)`;
+
+          if (Math.abs(delta) > 0.0005) {
+            compassFrame = requestAnimationFrame(animateCompass);
+          } else {
+            compassVisualRotation = compassTargetRotation;
+            compassNeedle.style.transform = `translate(-50%, -50%) rotate(${compassVisualRotation}rad)`;
+            compassLastFrameTime = 0;
+          }
         });
       }
 
@@ -2676,7 +2698,7 @@
         showNotification("Map aligned to North");
       });
 
-      compassNeedle.style.transform = "rotate(0rad)";
+      compassNeedle.style.transform = "translate(-50%, -50%) rotate(0rad)";
 
       // Country Flag Emoji Helper
       function getCountryFlagEmoji(countryCode) {
