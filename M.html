@@ -59,13 +59,6 @@
         font-family: inherit;
       }
 
-      /* Keep YB-Maps visually at its original page scale when browser page zoom changes. */
-      html {
-        --yb-browser-zoom-compensation: 1;
-      }
-      body {
-        zoom: var(--yb-browser-zoom-compensation);
-      }
       #map {
         width: 100%;
         height: 100%;
@@ -2537,31 +2530,6 @@
         if (!countryCode || countryCode.length !== 2) return "";
         const code = countryCode.toLowerCase();
         return `<img src="https://flagcdn.com/w40/${code}.png" alt="" style="width: 24px; height: 16px; object-fit: cover; border-radius: 3px; display: block;" loading="lazy">`;
-      }
-
-      // --- BROWSER ZOOM PROTECTION ---
-      // A normal webpage cannot change the browser's own 90%/110% menu value,
-      // so YB-Maps compensates its rendered page scale back to the original size.
-      const originalDevicePixelRatio = window.devicePixelRatio || 1;
-      let browserZoomResetTimer = null;
-
-      function restoreOriginalPageScale() {
-        clearTimeout(browserZoomResetTimer);
-        browserZoomResetTimer = setTimeout(() => {
-          const currentRatio = window.devicePixelRatio || originalDevicePixelRatio;
-          const compensation = originalDevicePixelRatio / currentRatio;
-          document.documentElement.style.setProperty(
-            "--yb-browser-zoom-compensation",
-            String(compensation),
-          );
-          if (typeof map !== "undefined" && map) map.updateSize();
-        }, 500);
-      }
-
-      restoreOriginalPageScale();
-      window.addEventListener("resize", restoreOriginalPageScale);
-      if (window.visualViewport) {
-        window.visualViewport.addEventListener("resize", restoreOriginalPageScale);
       }
 
       // --- SEARCH ENGINE ---
