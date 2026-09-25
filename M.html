@@ -249,12 +249,12 @@
 
       .compass-needle {
         position: absolute;
-        width: 0;
+        width: 6px;
         height: 28px;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) rotate(0rad);
-        transform-origin: center center;
+        top: calc(50% - 14px);
+        left: calc(50% - 3px);
+        transform: rotate(0rad);
+        transform-origin: 3px 14px;
         transition: none;
         will-change: transform;
         pointer-events: none;
@@ -264,7 +264,7 @@
         content: "";
         position: absolute;
         top: 0;
-        left: -3px;
+        left: 0;
         width: 0;
         height: 0;
         border-left: 3px solid transparent;
@@ -276,7 +276,7 @@
         content: "";
         position: absolute;
         bottom: 0;
-        left: -3px;
+        left: 0;
         width: 0;
         height: 0;
         border-left: 3px solid transparent;
@@ -2676,13 +2676,13 @@
           const smoothing = 1 - Math.exp(-deltaTime / 90);
           compassVisualRotation += delta * smoothing;
 
-          compassNeedle.style.transform = `translate(-50%, -50%) rotate(${compassVisualRotation}rad)`;
+          compassNeedle.style.transform = `rotate(${compassVisualRotation}rad)`;
 
           if (Math.abs(delta) > 0.0005) {
             compassFrame = requestAnimationFrame(animateCompass);
           } else {
             compassVisualRotation = compassTargetRotation;
-            compassNeedle.style.transform = `translate(-50%, -50%) rotate(${compassVisualRotation}rad)`;
+            compassNeedle.style.transform = `rotate(${compassVisualRotation}rad)`;
             compassLastFrameTime = 0;
           }
         });
@@ -2698,7 +2698,7 @@
         showNotification("Map aligned to North");
       });
 
-      compassNeedle.style.transform = "translate(-50%, -50%) rotate(0rad)";
+      compassNeedle.style.transform = "rotate(0rad)";
 
       // Country Flag Emoji Helper
       function getCountryFlagEmoji(countryCode) {
