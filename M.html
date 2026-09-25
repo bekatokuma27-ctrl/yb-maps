@@ -200,7 +200,7 @@
       .search-suggestions-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
       .search-suggestion-item { display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; min-height:96px; padding:10px 7px; border:1px solid rgba(255,255,255,.10); border-radius:14px; background:rgba(255,255,255,.045); color:rgba(255,255,255,.68); font:inherit; font-size:10px; font-weight:500; line-height:1.25; text-align:center; cursor:pointer; transition:background .2s ease, border-color .2s ease, transform .2s ease; }
       .search-suggestion-item:hover { background:rgba(255,255,255,.10); border-color:rgba(255,255,255,.18); color:rgba(255,255,255,.92); transform:translateY(-1px); }
-      .search-suggestion-icon { width:34px; height:34px; margin:0 0 8px; object-fit:contain; opacity:.95; display:block; filter:brightness(0) invert(1) !important; -webkit-filter:brightness(0) invert(1) !important; }
+      .search-suggestion-icon { width:34px; height:34px; margin:0 0 8px; display:block; flex:0 0 34px; background:#fff; -webkit-mask:var(--icon-url) center / contain no-repeat; mask:var(--icon-url) center / contain no-repeat; }
 
       .profile-btn {
         overflow: hidden;
@@ -3365,7 +3365,7 @@
             const target = items[idx];
             if (target) {
               const coord = ol.proj.fromLonLat([target.lon, target.lat]);
-              map.getView().animate({ center: coord, zoom: 12, duration: 600 });
+              map.getView().animate({ center: coord, zoom: 18, duration: 600 });
 
               clearSearchPin();
               const searchPin = new ol.Feature({
@@ -3421,9 +3421,7 @@
                 '<button class="search-suggestion-item" type="button" data-nearby-index="' +
                 index +
                 '">' +
-                '<img class="search-suggestion-icon" src="' +
-                item.icon +
-                '" alt="" loading="lazy" />' +
+                '<span class="search-suggestion-icon" style="--icon-url:url(' + item.icon + ')" aria-hidden="true"></span>' +
                 "<span>" +
                 item.label +
                 "</span>" +
