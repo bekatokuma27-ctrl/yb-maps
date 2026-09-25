@@ -2178,11 +2178,11 @@
           h9Text: "When Home is saved, search suggestions include restaurants, hotels, museums, pharmacies, and things to do around you.",
           h10Title: "Close Search Results",
           h10Text: "Clicking a search result now zooms closely to the selected place.",
-          nearbyRestaurants: "Restaurants near me",
-          nearbyHotels: "Hotels near me",
-          nearbyMuseums: "Museums near me",
-          nearbyPharmacies: "Pharmacies near me",
-          nearbyThings: "Things to do around me",
+          nearbyRestaurants: "Mana nyaataa naannoo koo",
+          nearbyHotels: "Hoteelota naannoo koo",
+          nearbyMuseums: "Muziyeemota naannoo koo",
+          nearbyPharmacies: "Mana qorichaa naannoo koo",
+          nearbyThings: "Wantoota naannoo koo keessatti hojjetaman",
           bugText: "Rakkon yoo jiraate asiin nu qunnamaa:",
         },
         es: {
@@ -3608,80 +3608,97 @@
           if (searchAbortController) searchAbortController.abort();
           searchAbortController = new AbortController();
 
-          const resp = await fetch(
-            `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=6&lang=${encodeURIComponent(searchLanguage)}`,
-            {
-              signal: searchAbortController.signal,
-              cache: "force-cache",
-              priority: "high",
-            },
-          );
-          const data = await resp.json();
+          // Search with the selected language first, then English as a fallback.
+          // This lets users type normal Latin/ABCD letters even when the UI
+          // language uses another script, while still showing a translated
+          // place name whenever the map data has one.
+          const languages =
+            searchLanguage === "en" ? ["en"] : [searchLanguage, "en"];
 
-          const results = (data.features || [])
-            .map((f) => {
-              const props = f.properties;
-              return {
-                name: props.name || props.city || props.country || "Location",
-                city: props.city || props.state || props.county || "",
+          const responses = await Promise.all(
+            languages.map((lang) =>
+              fetch(
+                `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=6&lang=${encodeURIComponent(lang)}`,
+                {
+                  signal: searchAbortController.signal,
+                  cache: "force-cache",
+                  priority: "high",
+                },
+              ),
+            ),
+          );
+
+          const datasets = await Promise.all(responses.map((res) => res.json()));
+          const results = [];
+          const seen = new Set();
+
+          for (const data of datasets) {
+            for (const f of data.features || []) {
+              const props = f.properties || {};
+              const coords = f.geometry?.coordinates || [];
+              if (coords.length < 2) continue;
+
+              const place = {
+                name:
+                  props.name ||
+                  props.city ||
+                  props.country ||
+                  "Location",
+                city:
+                  props.city ||
+                  props.state ||
+                  props.county ||
+                  "",
                 country: props.country || "",
                 countryCode: (props.countrycode || "").toUpperCase(),
                 type: props.type || "",
                 osm_value: props.osm_value || "",
-                lon: f.geometry.coordinates[0],
-                lat: f.geometry.coordinates[1],
+                lon: Number(coords[0]),
+                lat: Number(coords[1]),
               };
-            })
-            // Filter out continent entries strictly
-            .filter((item) => {
-              const nameLower = item.name.toLowerCase().trim();
-              const typeLower = (item.type || "").toLowerCase();
-              const osmVal = (item.osm_value || "").toLowerCase();
-              return (
-                !CONTINENTS.includes(nameLower) &&
-                typeLower !== "continent" &&
-                osmVal !== "continent"
-              );
-            })
-            .slice(0, 6);
 
-          searchCache.set(`${searchLanguage}:${query.toLowerCase()}`, results);
+              if (!Number.isFinite(place.lon) || !Number.isFinite(place.lat)) {
+                continue;
+              }
+
+              const key =
+                `${place.name.toLowerCase()}|${place.lat.toFixed(5)}|${place.lon.toFixed(5)}`;
+              if (seen.has(key)) continue;
+              seen.add(key);
+
+              const nameLower = place.name.toLowerCase().trim();
+              const typeLower = (place.type || "").toLowerCase();
+              const osmVal = (place.osm_value || "").toLowerCase();
+
+              if (
+                CONTINENTS.includes(nameLower) ||
+                typeLower === "continent" ||
+                osmVal === "continent"
+              ) {
+                continue;
+              }
+
+              results.push(place);
+              if (results.length >= 6) break;
+            }
+            if (results.length >= 6) break;
+          }
+
+          searchCache.set(cacheKey, results);
           const normalizedQuery = query.toLowerCase();
           for (let i = 2; i <= normalizedQuery.length; i++) {
-            searchPrefixCache.set(`${searchLanguage}:${normalizedQuery.slice(0, i)}`, results);
+            searchPrefixCache.set(
+              `${searchLanguage}:${normalizedQuery.slice(0, i)}`,
+              results,
+            );
           }
+
           renderSearchResults(results, query);
         } catch (err) {
           if (err.name === "AbortError") return;
-          fetch(
-            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=6&accept-language=${encodeURIComponent(searchLanguage)}`,
-          )
-            .then((res) => res.json())
-            .then((data) => {
-              const results = data
-                .map((item) => ({
-                  name: item.display_name.split(",")[0],
-                  city: item.display_name.split(",")[0],
-                  country:
-                    item.display_name.split(",").slice(-1)[0]?.trim() || "",
-                  countryCode: (item.address?.country_code || "").toUpperCase(),
-                  type: item.type || "",
-                  lon: parseFloat(item.lon),
-                  lat: parseFloat(item.lat),
-                }))
-                .filter(
-                  (item) =>
-                    !CONTINENTS.includes(item.name.toLowerCase().trim()) &&
-                    item.type !== "continent",
-                );
-              searchCache.set(query.toLowerCase(), results);
-              const normalizedQuery = query.toLowerCase();
-              for (let i = 2; i <= normalizedQuery.length; i++) {
-                searchPrefixCache.set(normalizedQuery.slice(0, i), results);
-              }
-              renderSearchResults(results, query);
-            })
-            .catch(() => {});
+          searchResults.innerHTML =
+            `<div class="search-result-item">${getUiText("noLocationsFound")}</div>`;
+          searchResults.style.display = "block";
         }
       }
 
@@ -4102,94 +4119,83 @@
         searchResults.style.display = "block";
 
         try {
-          // Reverse-geocode the saved Home first so nearby results stay inside
-          // the user's actual surrounding city instead of jumping to another city.
-          let city = "";
-          try {
-            const reverseResp = await fetch(
-              `https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}`,
-              { cache: "force-cache", priority: "high" },
-            );
-            const reverseData = await reverseResp.json();
-            const reverseProps =
-              reverseData.features?.[0]?.properties || {};
-            city =
-              reverseProps.city ||
-              reverseProps.town ||
-              reverseProps.village ||
-              reverseProps.municipality ||
-              "";
-          } catch (reverseErr) {
-            city = "";
-          }
-
-          // Keep the search geographically bounded around Home. Photon can
-          // otherwise return a similarly named place from another city.
+          // Use the selected language first and English second. This keeps
+          // nearby search working even when a category has no translated
+          // names in the map data.
           const lonPad = 0.18;
           const latPad = 0.15;
-          const bbox = `${lon - lonPad},${lat - latPad},${lon + lonPad},${lat + latPad}`;
+          const bbox =
+            `${lon - lonPad},${lat - latPad},${lon + lonPad},${lat + latPad}`;
 
           const queries =
             item.query === "tourism"
               ? ["tourism", "attraction", "leisure"]
               : [item.query];
 
+          const languages =
+            searchLanguage === "en" ? ["en"] : [searchLanguage, "en"];
+
           const allResults = [];
 
           for (const query of queries) {
-            const url =
-              `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&lat=${lat}&lon=${lon}&bbox=${encodeURIComponent(bbox)}&limit=12&lang=${encodeURIComponent(searchLanguage)}`;
-            const resp = await fetch(url, {
-              cache: "force-cache",
-              priority: "high",
-            });
-            const data = await resp.json();
+            for (const lang of languages) {
+              const url =
+                `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&lat=${lat}&lon=${lon}&bbox=${encodeURIComponent(bbox)}&limit=12&lang=${encodeURIComponent(lang)}`;
 
-            for (const f of data.features || []) {
-              const props = f.properties || {};
-              const coords = f.geometry?.coordinates || [];
-              if (coords.length < 2) continue;
+              const resp = await fetch(url, {
+                cache: "force-cache",
+                priority: "high",
+              });
+              const data = await resp.json();
 
-              const place = {
-                name:
-                  props.name ||
-                  props.street ||
-                  props.city ||
-                  props.country ||
-                  "Location",
-                city:
-                  props.city ||
-                  props.town ||
-                  props.village ||
-                  props.municipality ||
-                  props.state ||
-                  "",
-                country: props.country || "",
-                countryCode: (props.countrycode || "").toUpperCase(),
-                type: props.type || "",
-                osm_value: props.osm_value || "",
-                lon: coords[0],
-                lat: coords[1],
-              };
+              for (const f of data.features || []) {
+                const props = f.properties || {};
+                const coords = f.geometry?.coordinates || [];
+                if (coords.length < 2) continue;
 
-              const nameLower = place.name.toLowerCase().trim();
-              const typeLower = place.type.toLowerCase();
-              const osmVal = place.osm_value.toLowerCase();
+                const place = {
+                  name:
+                    props.name ||
+                    props.street ||
+                    props.city ||
+                    props.country ||
+                    "Location",
+                  city:
+                    props.city ||
+                    props.town ||
+                    props.village ||
+                    props.municipality ||
+                    props.state ||
+                    "",
+                  country: props.country || "",
+                  countryCode: (props.countrycode || "").toUpperCase(),
+                  type: props.type || "",
+                  osm_value: props.osm_value || "",
+                  lon: Number(coords[0]),
+                  lat: Number(coords[1]),
+                };
 
-              if (
-                CONTINENTS.includes(nameLower) ||
-                typeLower === "continent" ||
-                osmVal === "continent"
-              ) {
-                continue;
+                if (!Number.isFinite(place.lon) || !Number.isFinite(place.lat)) {
+                  continue;
+                }
+
+                const nameLower = place.name.toLowerCase().trim();
+                const typeLower = place.type.toLowerCase();
+                const osmVal = place.osm_value.toLowerCase();
+
+                if (
+                  CONTINENTS.includes(nameLower) ||
+                  typeLower === "continent" ||
+                  osmVal === "continent"
+                ) {
+                  continue;
+                }
+
+                allResults.push(place);
               }
-
-              allResults.push(place);
             }
           }
 
-          // Prefer results explicitly assigned to the same city returned by
-          // reverse geocoding, then sort everything by distance from Home.
           const unique = [];
           const seen = new Set();
 
@@ -4199,33 +4205,29 @@
             if (seen.has(key)) continue;
             seen.add(key);
 
-            const dx = (place.lon - lon) * Math.cos((lat * Math.PI) / 180);
+            const dx =
+              (place.lon - lon) * Math.cos((lat * Math.PI) / 180);
             const dy = place.lat - lat;
             place.distanceScore = dx * dx + dy * dy;
-            place.sameCity =
-              !!city &&
-              place.city &&
-              place.city.toLowerCase().trim() === city.toLowerCase().trim();
-
             unique.push(place);
           }
 
-          unique.sort(
-            (a, b) =>
-              Number(b.sameCity) - Number(a.sameCity) ||
-              a.distanceScore - b.distanceScore,
-          );
+          unique.sort((a, b) => a.distanceScore - b.distanceScore);
 
           const results = unique.slice(0, 6);
 
           if (results.length) {
-            searchCache.set(`${searchLanguage}:${item.label.toLowerCase()}`, results);
-            renderSearchResults(results, item.label);
+            searchCache.set(
+              `${searchLanguage}:${item.label.toLowerCase()}`,
+              results,
+            );
+            renderSearchResults(results, localizedItemLabel);
           } else {
             searchResults.innerHTML =
               `<div class="search-result-item">${getUiText("nearbyNone")}</div>`;
-            searchResults.style.display = "block";
           }
+
+          searchResults.style.display = "block";
         } catch (err) {
           searchResults.innerHTML =
             `<div class="search-result-item">${getUiText("nearbyUnavailable")}</div>`;
