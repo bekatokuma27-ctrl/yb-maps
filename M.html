@@ -2821,6 +2821,111 @@
       }
 
 
+      // --- HOME LOCATION ---
+      const homeBtn = document.getElementById("home-btn");
+      const homeMenu = document.getElementById("home-menu");
+      const homeMenuDescription = document.getElementById("home-menu-description");
+      const homeSavedItem = document.getElementById("home-saved-item");
+      const homePrimaryBtn = document.getElementById("home-primary-btn");
+      const homeCancelBtn = document.getElementById("home-cancel-btn");
+      let savedHome = null;
+      let homeSelectionActive = false;
+      let homeClickTimer = null;
+
+      try {
+        const storedHome = JSON.parse(localStorage.getItem("yb_home_location") || "null");
+        if (storedHome && Array.isArray(storedHome) && storedHome.length === 2) savedHome = storedHome;
+      } catch (error) {
+        savedHome = null;
+      }
+
+      function renderHomeMenu() {
+        if (savedHome) {
+          homeMenuDescription.textContent = "Your home is saved. Click Home to return to it.";
+          homeSavedItem.style.display = "flex";
+          homePrimaryBtn.textContent = "Add a New Home";
+          homeCancelBtn.style.display = "none";
+        } else {
+          homeMenuDescription.textContent = "Set a home location to quickly return to it.";
+          homeSavedItem.style.display = "none";
+          homePrimaryBtn.textContent = "Set Home";
+          homeCancelBtn.style.display = "none";
+        }
+      }
+
+      function openHomeMenu(replaceMode = false) {
+        closeAllPanels();
+        renderHomeMenu();
+        homeMenu.classList.add("show");
+        homeMenu.setAttribute("aria-hidden", "false");
+        if (replaceMode) {
+          homeMenuDescription.textContent = "Choose a new location to replace your current home.";
+          homePrimaryBtn.textContent = "Add a New Home";
+          homeCancelBtn.style.display = "block";
+        }
+      }
+
+      function closeHomeMenu() {
+        homeMenu.classList.remove("show");
+        homeMenu.setAttribute("aria-hidden", "true");
+      }
+
+      function startHomeSelection() {
+        closeHomeMenu();
+        homeSelectionActive = true;
+        document.getElementById("map").classList.add("sniper-mode");
+        showNotification("Click your home on the map to save it.");
+      }
+
+      function goToSavedHome() {
+        if (!savedHome) return;
+        map.getView().animate({ center: savedHome, zoom: 19, duration: 700 });
+        closeHomeMenu();
+      }
+
+      function saveHomeAtCoordinate(coordinate) {
+        savedHome = coordinate.slice();
+        localStorage.setItem("yb_home_location", JSON.stringify(savedHome));
+        homeSelectionActive = false;
+        document.getElementById("map").classList.remove("sniper-mode");
+        renderHomeMenu();
+        closeHomeMenu();
+        showNotification("Home location saved.");
+      }
+
+      homePrimaryBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        startHomeSelection();
+      });
+
+      homeCancelBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        closeHomeMenu();
+      });
+
+      homeBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        if (homeClickTimer) clearTimeout(homeClickTimer);
+        homeClickTimer = setTimeout(() => {
+          homeClickTimer = null;
+          if (savedHome) goToSavedHome();
+          else openHomeMenu(false);
+        }, 350);
+      });
+
+      homeBtn.addEventListener("dblclick", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (homeClickTimer) {
+          clearTimeout(homeClickTimer);
+          homeClickTimer = null;
+        }
+        if (savedHome) openHomeMenu(true);
+        else openHomeMenu(false);
+      });
+
+      renderHomeMenu();
+
       // --- ROUTING SYSTEM ---
       let isRoutingActive = false;
       let routeStep = 0;
