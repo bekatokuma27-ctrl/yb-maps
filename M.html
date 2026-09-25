@@ -1982,11 +1982,16 @@
     <script src="https://cdn.jsdelivr.net/npm/ol@v10.2.1/dist/ol.js"></script>
     <script>
       window.YBMapsGoogleReady = new Promise((resolve, reject) => {
+        window.__ybMapsGoogleInit = () => resolve();
+        window.gm_authFailure = () =>
+          reject(new Error("Google Maps authentication failed. Check the API key, Maps JavaScript API, billing, or website restrictions."));
         const script = document.createElement("script");
-        script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyB6JLBRjOnw2Quc_OYmtWhPUVIzTLSPqsA&v=weekly&libraries=streetView";
+        script.src =
+          "https://maps.googleapis.com/maps/api/js?key=AIzaSyB6JLBRjOnw2Quc_OYmtWhPUVIzTLSPqsA&v=weekly&loading=async&callback=__ybMapsGoogleInit";
         script.async = true;
-        script.onload = resolve;
-        script.onerror = reject;
+        script.defer = true;
+        script.onerror = () =>
+          reject(new Error("Google Maps JavaScript API failed to load."));
         document.head.appendChild(script);
       });
     </script>
@@ -2858,48 +2863,69 @@
         googleStreetMap.setZoom(zoom);
       }
 
+      function refreshStreetViewCoverage() {
+        if (!streetViewMode || !googleStreetMap) return;
+        syncGoogleStreetMap();
+        googleStreetMap.setOptions({
+          styles: [
+            {
+              featureType: "all",
+              elementType: "labels",
+              stylers: [{ visibility: "off" }],
+            },
+            {
+              featureType: "all",
+              elementType: "geometry",
+              stylers: [{ visibility: "off" }],
+            },
+          ],
+        });
+      }
+
       async function initializeStreetView() {
         if (streetViewGoogleMapReady) return true;
 
         try {
           await window.YBMapsGoogleReady;
 
-          const transparentMapType = new google.maps.ImageMapType({
-            tileSize: new google.maps.Size(256, 256),
-            maxZoom: 21,
-            name: "YB Transparent",
-            getTile: () => {
-              const tile = document.createElement("div");
-              tile.style.width = "256px";
-              tile.style.height = "256px";
-              tile.style.background = "transparent";
-              return tile;
-            },
-          });
+          const [{ Map }, { StreetViewCoverageLayer, StreetViewService, StreetViewPanorama }] =
+            await Promise.all([
+              google.maps.importLibrary("maps"),
+              google.maps.importLibrary("streetView"),
+            ]);
 
           const [lng, lat] = ol.proj.toLonLat(view.getCenter());
 
-          googleStreetMap = new google.maps.Map(streetViewCoverage, {
+          googleStreetMap = new Map(streetViewCoverage, {
             center: { lat, lng },
             zoom: Math.max(0, Math.min(21, Math.round(view.getZoom() || 3))),
             disableDefaultUI: true,
             clickableIcons: false,
             gestureHandling: "none",
             keyboardShortcuts: false,
-            backgroundColor: "transparent",
-            mapTypeControl: false,
             streetViewControl: false,
             fullscreenControl: false,
+            backgroundColor: "transparent",
+            styles: [
+              {
+                featureType: "all",
+                elementType: "labels",
+                stylers: [{ visibility: "off" }],
+              },
+              {
+                featureType: "all",
+                elementType: "geometry",
+                stylers: [{ visibility: "off" }],
+              },
+            ],
           });
 
-          googleStreetMap.mapTypes.set("yb-transparent", transparentMapType);
-          googleStreetMap.setMapTypeId("yb-transparent");
-
-          googleStreetCoverage = new google.maps.StreetViewCoverageLayer();
+          googleStreetCoverage = new StreetViewCoverageLayer();
           googleStreetCoverage.setMap(googleStreetMap);
 
-          googleStreetService = new google.maps.StreetViewService();
-          streetViewPano = new google.maps.StreetViewPanorama(
+          googleStreetService = new StreetViewService();
+
+          streetViewPano = new StreetViewPanorama(
             streetViewPanoramaView,
             {
               visible: false,
@@ -2915,12 +2941,12 @@
           streetViewGoogleMapReady = true;
           return true;
         } catch (error) {
-          console.error("YB Maps Street View failed to initialize:", error);
-          showNotification("Street View could not be loaded.");
+          console.error("YB Maps Street View initialization failed:", error);
+          const message = error?.message || "Google Street View could not be loaded.";
+          showNotification(message, true);
           return false;
         }
       }
-
       async function setStreetViewMode(enabled) {
         if (enabled) {
           const ready = await initializeStreetView();
@@ -3006,7 +3032,7 @@
         }
       });
 
-      map.on("moveend", syncGoogleStreetMap);
+      map.on("moveend", refreshStreetViewCoverage);
 
       map.on("click", function (evt) {
         if (streetViewMode && !isRoutingActive) {
