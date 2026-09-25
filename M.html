@@ -196,10 +196,10 @@
         color: #ffffff;
       }
 
-      .search-suggestion-title { padding: 6px 10px 8px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .5px; }
-      .search-suggestion-item { display:flex; align-items:center; width:100%; padding:12px 14px; margin-bottom:4px; border:0; border-radius:12px; background:transparent; color:rgba(255,255,255,.9); font:inherit; font-size:14px; text-align:left; cursor:pointer; transition:background .2s ease; }
-      .search-suggestion-item:hover { background:rgba(255,255,255,.12); color:#fff; }
-      .search-suggestion-item span:first-child { width:28px; flex-shrink:0; opacity:.85; font-size:16px; }
+      .search-suggestion-title { padding: 6px 10px 8px; font-size: 11px; font-weight: 600; color: rgba(255,255,255,.45); text-transform: uppercase; letter-spacing: .5px; }
+      .search-suggestion-item { display:flex; align-items:center; width:100%; min-height:40px; padding:8px 10px; margin-bottom:5px; border:1px solid rgba(255,255,255,.09); border-radius:12px; background:rgba(255,255,255,.045); color:rgba(255,255,255,.58); font:inherit; font-size:11px; text-align:left; cursor:pointer; transition:background .2s ease, border-color .2s ease; }
+      .search-suggestion-item:hover { background:rgba(255,255,255,.11); border-color:rgba(255,255,255,.16); color:rgba(255,255,255,.82); }
+      .search-suggestion-icon { width:18px; height:18px; margin-right:9px; flex-shrink:0; opacity:.7; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
 
       .profile-btn {
         overflow: hidden;
@@ -3389,7 +3389,15 @@
 
       function showSearchSuggestions() {
         if (searchInput.value.trim()) return;
-        searchResults.innerHTML = '<div class="search-suggestion-title">Nearby</div>' + nearbySearchCategories.map((item, index) => '<button class="search-suggestion-item" type="button" data-nearby-index="' + index + '"><span aria-hidden="true">' + ["R","H","M","P","A","T"][index] + '</span><span>' + item.label + '</span></button>').join("");
+        const nearbyIcons = [
+          '<svg class="search-suggestion-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5"></path><path d="M6.5 9.5V20h11V9.5"></path><path d="M9.5 20v-5h5v5"></path></svg>',
+          '<svg class="search-suggestion-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16"></path><path d="M5 10V7l2-2h10l2 2v3"></path><path d="M5 10v9h14v-9"></path><path d="M9 19v-5h6v5"></path></svg>',
+          '<svg class="search-suggestion-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5h16v14"></path><path d="M8 8h8M8 12h5"></path></svg>',
+          '<svg class="search-suggestion-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V8h16v12"></path><path d="M7 8V5h10v3M8 12h8M8 16h5"></path></svg>',
+          '<svg class="search-suggestion-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"></rect><path d="M7 9h10M7 13h4"></path></svg>',
+          '<svg class="search-suggestion-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"></path></svg>'
+        ];
+        searchResults.innerHTML = '<div class="search-suggestion-title">Nearby</div>' + nearbySearchCategories.map((item, index) => '<button class="search-suggestion-item" type="button" data-nearby-index="' + index + '">' + nearbyIcons[index] + '<span>' + item.label + '</span></button>').join("");
         searchResults.style.display = "block";
         searchResults.querySelectorAll(".search-suggestion-item").forEach((btn) => {
           btn.addEventListener("click", function (e) {
@@ -3495,11 +3503,33 @@
           homeSavedItem.style.display = "flex";
           homePrimaryBtn.textContent = "Add a New Home";
           homeCancelBtn.style.display = "none";
+          if (!document.getElementById("home-remove-btn")) {
+            const removeBtn = document.createElement("button");
+            removeBtn.id = "home-remove-btn";
+            removeBtn.className = "home-menu-btn";
+            removeBtn.type = "button";
+            removeBtn.textContent = "Remove Home";
+            removeBtn.style.color = "#f87171";
+            removeBtn.style.borderColor = "rgba(248,113,113,.35)";
+            removeBtn.addEventListener("click", function (e) {
+              e.stopPropagation();
+              savedHome = null;
+              localStorage.removeItem("yb_home_location");
+              homeSelectionActive = false;
+              document.getElementById("map").classList.remove("sniper-mode");
+              renderHomeMenu();
+              closeHomeMenu();
+              showNotification("Home removed.");
+            });
+            homeMenu.querySelector(".home-menu-actions").appendChild(removeBtn);
+          }
         } else {
           homeMenuDescription.textContent = "Set a home location to quickly return to it.";
           homeSavedItem.style.display = "none";
           homePrimaryBtn.textContent = "Set Home";
           homeCancelBtn.style.display = "none";
+          const removeBtn = document.getElementById("home-remove-btn");
+          if (removeBtn) removeBtn.remove();
         }
       }
 
