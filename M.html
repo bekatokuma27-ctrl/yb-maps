@@ -167,8 +167,8 @@
         position: absolute;
         top: 66px;
         left: 0;
-        width: 360px;
-        max-width: calc(100vw - 32px);
+        width: 320px;
+        max-width: calc(100vw - 84px);
         max-height: 320px;
         overflow-y: auto;
         display: none;
@@ -700,6 +700,8 @@
 
       /* Horizontal Zoom Controls */
       #zoom-controls {
+        touch-action: manipulation;
+
         position: absolute;
         left: 50%;
         bottom: 25px;
@@ -718,6 +720,10 @@
       }
 
       .zoom-btn {
+        touch-action: manipulation;
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
         width: 52px;
         height: 42px;
         background: transparent;
@@ -3456,7 +3462,7 @@
 
       function goToSavedHome() {
         if (!savedHome) return;
-        map.getView().animate({ center: savedHome, zoom: 19, duration: 700 });
+        map.getView().animate({ center: savedHome, zoom: 20, duration: 350 });
         closeHomeMenu();
       }
 
