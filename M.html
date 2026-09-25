@@ -2174,15 +2174,15 @@
           homeSavedDescription: "Manan kee olkaa'ameera. Gara isaatti deebi'uuf Mana tuqi.",
           homeSetDescription: "Bakka mana kee saffisaan deebi'uuf olkaa'i.",
           homeReplaceDescription: "Mana ammaa bakka buusuuf bakka haaraa filadhu.",
-          h9Title: "Nearby Search",
-          h9Text: "When Home is saved, search suggestions include restaurants, hotels, museums, pharmacies, and things to do around you.",
-          h10Title: "Close Search Results",
-          h10Text: "Clicking a search result now zooms closely to the selected place.",
-          nearbyRestaurants: "Restaurants near me",
-          nearbyHotels: "Hotels near me",
-          nearbyMuseums: "Museums near me",
-          nearbyPharmacies: "Pharmacies near me",
-          nearbyThings: "Things to do around me",
+          h9Title: "Barbaacha Naannoo",
+          h9Text: "Yeroo Mana olkaa'ame, yaadonni barbaachaa mana nyaataa, hoteelota, muziyeemota, mana qorichaa fi wantoota naannoo kee keessatti hojjetaman ni agarsiisu.",
+          h10Title: "Bu'aa Barbaachaa Dhihoo",
+          h10Text: "Bu'aa barbaachaa tuquun amma bakka filatametti dhihoo godha.",
+          nearbyRestaurants: "Mana nyaataa naannoo koo",
+          nearbyHotels: "Hoteelota naannoo koo",
+          nearbyMuseums: "Muziyeemota naannoo koo",
+          nearbyPharmacies: "Mana qorichaa naannoo koo",
+          nearbyThings: "Wantoota naannoo koo keessatti hojjetaman",
           bugText: "Rakkon yoo jiraate asiin nu qunnamaa:",
         },
         es: {
@@ -3276,6 +3276,26 @@
         return lang === "om" ? "om" : lang;
       }
 
+      function shouldUseLocalizedSearch() {
+        return getSearchLanguage() !== "en";
+      }
+
+      async function searchLocalized(query, options = {}) {
+        const lang = getSearchLanguage();
+        const params = new URLSearchParams({
+          format: "jsonv2", q: query, limit: String(options.limit || 6),
+          "accept-language": `${lang},en`, addressdetails: "1", namedetails: "1"
+        });
+        if (options.viewbox) { params.set("viewbox", options.viewbox); params.set("bounded", "1"); }
+        const resp = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, { cache: "force-cache", priority: "high" });
+        const data = await resp.json();
+        return data.map((item) => {
+          const details = item.namedetails || {}, address = item.address || {};
+          const localizedName = details[`name:${lang}`] || details[`official_name:${lang}`] || details[`short_name:${lang}`] || item.display_name.split(",")[0];
+          return { name: localizedName, city: address.city || address.town || address.village || address.municipality || address.state || "", country: address.country || "", countryCode: (address.country_code || "").toUpperCase(), type: item.type || "", osm_value: item.category || "", lon: parseFloat(item.lon), lat: parseFloat(item.lat) };
+        }).filter((item) => !CONTINENTS.includes(item.name.toLowerCase().trim()) && item.type !== "continent");
+      }
+
       function setLanguage(lang) {
         if (!translations[lang]) lang = "en";
         const dict = translations[lang];
@@ -3599,6 +3619,20 @@
 
         const searchLanguage = getSearchLanguage();
         const cacheKey = `${searchLanguage}:${query.toLowerCase()}`;
+
+        if (shouldUseLocalizedSearch()) {
+          try {
+            const results = await searchLocalized(query, { limit: 6 });
+            searchCache.set(cacheKey, results);
+            const normalizedQuery = query.toLowerCase();
+            for (let i = 2; i <= normalizedQuery.length; i++) searchPrefixCache.set(`${searchLanguage}:${normalizedQuery.slice(0, i)}`, results);
+            renderSearchResults(results, query);
+          } catch (err) {
+            searchResults.innerHTML = `<div class="search-result-item">${getUiText("nearbyUnavailable")}</div>`;
+            searchResults.style.display = "block";
+          }
+          return;
+        }
         if (searchCache.has(cacheKey)) {
           renderSearchResults(searchCache.get(cacheKey), query);
           return;
