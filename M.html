@@ -149,6 +149,108 @@
           0 20px 50px rgba(0, 0, 0, 0.5);
       }
 
+      /* Street View mode controls */
+      #streetview-toggle {
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        width: 320px;
+        max-width: calc(100vw - 84px);
+        min-height: 42px;
+        padding: 8px 12px 8px 16px;
+        border-radius: 21px;
+        margin-top: 0;
+        gap: 12px;
+      }
+
+      #streetview-toggle.show {
+        display: flex;
+      }
+
+      .streetview-toggle-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      #streetview-toggle-btn {
+        border: 0;
+        border-radius: 999px;
+        padding: 6px 14px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #fff;
+        background: #10b981;
+        cursor: pointer;
+      }
+
+      #streetview-toggle-btn.off {
+        background: rgba(255, 255, 255, 0.14);
+      }
+
+      #streetview-coverage {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+        display: none;
+      }
+
+      #streetview-panorama {
+        position: absolute;
+        inset: 0;
+        z-index: 3000;
+        display: none;
+        background: #05080f;
+      }
+
+      #streetview-panorama.show {
+        display: block;
+      }
+
+      #streetview-panorama-view {
+        position: absolute;
+        inset: 0;
+      }
+
+      #streetview-close {
+        position: absolute;
+        top: 18px;
+        right: 18px;
+        z-index: 3002;
+        width: 48px;
+        height: 48px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 50%;
+        background: rgba(10, 15, 25, 0.9);
+        color: #fff;
+        font-size: 28px;
+        line-height: 1;
+        cursor: pointer;
+        backdrop-filter: blur(18px);
+      }
+
+      #streetview-status {
+        position: absolute;
+        left: 50%;
+        top: 18px;
+        transform: translateX(-50%);
+        z-index: 3002;
+        padding: 10px 16px;
+        border-radius: 18px;
+        background: rgba(10, 15, 25, 0.88);
+        color: #fff;
+        font-size: 13px;
+        display: none;
+        pointer-events: none;
+      }
+
+      @media (max-width: 700px) {
+        #streetview-toggle {
+          width: min(320px, calc(100vw - 78px));
+        }
+      }
+
       #search-input {
         width: 100%;
         background: transparent;
@@ -1076,6 +1178,12 @@
   <body>
     <!-- Map Container -->
     <div id="map"></div>
+    <div id="streetview-coverage" aria-hidden="true"></div>
+    <div id="streetview-panorama" aria-hidden="true">
+      <div id="streetview-panorama-view"></div>
+      <div id="streetview-status"></div>
+      <button id="streetview-close" type="button" aria-label="Close Street View">&times;</button>
+    </div>
 
     <!-- Notification Banner -->
     <div id="notification-banner"></div>
@@ -1104,6 +1212,10 @@
             autocomplete="off"
           />
           <div id="search-results"></div>
+        </div>
+        <div id="streetview-toggle" class="glass-ui" aria-hidden="true">
+          <span class="streetview-toggle-label">Street View</span>
+          <button id="streetview-toggle-btn" type="button">ON</button>
         </div>
       </div>
 
@@ -1151,6 +1263,20 @@
             class="toolbar-icon-img"
             src="https://cdn-icons-png.flaticon.com/512/8860/8860853.png"
             alt="Layers"
+          />
+        </button>
+
+        <button
+          id="streetview-btn"
+          class="glass-ui circle-btn"
+          type="button"
+          title="Street View"
+          aria-label="Street View"
+        >
+          <img
+            class="toolbar-icon-img"
+            src="https://cdn-icons-png.flaticon.com/512/12784/12784696.png"
+            alt="Street View"
           />
         </button>
 
@@ -1854,6 +1980,16 @@
 
     <!-- OpenLayers JS -->
     <script src="https://cdn.jsdelivr.net/npm/ol@v10.2.1/dist/ol.js"></script>
+    <script>
+      window.YBMapsGoogleReady = new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyB6JLBRjOnw2Quc_OYmtWhPUVIzTLSPqsA&v=weekly&libraries=streetView";
+        script.async = true;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+    </script>
 
     <script>
       // Localization Dictionary (16 Languages)
@@ -2692,6 +2828,217 @@
         }
       }
 
+      // --- STREET VIEW ---
+      const streetViewBtn = document.getElementById("streetview-btn");
+      const streetViewToggle = document.getElementById("streetview-toggle");
+      const streetViewToggleBtn = document.getElementById("streetview-toggle-btn");
+      const streetViewCoverage = document.getElementById("streetview-coverage");
+      const streetViewPanorama = document.getElementById("streetview-panorama");
+      const streetViewPanoramaView = document.getElementById("streetview-panorama-view");
+      const streetViewClose = document.getElementById("streetview-close");
+      const streetViewStatus = document.getElementById("streetview-status");
+
+      let streetViewMode = false;
+      let googleStreetMap = null;
+      let googleStreetCoverage = null;
+      let googleStreetService = null;
+      let streetViewPano = null;
+      let streetViewGoogleMapReady = false;
+
+      function setStreetViewStatus(message, visible = true) {
+        streetViewStatus.textContent = message;
+        streetViewStatus.style.display = visible ? "block" : "none";
+      }
+
+      function syncGoogleStreetMap() {
+        if (!googleStreetMap) return;
+        const [lng, lat] = ol.proj.toLonLat(view.getCenter());
+        googleStreetMap.setCenter({ lat, lng });
+        const zoom = Math.max(0, Math.min(21, Math.round(view.getZoom() || 3)));
+        googleStreetMap.setZoom(zoom);
+      }
+
+      async function initializeStreetView() {
+        if (streetViewGoogleMapReady) return true;
+
+        try {
+          await window.YBMapsGoogleReady;
+
+          const transparentMapType = new google.maps.ImageMapType({
+            tileSize: new google.maps.Size(256, 256),
+            maxZoom: 21,
+            name: "YB Transparent",
+            getTile: () => {
+              const tile = document.createElement("div");
+              tile.style.width = "256px";
+              tile.style.height = "256px";
+              tile.style.background = "transparent";
+              return tile;
+            },
+          });
+
+          const [lng, lat] = ol.proj.toLonLat(view.getCenter());
+
+          googleStreetMap = new google.maps.Map(streetViewCoverage, {
+            center: { lat, lng },
+            zoom: Math.max(0, Math.min(21, Math.round(view.getZoom() || 3))),
+            disableDefaultUI: true,
+            clickableIcons: false,
+            gestureHandling: "none",
+            keyboardShortcuts: false,
+            backgroundColor: "transparent",
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false,
+          });
+
+          googleStreetMap.mapTypes.set("yb-transparent", transparentMapType);
+          googleStreetMap.setMapTypeId("yb-transparent");
+
+          googleStreetCoverage = new google.maps.StreetViewCoverageLayer();
+          googleStreetCoverage.setMap(googleStreetMap);
+
+          googleStreetService = new google.maps.StreetViewService();
+          streetViewPano = new google.maps.StreetViewPanorama(
+            streetViewPanoramaView,
+            {
+              visible: false,
+              addressControl: true,
+              fullscreenControl: true,
+              linksControl: true,
+              motionTracking: false,
+              panControl: true,
+              zoomControl: true,
+            },
+          );
+
+          streetViewGoogleMapReady = true;
+          return true;
+        } catch (error) {
+          console.error("YB Maps Street View failed to initialize:", error);
+          showNotification("Street View could not be loaded.");
+          return false;
+        }
+      }
+
+      async function setStreetViewMode(enabled) {
+        if (enabled) {
+          const ready = await initializeStreetView();
+          if (!ready) return;
+
+          streetViewMode = true;
+          streetViewCoverage.style.display = "block";
+          streetViewToggle.classList.add("show");
+          streetViewToggle.setAttribute("aria-hidden", "false");
+          streetViewToggleBtn.classList.remove("off");
+          streetViewToggleBtn.textContent = "ON";
+          document.getElementById("map").classList.add("sniper-mode");
+          syncGoogleStreetMap();
+          showNotification("Street View coverage is ready. Click a blue road.");
+        } else {
+          streetViewMode = false;
+          streetViewCoverage.style.display = "none";
+          streetViewToggle.classList.remove("show");
+          streetViewToggle.setAttribute("aria-hidden", "true");
+          streetViewToggleBtn.classList.add("off");
+          streetViewToggleBtn.textContent = "OFF";
+          document.getElementById("map").classList.remove("sniper-mode");
+          if (streetViewPano) streetViewPano.setVisible(false);
+          streetViewPanorama.classList.remove("show");
+          streetViewPanorama.setAttribute("aria-hidden", "true");
+        }
+      }
+
+      async function openStreetViewAtCoordinate(coordinate) {
+        if (!streetViewMode || !googleStreetService) return;
+
+        const [lng, lat] = ol.proj.toLonLat(coordinate);
+        setStreetViewStatus("Loading Street View...");
+
+        try {
+          const response = await googleStreetService.getPanorama({
+            location: { lat, lng },
+            radius: 50,
+            preference: google.maps.StreetViewPreference.NEAREST,
+            source: google.maps.StreetViewSource.DEFAULT,
+          });
+
+          if (!response || !response.data || !response.data.location) {
+            setStreetViewStatus("Street View is not available here.");
+            setTimeout(() => setStreetViewStatus("", false), 2200);
+            return;
+          }
+
+          const location = response.data.location;
+          streetViewPano.setPano(location.pano);
+          streetViewPano.setPosition(location.latLng);
+          streetViewPano.setPov({ heading: 0, pitch: 0 });
+          streetViewPano.setVisible(true);
+
+          streetViewPanorama.classList.add("show");
+          streetViewPanorama.setAttribute("aria-hidden", "false");
+          setStreetViewStatus("", false);
+          document.getElementById("map").classList.remove("sniper-mode");
+        } catch (error) {
+          console.error("Street View lookup failed:", error);
+          setStreetViewStatus("Street View is not available here.");
+          setTimeout(() => setStreetViewStatus("", false), 2200);
+        }
+      }
+
+      streetViewBtn.addEventListener("click", async function (e) {
+        e.stopPropagation();
+        closeAllPanels();
+        await setStreetViewMode(!streetViewMode);
+      });
+
+      streetViewToggleBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        setStreetViewMode(!streetViewMode);
+      });
+
+      streetViewClose.addEventListener("click", function () {
+        if (streetViewPano) streetViewPano.setVisible(false);
+        streetViewPanorama.classList.remove("show");
+        streetViewPanorama.setAttribute("aria-hidden", "true");
+        if (streetViewMode) {
+          document.getElementById("map").classList.add("sniper-mode");
+        }
+      });
+
+      map.on("moveend", syncGoogleStreetMap);
+
+      map.on("click", function (evt) {
+        if (streetViewMode && !isRoutingActive) {
+          openStreetViewAtCoordinate(evt.coordinate);
+          return;
+        }
+
+        if (!isRoutingActive || routeStep >= 2) return;
+
+        if (routeStep === 0) {
+          departureCoord = evt.coordinate;
+          startMarkerFeature = new ol.Feature({
+            geometry: new ol.geom.Point(departureCoord),
+            type: "start-pin",
+          });
+          vectorSource.addFeature(startMarkerFeature);
+          routeStep = 1;
+          showNotification("Departure set! Click map for Destination.");
+        } else if (routeStep === 1) {
+          destinationCoord = evt.coordinate;
+          endMarkerFeature = new ol.Feature({
+            geometry: new ol.geom.Point(destinationCoord),
+            type: "end-pin",
+          });
+          vectorSource.addFeature(endMarkerFeature);
+          routeStep = 2;
+          document.getElementById("map").classList.remove("sniper-mode");
+
+          fetchRouteOSRM(departureCoord, destinationCoord);
+        }
+      });
+
       // --- COMPASS & VIEW ROTATION ---
       const compassNeedle = document.getElementById("compass-needle");
       const compassBtn = document.getElementById("compass-btn");
@@ -3296,32 +3643,6 @@
 
       btnStartRoute.addEventListener("click", startRouting);
       btnStopRoute.addEventListener("click", stopRouting);
-
-      map.on("click", function (evt) {
-        if (!isRoutingActive || routeStep >= 2) return;
-
-        if (routeStep === 0) {
-          departureCoord = evt.coordinate;
-          startMarkerFeature = new ol.Feature({
-            geometry: new ol.geom.Point(departureCoord),
-            type: "start-pin",
-          });
-          vectorSource.addFeature(startMarkerFeature);
-          routeStep = 1;
-          showNotification("Departure set! Click map for Destination.");
-        } else if (routeStep === 1) {
-          destinationCoord = evt.coordinate;
-          endMarkerFeature = new ol.Feature({
-            geometry: new ol.geom.Point(destinationCoord),
-            type: "end-pin",
-          });
-          vectorSource.addFeature(endMarkerFeature);
-          routeStep = 2;
-          document.getElementById("map").classList.remove("sniper-mode");
-
-          fetchRouteOSRM(departureCoord, destinationCoord);
-        }
-      });
 
       async function fetchRouteOSRM(start, end) {
         const startLonLat = ol.proj.toLonLat(start);
