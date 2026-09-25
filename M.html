@@ -498,6 +498,31 @@
         transform: rotate(90deg);
       }
 
+      /* Home location menu */
+      #home-menu {
+        position: absolute;
+        top: 92px;
+        left: 88px;
+        width: 280px;
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+        padding: 16px;
+        z-index: 1003;
+        border-radius: 18px;
+      }
+      #home-menu.show { display: flex; }
+      .home-menu-title { font-size: 16px; font-weight: 700; color: #fff; }
+      .home-menu-description { font-size: 13px; line-height: 1.45; color: rgba(255,255,255,.62); }
+      .home-menu-actions { display: flex; gap: 8px; }
+      .home-menu-btn { flex: 1; min-height: 40px; border: 1px solid rgba(255,255,255,.14); border-radius: 11px; background: rgba(255,255,255,.07); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+      .home-menu-btn.primary { background: #10b981; border-color: #10b981; }
+      .home-menu-btn:hover { background: rgba(255,255,255,.14); }
+      .home-menu-btn.primary:hover { background: #059669; }
+      .home-saved-item { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 11px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); color: rgba(255,255,255,.9); font-size: 13px; }
+      .home-saved-dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; flex-shrink: 0; }
+      @media (max-width: 700px) { #home-menu { left: 80px; width: min(280px,calc(100vw - 96px)); } }
+
       /* Popover Menus */
       #layers-menu,
       #settings-panel,
@@ -1247,6 +1272,20 @@
         </button>
 
         <button
+          id="home-btn"
+          class="glass-ui circle-btn"
+          type="button"
+          title="Home"
+          aria-label="Home"
+        >
+          <img
+            class="toolbar-icon-img"
+            src="https://cdn-icons-png.flaticon.com/512/15665/15665454.png"
+            alt="Home"
+          />
+        </button>
+
+        <button
           id="settings-btn"
           class="glass-ui circle-btn"
           type="button"
@@ -1302,6 +1341,19 @@
             alt="Directions"
           />
         </button>
+      </div>
+    </div>
+
+    <!-- Home Menu -->
+    <div id="home-menu" class="glass-ui" aria-hidden="true">
+      <div class="home-menu-title">Home</div>
+      <div id="home-menu-description" class="home-menu-description">Set a home location to quickly return to it.</div>
+      <div id="home-saved-item" class="home-saved-item" style="display: none;">
+        <span class="home-saved-dot"></span><span>Home location saved</span>
+      </div>
+      <div class="home-menu-actions">
+        <button id="home-primary-btn" class="home-menu-btn primary" type="button">Set Home</button>
+        <button id="home-cancel-btn" class="home-menu-btn" type="button" style="display: none;">Cancel</button>
       </div>
     </div>
 
@@ -3042,6 +3094,11 @@
       map.on("moveend", refreshStreetViewCoverage);
 
       map.on("click", function (evt) {
+        if (homeSelectionActive) {
+          saveHomeAtCoordinate(evt.coordinate);
+          return;
+        }
+
         if (streetViewMode && !isRoutingActive) {
           openStreetViewAtCoordinate(evt.coordinate);
           return;
@@ -3619,6 +3676,111 @@
         performSearch(value);
       });
 
+      // --- HOME LOCATION ---
+      const homeBtn = document.getElementById("home-btn");
+      const homeMenu = document.getElementById("home-menu");
+      const homeMenuDescription = document.getElementById("home-menu-description");
+      const homeSavedItem = document.getElementById("home-saved-item");
+      const homePrimaryBtn = document.getElementById("home-primary-btn");
+      const homeCancelBtn = document.getElementById("home-cancel-btn");
+      let savedHome = null;
+      let homeSelectionActive = false;
+      let homeClickTimer = null;
+
+      try {
+        const storedHome = JSON.parse(localStorage.getItem("yb_home_location") || "null");
+        if (storedHome && Array.isArray(storedHome) && storedHome.length === 2) savedHome = storedHome;
+      } catch (error) {
+        savedHome = null;
+      }
+
+      function renderHomeMenu() {
+        if (savedHome) {
+          homeMenuDescription.textContent = "Your home is saved. Click Home to return to it.";
+          homeSavedItem.style.display = "flex";
+          homePrimaryBtn.textContent = "Add a New Home";
+          homeCancelBtn.style.display = "none";
+        } else {
+          homeMenuDescription.textContent = "Set a home location to quickly return to it.";
+          homeSavedItem.style.display = "none";
+          homePrimaryBtn.textContent = "Set Home";
+          homeCancelBtn.style.display = "none";
+        }
+      }
+
+      function openHomeMenu(replaceMode = false) {
+        closeAllPanels();
+        renderHomeMenu();
+        homeMenu.classList.add("show");
+        homeMenu.setAttribute("aria-hidden", "false");
+        if (replaceMode) {
+          homeMenuDescription.textContent = "Choose a new location to replace your current home.";
+          homePrimaryBtn.textContent = "Add a New Home";
+          homeCancelBtn.style.display = "block";
+        }
+      }
+
+      function closeHomeMenu() {
+        homeMenu.classList.remove("show");
+        homeMenu.setAttribute("aria-hidden", "true");
+      }
+
+      function startHomeSelection() {
+        closeHomeMenu();
+        homeSelectionActive = true;
+        document.getElementById("map").classList.add("sniper-mode");
+        showNotification("Click your home on the map to save it.");
+      }
+
+      function goToSavedHome() {
+        if (!savedHome) return;
+        map.getView().animate({ center: savedHome, zoom: 16, duration: 600 });
+        closeHomeMenu();
+      }
+
+      function saveHomeAtCoordinate(coordinate) {
+        savedHome = coordinate.slice();
+        localStorage.setItem("yb_home_location", JSON.stringify(savedHome));
+        homeSelectionActive = false;
+        document.getElementById("map").classList.remove("sniper-mode");
+        renderHomeMenu();
+        closeHomeMenu();
+        showNotification("Home location saved.");
+      }
+
+      homePrimaryBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        startHomeSelection();
+      });
+
+      homeCancelBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        closeHomeMenu();
+      });
+
+      homeBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        if (homeClickTimer) clearTimeout(homeClickTimer);
+        homeClickTimer = setTimeout(() => {
+          homeClickTimer = null;
+          if (savedHome) goToSavedHome();
+          else openHomeMenu(false);
+        }, 350);
+      });
+
+      homeBtn.addEventListener("dblclick", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (homeClickTimer) {
+          clearTimeout(homeClickTimer);
+          homeClickTimer = null;
+        }
+        if (savedHome) openHomeMenu(true);
+        else openHomeMenu(false);
+      });
+
+      renderHomeMenu();
+
       // --- ROUTING SYSTEM ---
       let isRoutingActive = false;
       let routeStep = 0;
@@ -3795,6 +3957,7 @@
         document.getElementById("layers-menu").style.display = "none";
         document.getElementById("settings-panel").style.display = "none";
         document.getElementById("directions-panel").style.display = "none";
+        if (!homeSelectionActive) closeHomeMenu();
         searchResults.style.display = "none";
         document.getElementById("font-custom-select").classList.remove("open");
         closeStandalonePicker(false);
@@ -3843,12 +4006,14 @@
         const layersMenu = document.getElementById("layers-menu");
         const settingsPanel = document.getElementById("settings-panel");
         const directionsPanel = document.getElementById("directions-panel");
+        const homeMenu = document.getElementById("home-menu");
 
         if (
           !topCluster.contains(e.target) &&
           !layersMenu.contains(e.target) &&
           !settingsPanel.contains(e.target) &&
           !directionsPanel.contains(e.target) &&
+          !homeMenu.contains(e.target) &&
           !(standalonePicker && standalonePicker.contains(e.target))
         ) {
           closeAllPanels();
