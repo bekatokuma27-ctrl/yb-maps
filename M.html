@@ -249,12 +249,13 @@
 
       .compass-needle {
         position: absolute;
-        width: 0;
+        width: 6px;
         height: 28px;
         top: calc(50% - 14px);
         left: 50%;
+        margin-left: -3px;
         transform: rotate(0rad);
-        transform-origin: 0 14px;
+        transform-origin: 3px 14px;
         transition: none;
         will-change: transform;
         pointer-events: none;
@@ -264,7 +265,7 @@
         content: "";
         position: absolute;
         top: 0;
-        left: -3px;
+        left: 0;
         width: 0;
         height: 0;
         border-left: 3px solid transparent;
@@ -276,7 +277,7 @@
         content: "";
         position: absolute;
         bottom: 0;
-        left: -3px;
+        left: 0;
         width: 0;
         height: 0;
         border-left: 3px solid transparent;
