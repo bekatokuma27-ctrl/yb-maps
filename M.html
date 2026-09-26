@@ -34,6 +34,24 @@
       href="https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@400;500;600;700&family=Caveat:wght@600&family=Fira+Code:wght@400;600&family=Inter:wght@400;500;700&family=Montserrat:wght@400;600&family=Nunito:wght@400;600&family=Outfit:wght@400;600&family=Playfair+Display:wght@400;600&family=Plus+Jakarta+Sans:wght@400;600&family=Poppins:wght@400;600&family=Quicksand:wght@400;600&family=Raleway:wght@400;600&family=Roboto:wght@400;500;700&family=Space+Grotesk:wght@400;600&family=Syne:wght@400;700&family=Ubuntu:wght@400;700&display=swap"
       rel="stylesheet"
     />
+    <script>
+      window.gm_authFailure = () => {
+        window.dispatchEvent(new CustomEvent("gmp-quota-exceeded"));
+      };
+      const origError = console.error;
+      console.error = (...args) => {
+        origError.apply(console, args);
+        const msg = args.map((a) => String(a)).join(" ");
+        if (
+          msg.includes("OverQuotaMapError") ||
+          msg.includes("QuotaExceededError")
+        ) {
+          window.dispatchEvent(new CustomEvent("gmp-quota-exceeded"));
+        }
+      };
+    </script>
+    <!-- Google Maps JS API with Street View -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAWDe07sZ-8ox_u5lhHqHUtCfIFw0wNiN4&v=weekly"></script>
 
     <style>
       * {
@@ -41,7 +59,6 @@
         margin: 0;
         padding: 0;
       }
-      /* Keep the application UI at its designed scale when supported by the browser. */
       @supports (zoom: reset) {
         html {
           zoom: reset;
@@ -78,13 +95,49 @@
         transition: opacity 0.3s ease;
       }
 
-      /* Sniper cursor mode for selecting locations */
-      .sniper-mode,
-      .sniper-mode * {
+      /* Sniper cursor mode for selecting locations - strictly on map canvas only */
+      #map.sniper-mode,
+      #map.sniper-mode .ol-viewport,
+      #map.sniper-mode .ol-viewport canvas {
         cursor:
-          url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'></circle><line x1='12' y1='2' x2='12' y2='6'></line><line x1='12' y1='18' x2='12' y2='22'></line><line x1='2' y1='12' x2='6' y2='12'></line><line x1='18' y1='12' x2='22' y2='12'></line><circle cx='12' cy='12' r='2' fill='white'></circle></svg>")
+          url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><!-- Outer circle with red border --><circle cx='16' cy='16' r='14' fill='none' stroke='%23ef4444' stroke-width='2.5'/><!-- Middle circle --><circle cx='16' cy='16' r='9.5' fill='none' stroke='white' stroke-width='1.5'/><!-- Inner red circle --><circle cx='16' cy='16' r='5.5' fill='%23ef4444' stroke='none'/><!-- Center white dot --><circle cx='16' cy='16' r='2' fill='white'/><!-- Crosshairs --><line x1='16' y1='0' x2='16' y2='6' stroke='%23ef4444' stroke-width='2'/><line x1='16' y1='26' x2='16' y2='32' stroke='%23ef4444' stroke-width='2'/><line x1='0' y1='16' x2='6' y2='16' stroke='%23ef4444' stroke-width='2'/><line x1='26' y1='16' x2='32' y2='16' stroke='%23ef4444' stroke-width='2'/></svg>")
             16 16,
           crosshair !important;
+      }
+
+      /* Explicitly prevent any cursor leaking onto UI panels, buttons, inputs, and Street View viewer */
+      .top-left-cluster,
+      .top-left-cluster *,
+      .glass-ui,
+      .glass-ui *,
+      #street-view-container,
+      #street-view-container *,
+      #street-view-pano,
+      #street-view-pano *,
+      .modal-backdrop,
+      .modal-backdrop * {
+        cursor: auto;
+      }
+
+      button,
+      button *,
+      .circle-btn,
+      .circle-btn *,
+      .layer-option,
+      .search-result-item,
+      .search-suggestion-item,
+      .home-menu-btn,
+      .dir-btn,
+      .custom-select-trigger,
+      .custom-select-option,
+      #street-view-close-btn,
+      #street-view-close-btn * {
+        cursor: pointer !important;
+      }
+
+      input,
+      input * {
+        cursor: text !important;
       }
 
       /* Glassy UI Style */
@@ -196,11 +249,58 @@
         color: #ffffff;
       }
 
-      .search-suggestion-title { padding: 6px 10px 8px; font-size: 11px; font-weight: 600; color: rgba(255,255,255,.45); text-transform: uppercase; letter-spacing: .5px; }
-      .search-suggestions-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
-      .search-suggestion-item { display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; min-height:96px; padding:10px 7px; border:1px solid rgba(255,255,255,.10); border-radius:14px; background:rgba(255,255,255,.045); color:rgba(255,255,255,.68); font:inherit; font-size:10px; font-weight:500; line-height:1.25; text-align:center; cursor:pointer; transition:background .2s ease, border-color .2s ease, transform .2s ease; }
-      .search-suggestion-item:hover { background:rgba(255,255,255,.10); border-color:rgba(255,255,255,.18); color:rgba(255,255,255,.92); transform:translateY(-1px); }
-      .search-suggestion-icon { width:34px; height:34px; margin:0 0 8px; display:block; flex:0 0 34px; background:#fff; -webkit-mask:var(--icon-url) center / contain no-repeat; mask:var(--icon-url) center / contain no-repeat; }
+      .search-suggestion-title {
+        padding: 6px 10px 8px;
+        font-size: 11px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.45);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .search-suggestions-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .search-suggestion-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 96px;
+        padding: 10px 7px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.045);
+        color: rgba(255, 255, 255, 0.68);
+        font: inherit;
+        font-size: 10px;
+        font-weight: 500;
+        line-height: 1.25;
+        text-align: center;
+        cursor: pointer;
+        transition:
+          background 0.2s ease,
+          border-color 0.2s ease,
+          transform 0.2s ease;
+      }
+      .search-suggestion-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.18);
+        color: rgba(255, 255, 255, 0.92);
+        transform: translateY(-1px);
+      }
+      .search-suggestion-icon {
+        width: 34px;
+        height: 34px;
+        margin: 0 0 8px;
+        display: block;
+        flex: 0 0 34px;
+        background: #fff;
+        -webkit-mask: var(--icon-url) center / contain no-repeat;
+        mask: var(--icon-url) center / contain no-repeat;
+      }
 
       .profile-btn {
         overflow: hidden;
@@ -215,7 +315,7 @@
         border-radius: 50%;
       }
 
-  /* Compass Widget Design - Pro Vector (Compact Needle) */
+      /* Compass Widget Design */
       .compass-face {
         position: relative;
         width: 48px;
@@ -240,7 +340,6 @@
         user-select: none;
       }
 
-      /* Precision Sub-Ticks Around Dial */
       .compass-face::before {
         content: "";
         position: absolute;
@@ -256,7 +355,6 @@
         pointer-events: none;
       }
 
-      /* Inner Accent Ring */
       .compass-face::after {
         content: "";
         position: absolute;
@@ -267,14 +365,11 @@
         pointer-events: none;
       }
 
-      /* Cardinal Labels */
       .compass-label {
         position: absolute;
         font-size: 8.5px;
         font-weight: 800;
         line-height: 1;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-          Roboto, sans-serif;
         letter-spacing: 0.5px;
         user-select: none;
         z-index: 2;
@@ -297,7 +392,6 @@
         color: #f1f5f9;
       }
 
-      /* Scaled-Down 3D Diamond Needle */
       .compass-needle {
         position: absolute;
         width: 6px;
@@ -313,7 +407,6 @@
         filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
       }
 
-      /* North Pointer (Split Light/Dark Red) */
       .compass-needle::before {
         content: "";
         position: absolute;
@@ -325,7 +418,6 @@
         clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
       }
 
-      /* South Pointer (Split Light/Dark Silver) */
       .compass-needle::after {
         content: "";
         position: absolute;
@@ -337,7 +429,6 @@
         clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
       }
 
-      /* Center Pivot Cap */
       .compass-center-dot {
         position: absolute;
         top: 50%;
@@ -351,6 +442,7 @@
         transform: translate(-50%, -50%);
         z-index: 5;
       }
+
       /* Circular Action Buttons */
       .circle-btn {
         width: 56px;
@@ -368,6 +460,13 @@
       .circle-btn:hover {
         background: rgba(255, 255, 255, 0.18);
         transform: translateY(-2px);
+      }
+
+      /* Active Street View Button */
+      .circle-btn.street-view-active {
+        background: rgba(56, 189, 248, 0.28) !important;
+        border-color: #38bdf8 !important;
+        box-shadow: 0 0 16px rgba(56, 189, 248, 0.6) !important;
       }
 
       .toolbar-icon-img {
@@ -393,6 +492,47 @@
         transform: rotate(90deg);
       }
 
+      /* Street View Container & Close Button */
+      #street-view-container {
+        position: fixed;
+        inset: 0;
+        z-index: 4000;
+        display: none;
+        background: #000;
+      }
+
+      #street-view-pano {
+        width: 100%;
+        height: 100%;
+      }
+
+      #street-view-close-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 4010;
+        background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.35) !important;
+        color: #ffffff !important;
+        padding: 10px 18px;
+        border-radius: 14px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 8px 25px rgba(239, 68, 68, 0.45) !important;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      #street-view-close-btn:hover {
+        background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+        box-shadow: 0 10px 32px rgba(220, 38, 38, 0.65) !important;
+        transform: translateY(-2px);
+      }
+
       /* Home location menu */
       #home-menu {
         position: absolute;
@@ -405,27 +545,84 @@
         padding: 16px;
         z-index: 1003;
         border-radius: 18px;
+        background: rgba(10, 15, 25, 0.96);
+        backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
       }
-      #home-menu.show { display: flex; }
-      .home-menu-title { font-size: 16px; font-weight: 700; color: #fff; }
-      .home-menu-description { font-size: 13px; line-height: 1.45; color: rgba(255,255,255,.62); }
-      .home-menu-actions { display: flex; gap: 8px; }
-      .home-menu-btn { flex: 1; min-height: 40px; border: 1px solid rgba(255,255,255,.14); border-radius: 11px; background: rgba(255,255,255,.07); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
-      .home-remove-btn { width: 100%; color: #f87171; border-color: rgba(248,113,113,.35); }
-      .home-menu-btn.primary { background: #10b981; border-color: #10b981; }
-      .home-menu-btn:hover { background: rgba(255,255,255,.14); }
-      .home-menu-btn.primary:hover { background: #059669; }
-      .home-saved-item { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 11px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); color: rgba(255,255,255,.9); font-size: 13px; }
-      .home-saved-dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; flex-shrink: 0; }
-      @media (max-width: 700px) { #home-menu { left: 80px; width: min(280px,calc(100vw - 96px)); } }
+      #home-menu.show {
+        display: flex !important;
+      }
+      .home-menu-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #fff;
+      }
+      .home-menu-description {
+        font-size: 13px;
+        line-height: 1.45;
+        color: rgba(255, 255, 255, 0.62);
+      }
+      .home-menu-actions {
+        display: flex;
+        gap: 8px;
+      }
+      .home-menu-btn {
+        flex: 1;
+        min-height: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 11px;
+        background: rgba(255, 255, 255, 0.07);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+      }
+      .home-remove-btn {
+        width: 100%;
+        color: #f87171;
+        border-color: rgba(248, 113, 113, 0.35);
+      }
+      .home-menu-btn.primary {
+        background: #10b981;
+        border-color: #10b981;
+      }
+      .home-menu-btn:hover {
+        background: rgba(255, 255, 255, 0.14);
+      }
+      .home-menu-btn.primary:hover {
+        background: #059669;
+      }
+      .home-saved-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 11px 12px;
+        border-radius: 11px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 13px;
+      }
+      .home-saved-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #10b981;
+        flex-shrink: 0;
+      }
 
-      /* Popover Menus */
+      /* Popover Menus (Layers, Settings, Directions) */
       #layers-menu,
       #settings-panel,
       #directions-panel {
         position: absolute;
         top: 92px;
-        left: 24px;
+        left: 88px;
         width: 360px;
         display: none;
         flex-direction: column;
@@ -441,8 +638,9 @@
       }
 
       #layers-menu {
-        width: 340px;
-        padding: 10px;
+        width: 300px;
+        padding: 12px;
+        gap: 4px;
       }
 
       .panel-title {
@@ -453,12 +651,6 @@
         color: white;
         user-select: none;
         -webkit-user-select: none;
-      }
-
-      #layers-menu,
-      #settings-panel,
-      #directions-panel {
-        overflow: auto;
       }
 
       .layer-option {
@@ -634,6 +826,9 @@
         cursor: pointer;
         border: 1px solid rgba(255, 255, 255, 0.2);
         transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       .dir-btn.primary {
@@ -708,7 +903,6 @@
       /* Horizontal Zoom Controls */
       #zoom-controls {
         touch-action: manipulation;
-
         position: absolute;
         left: 50%;
         bottom: 25px;
@@ -901,7 +1095,6 @@
         background: rgba(255, 255, 255, 0.22);
       }
 
-      /* Country Information Card */
       #country-info-modal {
         position: fixed;
         inset: 0;
@@ -1033,7 +1226,6 @@
         stroke-linejoin: round;
       }
 
-      /* Keep OpenLayers touch gestures available on phones. */
       #map,
       #map .ol-viewport {
         touch-action: none;
@@ -1042,7 +1234,6 @@
         -webkit-tap-highlight-color: transparent;
       }
 
-      /* Prevent accidental text selection while interacting with the YB-Maps UI. */
       .top-left-cluster,
       #layers-menu,
       #settings-panel,
@@ -1067,7 +1258,7 @@
         color: white;
         font-size: 15px;
         font-weight: 500;
-        z-index: 2000;
+        z-index: 7000;
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
         transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         pointer-events: none;
@@ -1112,8 +1303,66 @@
     </style>
   </head>
   <body>
+    <!-- Google Maps Quota Banner -->
+    <div
+      id="gmp-quota-banner"
+      style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 9999;
+        background: #fffbeb;
+        border-bottom: 1px solid #fde68a;
+        color: #78350f;
+        padding: 10px 16px;
+        font-size: 13px;
+        text-align: center;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      "
+    >
+      <span>
+        Google Maps Platform quota reached. If you are the app owner, visit
+        <a
+          href="https://developers.google.com/maps/ai/ai-studio?utm_campaign=gmp_mcp_codeassist_v1_aistudio#quota_exceeded_errors"
+          target="_blank"
+          rel="noopener noreferrer"
+          style="text-decoration: underline; font-weight: 600; color: #451a03"
+          >maps developer site</a
+        >
+        for instructions to update your account.
+      </span>
+    </div>
+
     <!-- Map Container -->
     <div id="map"></div>
+
+    <!-- Street View Fullscreen Viewer Container -->
+    <div id="street-view-container">
+      <button
+        id="street-view-close-btn"
+        type="button"
+        aria-label="Close"
+        data-i18n-title="exitStreetView"
+      >
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+        <span data-i18n="exitStreetView">Close</span>
+      </button>
+      <div id="street-view-pano"></div>
+    </div>
 
     <!-- Notification Banner -->
     <div id="notification-banner"></div>
@@ -1144,7 +1393,6 @@
           />
           <div id="search-results"></div>
         </div>
-
       </div>
 
       <div class="toolbar-buttons">
@@ -1177,6 +1425,22 @@
             class="toolbar-icon-img"
             src="https://cdn-icons-png.flaticon.com/512/15665/15665454.png"
             alt="Home"
+          />
+        </button>
+
+        <!-- Street View Action Button (Placed between Home and Settings) -->
+        <button
+          id="street-view-btn"
+          class="glass-ui circle-btn"
+          type="button"
+          title="Street View"
+          aria-label="Street View"
+          data-i18n-title="streetViewBtn"
+        >
+          <img
+            class="toolbar-icon-img"
+            src="https://cdn-icons-png.flaticon.com/512/12784/12784696.png"
+            alt="Street View"
           />
         </button>
 
@@ -1228,15 +1492,45 @@
     <!-- Home Menu -->
     <div id="home-menu" class="glass-ui" aria-hidden="true">
       <div class="home-menu-title" data-i18n="homeTitle">Home</div>
-      <div id="home-menu-description" class="home-menu-description" data-i18n="homeSetDescription">Set a home location to quickly return to it.</div>
-      <div id="home-saved-item" class="home-saved-item" style="display: none;">
-        <span class="home-saved-dot"></span><span data-i18n="homeSavedText">Home location saved</span>
+      <div
+        id="home-menu-description"
+        class="home-menu-description"
+        data-i18n="homeSetDescription"
+      >
+        Set a home location to quickly return to it.
+      </div>
+      <div id="home-saved-item" class="home-saved-item" style="display: none">
+        <span class="home-saved-dot"></span
+        ><span data-i18n="homeSavedText">Home location saved</span>
       </div>
       <div class="home-menu-actions">
-        <button id="home-primary-btn" class="home-menu-btn primary" type="button" data-i18n="homeSetBtn">Set Home</button>
-        <button id="home-cancel-btn" class="home-menu-btn" type="button" style="display: none;" data-i18n="homeCancelBtn">Cancel</button>
+        <button
+          id="home-primary-btn"
+          class="home-menu-btn primary"
+          type="button"
+          data-i18n="homeSetBtn"
+        >
+          Set Home
+        </button>
+        <button
+          id="home-cancel-btn"
+          class="home-menu-btn"
+          type="button"
+          style="display: none"
+          data-i18n="homeCancelBtn"
+        >
+          Cancel
+        </button>
       </div>
-      <button id="home-remove-btn" class="home-menu-btn home-remove-btn" type="button" style="display: none;" data-i18n="homeRemoveBtn">Remove Current Home</button>
+      <button
+        id="home-remove-btn"
+        class="home-menu-btn home-remove-btn"
+        type="button"
+        style="display: none"
+        data-i18n="homeRemoveBtn"
+      >
+        Remove Current Home
+      </button>
     </div>
 
     <!-- Layers Menu -->
@@ -1684,6 +1978,31 @@
           />
         </div>
         <div id="credits-title" class="credits-title">YB-Maps</div>
+        <div
+          class="credits-badge"
+          style="
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            margin-top: 10px;
+            background: rgba(56, 189, 248, 0.14);
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12.5px;
+            color: #7dd3fc;
+            font-weight: 600;
+          "
+        >
+          <img
+            src="https://cdn-icons-png.flaticon.com/512/12784/12784696.png"
+            style="width: 15px; height: 15px; filter: brightness(0) invert(1)"
+            alt=""
+          />
+          <span data-i18n="aboutStreetView"
+            >Interactive 360° Google Street View</span
+          >
+        </div>
         <div class="credits-subtitle" data-i18n="designedBy">
           Designed &amp; Developed by
         </div>
@@ -1794,30 +2113,55 @@
                 >Tap compass icon anytime to re-align map to exact North.</span
               >
             </li>
-          <li>
-            <strong data-i18n="h5Title">Fast Search Engine:</strong>
-            <span data-i18n="h5Text"
-              >Instant location searching showing city, country, flag, and
-              details.</span
-            >
-          </li>
-          <li>
-            <strong data-i18n="h6Title">Pan &amp; Zoom Controls:</strong>
-            <span data-i18n="h6Text"
-              >Use mouse scroll wheel or bottom zoom +/- buttons for smooth
-              navigation.</span
-            >
-          </li>
-          <li>
-            <strong data-i18n="h7Title">Route Planning:</strong>
-            <span data-i18n="h7Text"
-              >Name your commute and save custom driving routes for quick
-              access.</span
-            >
-          </li>
-          <li><strong data-i18n="h8Title">Home:</strong> <span data-i18n="h8Text">Set your home on the map, then click Home to return to it.</span></li>
-          <li><strong data-i18n="h9Title">Nearby Search:</strong> <span data-i18n="h9Text">Use Nearby Search to find restaurants, hotels, museums, pharmacies, and things to do around your current location.</span></li>
-          <li><strong data-i18n="h10Title">Close Search Results:</strong> <span data-i18n="h10Text">Clicking a search result now zooms closely to the selected place.</span></li>
+            <li>
+              <strong data-i18n="h5Title">Fast Search Engine:</strong>
+              <span data-i18n="h5Text"
+                >Instant location searching showing city, country, flag, and
+                details.</span
+              >
+            </li>
+            <li>
+              <strong data-i18n="h6Title">Pan &amp; Zoom Controls:</strong>
+              <span data-i18n="h6Text"
+                >Use mouse scroll wheel or bottom zoom +/- buttons for smooth
+                navigation.</span
+              >
+            </li>
+            <li>
+              <strong data-i18n="h7Title">Route Planning:</strong>
+              <span data-i18n="h7Text"
+                >Name your commute and save custom driving routes for quick
+                access.</span
+              >
+            </li>
+            <li>
+              <strong data-i18n="h8Title">Home:</strong>
+              <span data-i18n="h8Text"
+                >Set your home on the map, then click Home to return to
+                it.</span
+              >
+            </li>
+            <li>
+              <strong data-i18n="h9Title">Nearby Search:</strong>
+              <span data-i18n="h9Text"
+                >Use Nearby Search to find restaurants, hotels, museums,
+                pharmacies, and things to do around your current location.</span
+              >
+            </li>
+            <li>
+              <strong data-i18n="h10Title">Close Search Results:</strong>
+              <span data-i18n="h10Text"
+                >Clicking a search result now zooms closely to the selected
+                place.</span
+              >
+            </li>
+            <li>
+              <strong data-i18n="h11Title">Street View:</strong>
+              <span data-i18n="h11Text"
+                >Click the Street View icon to highlight supported roads in
+                blue, then click any blue road to enter 360° panorama.</span
+              >
+            </li>
           </ul>
         </div>
         <div
@@ -1923,53 +2267,70 @@
           allRights: "© YB-Maps. All rights reserved.",
           aboutBtn: "About YB-Maps",
           homeTitle: "Home",
+          streetViewBtn: "Google Street View",
+          streetViewTitle: "Google Street View",
           helpBtn: "Help",
           helpTitle: "YB-Maps Help & Support",
           helpHowToUse: "How to Use",
-          helpPhone: "Phone",
-          helpLaptop: "Laptop",
           phoneGuideTitle: "Mobile / Phone Navigation Guide:",
-          laptopGuideTitle: "Desktop / Laptop Master Guide:",
           h1Title: "Search:",
           h1Text:
-            "Type a city or country in the search bar, then select a result. On a phone, tap; on a laptop, click.",
+            "Type any city or country in top left bar to view results with flags and location details.",
           h2Title: "Map Views:",
           h2Text:
-            "Open Layers and choose Default, Satellite, or Satellite with Names. On a phone, tap; on a laptop, click.",
+            "Tap layers button to choose Default, Satellite, or Satellite with Names.",
           h3Title: "Directions & Routes:",
           h3Text:
-            "Open Directions, choose Start, then select two map locations. Tap them on a phone or click them on a laptop.",
+            "Open directions panel, click Start, then tap two locations on the map to calculate route.",
           h4Title: "Compass Alignment:",
-          h4Text: "Tap the compass on a phone, or click it on a laptop, to align the map to North.",
+          h4Text: "Tap compass icon anytime to re-align map to exact North.",
           h5Title: "Fast Search Engine:",
           h5Text:
-            "Type a location in the search bar and select a result to search quickly for places and details.",
+            "Instant location searching showing city, country, flag, and details.",
           h6Title: "Pan & Zoom Controls:",
           h6Text:
-            "Move the map by dragging. On a phone, pinch to zoom; on a laptop, use the mouse wheel or the + / - buttons.",
+            "Use mouse scroll wheel or bottom zoom +/- buttons for smooth navigation.",
           h7Title: "Route Planning:",
           h7Text:
-            "Open Directions, start route planning, choose departure and destination, then give the route a name to save it.",
-          h8Title: "Home",
-          h8Text: "Set Home by selecting a map location. Tap or click Home to return; double-tap or double-click Home to edit it.",
+            "Name your commute and save custom driving routes for quick access.",
+          h8Title: "Home:",
+          h8Text: "Set your home on the map, then click Home to return to it.",
           homeSetBtn: "Set Home",
           homeCancelBtn: "Cancel",
           homeSavedText: "Home location saved",
           homeAddBtn: "Add a New Home",
           homeRemoveBtn: "Remove Current Home",
-          homeSavedDescription: "Your home is saved. Click Home to return to it. Double-click Home to enter editing mode.",
-          homeSetDescription: "Set your home on the map, then click Home to return to it quickly.",
-          homeReplaceDescription: "Choose a new location to replace your current home. This is editing mode.",
-          h9Title: "Nearby Search",
-          h9Text: "Save Home first, then use the search suggestions to find restaurants, hotels, museums, pharmacies, and things to do nearby.",
-          h10Title: "Close Search Results",
-          h10Text: "Select a search result to zoom the map closely to that place. Tap on a phone or click on a laptop.",
+          homeSavedDescription:
+            "Your home is saved. Click Home to return to it. Double-click Home to enter editing mode.",
+          homeSetDescription:
+            "Set your home on the map, then click Home to return to it quickly.",
+          homeReplaceDescription:
+            "Choose a new location to replace your current home. This is editing mode.",
+          h9Title: "Nearby Search:",
+          h9Text:
+            "Use Nearby Search to find restaurants, hotels, museums, pharmacies, and things to do around your current location.",
+          h10Title: "Close Search Results:",
+          h10Text:
+            "Clicking a search result now zooms closely to the selected place.",
           nearbyRestaurants: "Restaurants near me",
           nearbyHotels: "Hotels near me",
           nearbyMuseums: "Museums near me",
           nearbyPharmacies: "Pharmacies near me",
           nearbyThings: "Things to do around me",
           bugText: "If you find a bug or issue, contact:",
+          aboutStreetView: "Interactive 360° Google Street View",
+          exitStreetView: "Close",
+          h11Title: "Street View:",
+          h11Text:
+            "Click the Street View icon to highlight supported roads in blue, then click any blue road to enter 360° panorama.",
+          nStreetViewOn:
+            "Street View mode ON: Click any blue highlighted road to view 360° Street View.",
+          nStreetViewOff: "Street View mode deactivated.",
+          nStreetViewChecking: "Checking Street View availability...",
+          nStreetViewLoaded: "Street View loaded!",
+          nStreetViewNone:
+            "No Street View found here. Click directly on a blue highlighted road or zoom in.",
+          nStreetViewFail: "Could not open Street View panorama.",
         },
         am: {
           searchPlaceholder: "ቦታዎችን ይፈልጉ...",
@@ -2013,39 +2374,47 @@
           allRights: "© YB-Maps. መብቱ በህግ የተጠበቀ።",
           aboutBtn: "ስለ YB-Maps",
           homeTitle: "ቤት",
+          streetViewBtn: "ጎግል ስትሪት ቪው",
+          streetViewTitle: "ጎግል ስትሪት ቪው",
           helpBtn: "እርዳታ",
           helpTitle: "የYB-Maps እርዳታ እና ድጋፍ",
           helpHowToUse: "እንዴት መጠቀም እንደሚቻል",
-          helpPhone: "ስልክ",
-          helpLaptop: "ላፕቶፕ",
           phoneGuideTitle: "የስልክ መመሪያ:",
-          laptopGuideTitle: "የላፕቶፕ መመሪያ:",
           h1Title: "ፍለጋ እና አየር ሁኔታ:",
-          h1Text: "በፍለጋ ቦታው የከተማ ወይም የሀገር ስም ይጻፉ፣ ከዚያ ውጤት ይምረጡ። በስልክ ይንኩ፤ በላፕቶፕ ይጫኑ።",
+          h1Text:
+            "በፍለጋ ቦታው የከተማ ወይም የሀገር ስም ይጻፉ፣ ከዚያ ውጤት ይምረጡ። በስልክ ይንኩ፤ በላፕቶፕ ይጫኑ።",
           h2Title: "የካርታ እይታዎች:",
-          h2Text: "Layersን ይክፈቱና መደበኛ፣ ሳተላይት ወይም ሳተላይት ከስሞች ጋር ይምረጡ። በስልክ ይንኩ፤ በላፕቶፕ ይጫኑ።",
+          h2Text:
+            "Layersን ይክፈቱና መደበኛ፣ ሳተላይት ወይም ሳተላይት ከስሞች ጋር ይምረጡ። በስልክ ይንኩ፤ በላፕቶፕ ይጫኑ።",
           h3Title: "አቅጣጫዎች:",
-          h3Text: "Directionsን ይክፈቱ፣ Startን ይጫኑ፣ ከዚያ በካርታው ላይ ሁለት ቦታዎችን ይምረጡ። በስልክ ይንኩ፤ በላፕቶፕ ይጫኑ።",
+          h3Text:
+            "Directionsን ይክፈቱ፣ Startን ይጫኑ፣ ከዚያ በካርታው ላይ ሁለት ቦታዎችን ይምረጡ። በስልክ ይንኩ፤ በላፕቶፕ ይጫኑ።",
           h4Title: "ኮምፓስ alignment:",
           h4Text: "በስልክ ኮምፓሱን ይንኩ፣ በላፕቶፕ ደግሞ ይጫኑ፤ ካርታውን ወደ ሰሜን ያስተካክላል።",
           h5Title: "ፈጣን ፍለጋ:",
           h5Text: "በፍለጋ ቦታው የቦታ ስም ይጻፉና ውጤት ይምረጡ፤ ቦታዎችንና ዝርዝሮችን በፍጥነት ይፈልጉ።",
           h6Title: "ማጉያ ቁጥጥሮች:",
-          h6Text: "ካርታውን በመጎተት ያንቀሳቅሱ። በስልክ ለማጉላት ሁለት ጣቶችን ይጠቀሙ፤ በላፕቶፕ የማውስ ጎማ ወይም + / - ይጠቀሙ።",
+          h6Text:
+            "ካርታውን በመጎተት ያንቀሳቅሱ። በስልክ ለማጉላት ሁለት ጣቶችን ይጠቀሙ፤ በላፕቶፕ የማውስ ጎማ ወይም + / - ይጠቀሙ።",
           h7Title: "የመንገድ እቅድ:",
-          h7Text: "Directionsን ይክፈቱ፣ የመንገድ እቅድን ይጀምሩ፣ መነሻና መድረሻ ይምረጡ፣ ከዚያ ለመንገዱ ስም በመስጠት ያስቀምጡ።",
+          h7Text:
+            "Directionsን ይክፈቱ፣ የመንገድ እቅድን ይጀምሩ፣ መነሻና መድረሻ ይምረጡ፣ ከዚያ ለመንገዱ ስም በመስጠት ያስቀምጡ።",
           h8Title: "ቤት",
-          h8Text: "በካርታው ላይ የቤት ቦታ ይምረጡ። Homeን በመንካት ወይም በመጫን ይመለሱ፤ Homeን ሁለት ጊዜ በመንካት ወይም በመጫን ያስተካክሉ።",
+          h8Text:
+            "በካርታው ላይ የቤት ቦታ ይምረጡ። Homeን በመንካት ወይም በመጫን ይመለሱ፤ Homeን ሁለት ጊዜ በመንካት ወይም በመጫን ያስተካክሉ።",
           homeSetBtn: "ቤት አዘጋጅ",
           homeCancelBtn: "ሰርዝ",
           homeSavedText: "የቤት ቦታ ተቀምጧል",
           homeAddBtn: "አዲስ ቤት ጨምር",
           homeRemoveBtn: "የአሁኑን ቤት አስወግድ",
-          homeSavedDescription: "ቤትዎ ተቀምጧል። ወደ እሱ ለመመለስ Homeን ይጫኑ። Homeን ሁለት ጊዜ በመጫን የማስተካከያ ሁኔታን ይክፈቱ።",
+          homeSavedDescription:
+            "ቤትዎ ተቀምጧል። ወደ እሱ ለመመለስ Homeን ይጫኑ። Homeን ሁለት ጊዜ በመጫን የማስተካከያ ሁኔታን ይክፈቱ።",
           homeSetDescription: "ቤትዎን በካርታው ላይ ያስቀምጡ እና በፍጥነት ለመመለስ Homeን ይጫኑ።",
-          homeReplaceDescription: "የአሁኑን ቤት ለመቀየር አዲስ ቦታ ይምረጡ። ይህ የማስተካከያ ሁኔታ ነው።",
+          homeReplaceDescription:
+            "የአሁኑን ቤት ለመቀየር አዲስ ቦታ ይምረጡ። ይህ የማስተካከያ ሁኔታ ነው።",
           h9Title: "የአቅራቢያ ፍለጋ",
-          h9Text: "መጀመሪያ Homeን ያስቀምጡ፣ ከዚያ የፍለጋ ምክሮችን በመጠቀም በአቅራቢያ ያሉ ምግብ ቤቶች፣ ሆቴሎች፣ ሙዚየሞች፣ ፋርማሲዎች እና ሌሎችን ይፈልጉ።",
+          h9Text:
+            "መጀመሪያ Homeን ያስቀምጡ፣ ከዚያ የፍለጋ ምክሮችን በመጠቀም በአቅራቢያ ያሉ ምግብ ቤቶች፣ ሆቴሎች፣ ሙዚየሞች፣ ፋርማሲዎች እና ሌሎችን ይፈልጉ።",
           h10Title: "የፍለጋ ውጤቶችን ማጉላት",
           h10Text: "የፍለጋ ውጤት ይምረጡ፤ ካርታው ወደ ቦታው በቅርብ ያጎላል። በስልክ ይንኩ፤ በላፕቶፕ ይጫኑ።",
           nearbyRestaurants: "በአቅራቢያ ያሉ ምግብ ቤቶች",
@@ -2054,6 +2423,19 @@
           nearbyPharmacies: "በአቅራቢያ ያሉ ፋርማሲዎች",
           nearbyThings: "በአቅራቢያ ያሉ የመዝናኛ ቦታዎች",
           bugText: "ችግር ካጋጠመዎት እባክዎን ያነጋግሩን:",
+          aboutStreetView: "ተግባራዊ 360° ጎግል ስትሪት ቪው",
+          exitStreetView: "ዝጋ",
+          h11Title: "ጎግል ስትሪት ቪው፦",
+          h11Text:
+            "የስትሪት ቪው ምልክትን በመጫን መንገዶችን በሰማያዊ ያድምቁ፣ ከዚያ ወደ 360° እይታ ለመግባት ማንኛውንም ሰማያዊ መንገድ ይጫኑ።",
+          nStreetViewOn:
+            "የስትሪት ቪው ሁኔታ በርቷል፦ 360° እይታ ለማየት ማንኛውንም በሰማያዊ የደመቀ መንገድ ይጫኑ።",
+          nStreetViewOff: "የስትሪት ቪው ሁኔታ ጠፍቷል።",
+          nStreetViewChecking: "የስትሪት ቪው መኖርን በማረጋገጥ ላይ...",
+          nStreetViewLoaded: "ስትሪት ቪው ተጭኗል!",
+          nStreetViewNone:
+            "እዚህ ስትሪት ቪው አልተገኘም። እባክዎ ሰማያዊ በደመቀ መንገድ ላይ ይጫኑ ወይም ያጉሉ።",
+          nStreetViewFail: "የስትሪት ቪው ፓኖራማ መክፈት አልተቻለም።",
         },
         om: {
           searchPlaceholder: "Bakka barbaadi...",
@@ -2063,7 +2445,8 @@
           nearbyUnavailable: "Barbaachi naannoo yeroo ammaa hin hojjetu.",
           noLocationsFound: "Bakkeewwan hin argamne",
           copyLocation: "Bakka garagalchi",
-          nDeparture: "Bakka ka'umsaa murtaa'eera! Bakka ga'umsaa filachuuf kaartaa tuqi.",
+          nDeparture:
+            "Bakka ka'umsaa murtaa'eera! Bakka ga'umsaa filachuuf kaartaa tuqi.",
           nNorth: "Kaartaan gara Kaabaatti qindaa'eera",
           nCopied: "Koordineetotni garagalchamaniiru.",
           nCopyFail: "Koordineetota garagalchuu hin dandeenye.",
@@ -2097,47 +2480,72 @@
           allRights: "© YB-Maps. Mirgi hundaa seeraan kan eegamaadha.",
           aboutBtn: "Waa'ee YB-Maps",
           homeTitle: "Mana",
+          streetViewBtn: "Google Street View",
+          streetViewTitle: "Google Street View",
           helpBtn: "Gargaarsa",
           helpTitle: "Gargaarsa YB-Maps",
           helpHowToUse: "Akkamitti Itti Fayyadamtu",
-          helpPhone: "Bilbila",
-          helpLaptop: "Laaptopii",
           phoneGuideTitle: "Qajeelfama Bilbilaa:",
-          laptopGuideTitle: "Qajeelfama Kompiutaraa:",
           h1Title: "Barbaacha & Haala Qilleensaa:",
-          h1Text: "Sanduuqa barbaacha keessatti maqaa magaalaa ykn biyya barreessi, sana booda bu'aa filadhu. Bilbila irratti tuqi; laaptooppii irratti cuqaasi.",
+          h1Text:
+            "Sanduuqa barbaacha keessatti maqaa magaalaa ykn biyya barreessi, sana booda bu'aa filadhu. Bilbila irratti tuqi; laaptooppii irratti cuqaasi.",
           h2Title: "Muldhisa Kaartaa:",
-          h2Text: "Layers baniitii Kaartaa Baramaa, Sateelayitii ykn Sateelayitii maqoota waliin filadhu. Bilbila irratti tuqi; laaptooppii irratti cuqaasi.",
+          h2Text:
+            "Layers baniitii Kaartaa Baramaa, Sateelayitii ykn Sateelayitii maqoota waliin filadhu. Bilbila irratti tuqi; laaptooppii irratti cuqaasi.",
           h3Title: "Qajeelfama Karaa:",
-          h3Text: "Directions bani, Start cuqaasi, sana booda kaartaa irratti bakka lama filadhu. Bilbila irratti tuqi; laaptooppii irratti cuqaasi.",
+          h3Text:
+            "Directions bani, Start cuqaasi, sana booda kaartaa irratti bakka lama filadhu. Bilbila irratti tuqi; laaptooppii irratti cuqaasi.",
           h4Title: "Koompaasii:",
-          h4Text: "Bilbila irratti koompaasii tuqi, laaptooppii irratti immoo cuqaasi; kaartaa gara Kaabaatti qajeelcha.",
+          h4Text:
+            "Bilbila irratti koompaasii tuqi, laaptooppii irratti immoo cuqaasi; kaartaa gara Kaabaatti qajeelcha.",
           h5Title: "Barbaacha Saffisaa:",
-          h5Text: "Sanduuqa barbaacha keessatti maqaa bakka barreessiitii bu'aa filadhu; bakka fi odeeffannoo isaa saffisaan barbaadi.",
+          h5Text:
+            "Sanduuqa barbaacha keessatti maqaa bakka barreessiitii bu'aa filadhu; bakka fi odeeffannoo isaa saffisaan barbaadi.",
           h6Title: "Guddisuu & Xiqqessuu:",
-          h6Text: "Kaartaa harkisuun sochoosi. Bilbila irratti guddisuuf quba lama fayyadami; laaptooppii irratti geejjiba maawusii ykn + / - fayyadami.",
+          h6Text:
+            "Kaartaa harkisuun sochoosi. Bilbila irratti guddisuuf quba lama fayyadami; laaptooppii irratti geejjiba maawusii ykn + / - fayyadami.",
           h7Title: "Karaa Karoorsuu:",
-          h7Text: "Directions bani, karoora karaa jalqabi, bakka ka'umsaa fi ga'umsaa filadhu, sana booda maqaa itti kennuun karaa olkaa'i.",
+          h7Text:
+            "Directions bani, karoora karaa jalqabi, bakka ka'umsaa fi ga'umsaa filadhu, sana booda maqaa itti kennuun karaa olkaa'i.",
           h8Title: "Mana",
-          h8Text: "Kaartaa irratti bakka Manaa filadhu. Gara isaatti deebi'uuf Home tuqi ykn cuqaasi; gulaaluuf Home yeroo lama tuqi ykn cuqaasi.",
+          h8Text:
+            "Kaartaa irratti bakka Manaa filadhu. Gara isaatti deebi'uuf Home tuqi ykn cuqaasi; gulaaluuf Home yeroo lama tuqi ykn cuqaasi.",
           homeSetBtn: "Mana Qopheessi",
           homeCancelBtn: "Haqi",
           homeSavedText: "Bakka manaa olkaa'ameera",
           homeAddBtn: "Mana Haaraa Dabali",
           homeRemoveBtn: "Mana Ammaa Haqi",
-          homeSavedDescription: "Manan kee olkaa'ameera. Gara isaatti deebi'uuf Home tuqi. Home yeroo lama tuqxu haala gulaalaa bani.",
-          homeSetDescription: "Mana kee kaartaa irratti olkaa'i, achiis saffisaan gara isaatti deebi'uuf Home tuqi.",
-          homeReplaceDescription: "Mana ammaa jijjiiruuf bakka haaraa filadhu. Kun haala gulaalaa dha.",
+          homeSavedDescription:
+            "Manan kee olkaa'ameera. Gara isaatti deebi'uuf Home tuqi. Home yeroo lama tuqxu haala gulaalaa bani.",
+          homeSetDescription:
+            "Mana kee kaartaa irratti olkaa'i, achiis saffisaan gara isaatti deebi'uuf Home tuqi.",
+          homeReplaceDescription:
+            "Mana ammaa jijjiiruuf bakka haaraa filadhu. Kun haala gulaalaa dha.",
           h9Title: "Barbaacha Naannoo",
-          h9Text: "Jalqaba Home olkaa'i; sana booda yaada barbaachaa fayyadamuun mana nyaataa, hoteelota, muziyeemota, mana qorichaa fi wantoota naannoo kee barbaadi.",
+          h9Text:
+            "Jalqaba Home olkaa'i; sana booda yaada barbaachaa fayyadamuun mana nyaataa, hoteelota, muziyeemota, mana qorichaa fi wantoota naannoo kee barbaadi.",
           h10Title: "Bu'aawwan Barbaachaa Guddisi",
-          h10Text: "Bu'aa barbaachaa filadhu; kaartaan gara bakka sanaatti dhihoo ta'ee ni guddata. Bilbila irratti tuqi; laaptooppii irratti cuqaasi.",
+          h10Text:
+            "Bu'aa barbaachaa filadhu; kaartaan gara bakka sanaatti dhihoo ta'ee ni guddata. Bilbila irratti tuqi; laaptooppii irratti cuqaasi.",
           nearbyRestaurants: "Mana nyaataa naannoo koo",
           nearbyHotels: "Hoteelota naannoo koo",
           nearbyMuseums: "Muziyeemota naannoo koo",
           nearbyPharmacies: "Mana qorichaa naannoo koo",
           nearbyThings: "Wantoota naannoo koo keessatti hojjetaman",
           bugText: "Rakkon yoo jiraate asiin nu qunnamaa:",
+          aboutStreetView: "Suuraa Balʼaa 360° Google Street View",
+          exitStreetView: "Cufi",
+          h11Title: "Street View:",
+          h11Text:
+            "Mallattoo Street View cuqaasuun daandiiwwan halluu cuquliisaan mul'isi, achiis daandii cuquliisa kamiyyuu cuqaasuun mul'ata 360° banni.",
+          nStreetViewOn:
+            "Haalli Street View banameera: Mul'ata 360° ilaaluuf daandii cuquliisa kamiyyuu tuqi.",
+          nStreetViewOff: "Haalli Street View cufameera.",
+          nStreetViewChecking: "Jiraachuu Street View mirkaneessaa jira...",
+          nStreetViewLoaded: "Street View feʼameera!",
+          nStreetViewNone:
+            "Asitti Street View hin argamne. Daandii cuquliisa irra kallattiin tuqi ykn guddifadhu.",
+          nStreetViewFail: "Mul'ata Street View banuu hin dandeenye.",
         },
         es: {
           searchPlaceholder: "Buscar ubicaciones...",
@@ -2147,7 +2555,8 @@
           nearbyUnavailable: "La búsqueda cercana no está disponible ahora.",
           noLocationsFound: "No se encontraron ubicaciones",
           copyLocation: "Copiar ubicación",
-          nDeparture: "¡Salida establecida! Haz clic en el mapa para el destino.",
+          nDeparture:
+            "¡Salida establecida! Haz clic en el mapa para el destino.",
           nNorth: "Mapa alineado al Norte",
           nCopied: "Coordenadas copiadas.",
           nCopyFail: "No se pudieron copiar las coordenadas.",
@@ -2162,7 +2571,7 @@
           nLayerUpdated: "Capa del mapa actualizada",
           nFontUpdated: "Fuente actualizada",
           nRoutePlotted: "Ruta trazada:",
-          nRouteLoaded: "Loaded route:",
+          nRouteLoaded: "Ruta cargada:",
           layerDefault: "Mapa predeterminado",
           layerSatellite: "Imágenes de satélite",
           layerHybrid: "Satélite con nombres",
@@ -2181,61 +2590,89 @@
           allRights: "© YB-Maps. Todos los derechos reservados.",
           aboutBtn: "Acerca de YB-Maps",
           homeTitle: "Inicio",
+          streetViewBtn: "Google Street View",
+          streetViewTitle: "Google Street View",
           helpBtn: "Ayuda",
           helpTitle: "Ayuda de YB-Maps",
           helpHowToUse: "Cómo usar",
-          helpPhone: "Teléfono",
-          helpLaptop: "Portátil",
           phoneGuideTitle: "Guía para móviles:",
-          laptopGuideTitle: "Guía para ordenador:",
           h1Title: "Búsqueda y Clima:",
-          h1Text: "Escribe una ciudad o país en la barra de búsqueda y selecciona un resultado. En el teléfono, toca; en el portátil, haz clic.",
+          h1Text:
+            "Escribe una ciudad o país en la barra de búsqueda y selecciona un resultado. En el teléfono, toca; en el portátil, haz clic.",
           h2Title: "Capas de mapa:",
-          h2Text: "Abre Capas y elige mapa estándar, satélite o satélite con nombres. En el teléfono, toca; en el portátil, haz clic.",
+          h2Text:
+            "Abre Capas y elige mapa estándar, satélite o satélite con nombres. En el teléfono, toca; en el portátil, haz clic.",
           h3Title: "Rutas:",
-          h3Text: "Abre Rutas, pulsa Iniciar y selecciona dos lugares del mapa. Tócalos en el teléfono o haz clic en ellos en el portátil.",
+          h3Text:
+            "Abre Rutas, pulsa Iniciar y selecciona dos lugares del mapa. Tócalos en el teléfono o haz clic en ellos en el portátil.",
           h4Title: "Brújula:",
-          h4Text: "Toca la brújula en el teléfono o haz clic en ella en el portátil para alinear el mapa con el Norte.",
+          h4Text:
+            "Toca la brújula en el teléfono o haz clic en ella en el portátil para alinear el mapa con el Norte.",
           h5Title: "Búsqueda rápida:",
-          h5Text: "Escribe un lugar en la barra de búsqueda y selecciona un resultado para buscar rápidamente lugares y detalles.",
+          h5Text:
+            "Escribe un lugar en la barra de búsqueda y selecciona un resultado para buscar rápidamente lugares y detalles.",
           h6Title: "Zoom:",
-          h6Text: "Mueve el mapa arrastrándolo. En el teléfono, pellizca para hacer zoom; en el portátil, usa la rueda del ratón o los botones + / -.",
+          h6Text:
+            "Mueve el mapa arrastrándolo. En el teléfono, pellizca para hacer zoom; en el portátil, usa la rueda del ratón o los botones + / -.",
           h7Title: "Guardar rutas:",
-          h7Text: "Abre Rutas, inicia la planificación, elige origen y destino y pon un nombre a la ruta para guardarla.",
+          h7Text:
+            "Abre Rutas, inicia la planificación, elige origen y destino y pon un nombre a la ruta para guardarla.",
           h8Title: "Inicio",
-          h8Text: "Establece Casa seleccionando un lugar del mapa. Toca o haz clic en Casa para volver; tócala o haz clic dos veces para editarla.",
+          h8Text:
+            "Establece Casa seleccionando un lugar del mapa. Toca o haz clic en Casa para volver; tócala o haz clic dos veces para editarla.",
           homeSetBtn: "Establecer inicio",
           homeCancelBtn: "Cancelar",
           homeSavedText: "Ubicación de inicio guardada",
           homeAddBtn: "Añadir nuevo inicio",
           homeRemoveBtn: "Eliminar inicio actual",
-          homeSavedDescription: "Tu casa está guardada. Pulsa Inicio para volver a ella. Pulsa Inicio dos veces para abrir el modo de edición.",
-          homeSetDescription: "Establece tu casa en el mapa y pulsa Inicio para volver rápidamente a ella.",
-          homeReplaceDescription: "Elige una nueva ubicación para reemplazar tu casa actual. Este es el modo de edición.",
+          homeSavedDescription:
+            "Tu casa está guardada. Pulsa Inicio para volver a ella. Pulsa Inicio dos veces para abrir el modo de edición.",
+          homeSetDescription:
+            "Establece tu casa en el mapa y pulsa Inicio para volver rápidamente a ella.",
+          homeReplaceDescription:
+            "Elige una nueva ubicación para reemplazar tu casa actual. Este es el modo de edición.",
           h9Title: "Búsqueda cercana",
-          h9Text: "Guarda Casa primero y usa las sugerencias para buscar restaurantes, hoteles, museos, farmacias y actividades cercanas.",
+          h9Text:
+            "Guarda Casa primero y usa las sugerencias para buscar restaurantes, hoteles, museos, farmacias y actividades cercanas.",
           h10Title: "Acercar resultados",
-          h10Text: "Selecciona un resultado para acercar el mapa al lugar. Toca en el teléfono o haz clic en el portátil.",
+          h10Text:
+            "Selecciona un resultado para acercar el mapa al lugar. Toca en el teléfono o haz clic en el portátil.",
           nearbyRestaurants: "Restaurantes cerca de mí",
           nearbyHotels: "Hoteles cerca de mí",
           nearbyMuseums: "Museos cerca de mí",
           nearbyPharmacies: "Farmacias cerca de mí",
           nearbyThings: "Cosas que hacer cerca de mí",
           bugText: "Si encuentra algún error, contacte:",
+          aboutStreetView: "Google Street View interactivo en 360°",
+          exitStreetView: "Cerrar",
+          h11Title: "Street View:",
+          h11Text:
+            "Haz clic en el icono de Street View para resaltar las carreteras en azul, luego haz clic en cualquier carretera azul para ver la panorámica 360°.",
+          nStreetViewOn:
+            "Modo Street View activado: Haz clic en cualquier carretera resaltada en azul para ver Street View en 360°.",
+          nStreetViewOff: "Modo Street View desactivado.",
+          nStreetViewChecking: "Comprobando disponibilidad de Street View...",
+          nStreetViewLoaded: "¡Street View cargado!",
+          nStreetViewNone:
+            "No se encontró Street View aquí. Haz clic directamente en una carretera azul o acércate.",
+          nStreetViewFail: "No se pudo abrir el panorama de Street View.",
         },
         fr: {
           searchPlaceholder: "Rechercher un lieu...",
           nearbyTitle: "À proximité",
           nearbyFinding: "Recherche de lieux à proximité...",
           nearbyNone: "Aucun lieu à proximité trouvé.",
-          nearbyUnavailable: "La recherche à proximité est indisponible pour le moment.",
+          nearbyUnavailable:
+            "La recherche à proximité est indisponible pour le moment.",
           noLocationsFound: "Aucun lieu trouvé",
           copyLocation: "Copier le lieu",
-          nDeparture: "Départ défini ! Cliquez sur la carte pour la destination.",
+          nDeparture:
+            "Départ défini ! Cliquez sur la carte pour la destination.",
           nNorth: "Carte alignée vers le Nord",
           nCopied: "Coordonnées copiées.",
           nCopyFail: "Impossible de copier les coordonnées.",
-          nSetFirst: "Définissez d'abord l'accueil pour rechercher les lieux proches.",
+          nSetFirst:
+            "Définissez d'abord l'accueil pour rechercher les lieux proches.",
           nRemoved: "Accueil supprimé.",
           nClickHome: "Cliquez sur la carte pour enregistrer votre accueil.",
           nSaved: "Emplacement d'accueil enregistré.",
@@ -2246,7 +2683,7 @@
           nLayerUpdated: "Couche de carte mise à jour",
           nFontUpdated: "Police mise à jour",
           nRoutePlotted: "Itinéraire tracé :",
-          nRouteLoaded: "Loaded route:",
+          nRouteLoaded: "Itinéraire chargé :",
           layerDefault: "Carte par défaut",
           layerSatellite: "Images satellite",
           layerHybrid: "Satellite avec noms",
@@ -2265,72 +2702,103 @@
           allRights: "© YB-Maps. Tous droits réservés.",
           aboutBtn: "À propos de YB-Maps",
           homeTitle: "Accueil",
+          streetViewBtn: "Google Street View",
+          streetViewTitle: "Google Street View",
           helpBtn: "Aide",
           helpTitle: "Aide YB-Maps",
           helpHowToUse: "Comment utiliser",
-          helpPhone: "Téléphone",
-          helpLaptop: "Ordinateur",
           phoneGuideTitle: "Guide mobile:",
-          laptopGuideTitle: "Guide ordinateur:",
           h1Title: "Recherche et Météo:",
-          h1Text: "Écrivez une ville ou un pays dans la barre de recherche, puis choisissez un résultat. Sur téléphone, appuyez ; sur ordinateur, cliquez.",
+          h1Text:
+            "Écrivez une ville ou un pays dans la barre de recherche, puis choisissez un résultat. Sur téléphone, appuyez ; sur ordinateur, cliquez.",
           h2Title: "Vues de carte:",
-          h2Text: "Ouvrez Calques et choisissez Standard, Satellite ou Satellite avec noms. Sur téléphone, appuyez ; sur ordinateur, cliquez.",
+          h2Text:
+            "Ouvrez Calques et choisissez Standard, Satellite ou Satellite avec noms. Sur téléphone, appuyez ; sur ordinateur, cliquez.",
           h3Title: "Itinéraires:",
-          h3Text: "Ouvrez Itinéraires, appuyez sur Démarrer, puis sélectionnez deux lieux sur la carte. Touchez-les sur téléphone ou cliquez sur ordinateur.",
+          h3Text:
+            "Ouvrez Itinéraires, appuyez sur Démarrer, puis sélectionnez deux lieux sur la carte. Touchez-les sur téléphone ou cliquez sur ordinateur.",
           h4Title: "Boussole:",
-          h4Text: "Appuyez sur la boussole sur téléphone ou cliquez dessus sur ordinateur pour aligner la carte vers le Nord.",
+          h4Text:
+            "Appuyez sur la boussole sur téléphone ou cliquez dessus sur ordinateur pour aligner la carte vers le Nord.",
           h5Title: "Recherche rapide:",
-          h5Text: "Écrivez un lieu dans la barre de recherche et sélectionnez un résultat pour trouver rapidement les lieux et leurs détails.",
+          h5Text:
+            "Écrivez un lieu dans la barre de recherche et sélectionnez un résultat pour trouver rapidement les lieux et leurs détails.",
           h6Title: "Contrôle du zoom:",
-          h6Text: "Déplacez la carte en la faisant glisser. Sur téléphone, pincez pour zoomer ; sur ordinateur, utilisez la molette ou les boutons + / -.",
+          h6Text:
+            "Déplacez la carte en la faisant glisser. Sur téléphone, pincez pour zoomer ; sur ordinateur, utilisez la molette ou les boutons + / -.",
           h7Title: "Sauvegarder:",
-          h7Text: "Ouvrez Itinéraires, démarrez le trajet, choisissez départ et destination, puis donnez un nom au trajet pour le sauvegarder.",
+          h7Text:
+            "Ouvrez Itinéraires, démarrez le trajet, choisissez départ et destination, puis donnez un nom au trajet pour le sauvegarder.",
           h8Title: "Accueil",
-          h8Text: "Définissez Accueil en choisissant un lieu sur la carte. Appuyez ou cliquez sur Accueil pour revenir ; appuyez ou cliquez deux fois pour le modifier.",
+          h8Text:
+            "Définissez Accueil en choisissant un lieu sur la carte. Appuyez ou cliquez sur Accueil pour revenir ; appuyez ou cliquez deux fois pour le modifier.",
           homeSetBtn: "Définir l'accueil",
           homeCancelBtn: "Annuler",
           homeSavedText: "Emplacement d'accueil enregistré",
           homeAddBtn: "Ajouter un nouvel accueil",
           homeRemoveBtn: "Supprimer l'accueil actuel",
-          homeSavedDescription: "Votre domicile est enregistré. Appuyez sur Accueil pour y revenir. Appuyez deux fois sur Accueil pour ouvrir le mode modification.",
-          homeSetDescription: "Définissez votre domicile sur la carte, puis appuyez sur Accueil pour y revenir rapidement.",
-          homeReplaceDescription: "Choisissez un nouvel emplacement pour remplacer votre domicile actuel. C'est le mode modification.",
+          homeSavedDescription:
+            "Votre domicile est enregistré. Appuyez sur Accueil pour y revenir. Appuyez deux fois sur Accueil pour ouvrir le mode modification.",
+          homeSetDescription:
+            "Définissez votre domicile sur la carte, puis appuyez sur Accueil pour y revenir rapidement.",
+          homeReplaceDescription:
+            "Choisissez un nouvel emplacement pour remplacer votre domicile actuel. C'est le mode modification.",
           h9Title: "Recherche à proximité",
-          h9Text: "Enregistrez d'abord Accueil, puis utilisez les suggestions pour trouver restaurants, hôtels, musées, pharmacies et activités à proximité.",
+          h9Text:
+            "Enregistrez d'abord Accueil, puis utilisez les suggestions pour trouver restaurants, hôtels, musées, pharmacies et activités à proximité.",
           h10Title: "Zoomer sur les résultats",
-          h10Text: "Sélectionnez un résultat pour zoomer sur le lieu. Appuyez sur téléphone ou cliquez sur ordinateur.",
+          h10Text:
+            "Sélectionnez un résultat pour zoomer sur le lieu. Appuyez sur téléphone ou cliquez sur ordinateur.",
           nearbyRestaurants: "Restaurants près de moi",
           nearbyHotels: "Hôtels près de moi",
           nearbyMuseums: "Musées près de moi",
           nearbyPharmacies: "Pharmacies près de moi",
           nearbyThings: "Choses à faire autour de moi",
           bugText: "Si vous trouvez un bug, contactez:",
+          aboutStreetView: "Google Street View interactif à 360°",
+          exitStreetView: "Fermer",
+          h11Title: "Street View :",
+          h11Text:
+            "Cliquez sur l'icône Street View pour surligner les routes en bleu, puis cliquez sur une route bleue pour explorer le panorama 360°.",
+          nStreetViewOn:
+            "Mode Street View activé : Cliquez sur une route surlignée en bleu pour afficher Street View en 360°.",
+          nStreetViewOff: "Mode Street View désactivé.",
+          nStreetViewChecking:
+            "Vérification de la disponibilité de Street View...",
+          nStreetViewLoaded: "Street View chargé !",
+          nStreetViewNone:
+            "Aucun Street View trouvé ici. Cliquez directement sur une route surlignée en bleu ou zoomez.",
+          nStreetViewFail: "Impossible d'ouvrir le panorama Street View.",
         },
         de: {
           searchPlaceholder: "Orte suchen...",
           nearbyTitle: "In der Nähe",
           nearbyFinding: "Orte in der Nähe werden gesucht...",
           nearbyNone: "Keine Orte in der Nähe gefunden.",
-          nearbyUnavailable: "Die Suche nach Orten in der Nähe ist derzeit nicht verfügbar.",
+          nearbyUnavailable:
+            "Die Suche nach Orten in der Nähe ist derzeit nicht verfügbar.",
           noLocationsFound: "Keine Orte gefunden",
           copyLocation: "Ort kopieren",
-          nDeparture: "Abfahrtsort festgelegt! Klicken Sie auf die Karte für das Ziel.",
+          nDeparture:
+            "Abfahrtsort festgelegt! Klicken Sie auf die Karte für das Ziel.",
           nNorth: "Karte nach Norden ausgerichtet",
           nCopied: "Koordinaten kopiert.",
           nCopyFail: "Koordinaten konnten nicht kopiert werden.",
-          nSetFirst: "Legen Sie zuerst einen Startort fest, um Orte in der Nähe zu suchen.",
+          nSetFirst:
+            "Legen Sie zuerst einen Startort fest, um Orte in der Nähe zu suchen.",
           nRemoved: "Startseite entfernt.",
-          nClickHome: "Klicken Sie auf die Karte, um Ihren Startort zu speichern.",
+          nClickHome:
+            "Klicken Sie auf die Karte, um Ihren Startort zu speichern.",
           nSaved: "Startort gespeichert.",
           nRouteClear: "Route gelöscht und gestoppt.",
-          nPickDeparture: "Klicken Sie auf die Karte, um den Abfahrtsort auszuwählen.",
+          nPickDeparture:
+            "Klicken Sie auf die Karte, um den Abfahrtsort auszuwählen.",
           nCalculating: "Route wird berechnet...",
           nRouteFail: "Route konnte nicht berechnet werden.",
           nLayerUpdated: "Kartenebene aktualisiert",
           nFontUpdated: "Schrift aktualisiert",
           nRoutePlotted: "Route erstellt:",
-          nRouteLoaded: "Loaded route:",
+          nRouteLoaded: "Route geladen:",
           layerDefault: "Standardkarte",
           layerSatellite: "Satellitenbild",
           layerHybrid: "Satellit mit Namen",
@@ -2349,47 +2817,72 @@
           allRights: "© YB-Maps. Alle Rechte vorbehalten.",
           aboutBtn: "Über YB-Maps",
           homeTitle: "Startseite",
+          streetViewBtn: "Google Street View",
+          streetViewTitle: "Google Street View",
           helpBtn: "Hilfe",
           helpTitle: "YB-Maps Hilfe",
           helpHowToUse: "So wird es verwendet",
-          helpPhone: "Telefon",
-          helpLaptop: "Laptop",
           phoneGuideTitle: "Anleitung für Mobilgeräte:",
-          laptopGuideTitle: "Anleitung für Desktop:",
           h1Title: "Suche & Wetter:",
-          h1Text: "Geben Sie eine Stadt oder ein Land in die Suchleiste ein und wählen Sie ein Ergebnis. Auf dem Handy tippen, auf dem Laptop klicken.",
+          h1Text:
+            "Geben Sie eine Stadt oder ein Land in die Suchleiste ein und wählen Sie ein Ergebnis. Auf dem Handy tippen, auf dem Laptop klicken.",
           h2Title: "Kartenansichten:",
-          h2Text: "Öffnen Sie Ebenen und wählen Sie Standard, Satellit oder Satellit mit Namen. Auf dem Handy tippen, auf dem Laptop klicken.",
+          h2Text:
+            "Öffnen Sie Ebenen und wählen Sie Standard, Satellit oder Satellit mit Namen. Auf dem Handy tippen, auf dem Laptop klicken.",
           h3Title: "Routenplanung:",
-          h3Text: "Öffnen Sie Routen, wählen Sie Start und anschließend zwei Orte auf der Karte. Auf dem Handy tippen, auf dem Laptop klicken.",
+          h3Text:
+            "Öffnen Sie Routen, wählen Sie Start und anschließend zwei Orte auf der Karte. Auf dem Handy tippen, auf dem Laptop klicken.",
           h4Title: "Kompass:",
-          h4Text: "Tippen Sie auf dem Handy auf den Kompass oder klicken Sie auf dem Laptop darauf, um die Karte nach Norden auszurichten.",
+          h4Text:
+            "Tippen Sie auf dem Handy auf den Kompass oder klicken Sie auf dem Laptop darauf, um die Karte nach Norden auszurichten.",
           h5Title: "Schnellsuche:",
-          h5Text: "Geben Sie einen Ort in die Suchleiste ein und wählen Sie ein Ergebnis, um Orte und Details schnell zu suchen.",
+          h5Text:
+            "Geben Sie einen Ort in die Suchleiste ein und wählen Sie ein Ergebnis, um Orte und Details schnell zu suchen.",
           h6Title: "Zoom-Steuerung:",
-          h6Text: "Bewegen Sie die Karte durch Ziehen. Auf dem Handy mit zwei Fingern zoomen; auf dem Laptop Mausrad oder + / - verwenden.",
+          h6Text:
+            "Bewegen Sie die Karte durch Ziehen. Auf dem Handy mit zwei Fingern zoomen; auf dem Laptop Mausrad oder + / - verwenden.",
           h7Title: "Routen speichern:",
-          h7Text: "Öffnen Sie Routen, starten Sie die Planung, wählen Sie Start und Ziel und geben Sie der Route einen Namen, um sie zu speichern.",
+          h7Text:
+            "Öffnen Sie Routen, starten Sie die Planung, wählen Sie Start und Ziel und geben Sie der Route einen Namen, um sie zu speichern.",
           h8Title: "Startseite",
-          h8Text: "Legen Sie Ihr Zuhause durch Auswahl eines Kartenortes fest. Tippen oder klicken Sie auf Home zum Zurückkehren; zweimal zum Bearbeiten.",
+          h8Text:
+            "Legen Sie Ihr Zuhause durch Auswahl eines Kartenortes fest. Tippen oder klicken Sie auf Home zum Zurückkehren; zweimal zum Bearbeiten.",
           homeSetBtn: "Startseite festlegen",
           homeCancelBtn: "Abbrechen",
           homeSavedText: "Startort gespeichert",
           homeAddBtn: "Neue Startseite hinzufügen",
           homeRemoveBtn: "Aktuelle Startseite entfernen",
-          homeSavedDescription: "Ihr Zuhause ist gespeichert. Tippen Sie auf Startseite, um dorthin zurückzukehren. Tippen Sie zweimal auf Startseite, um den Bearbeitungsmodus zu öffnen.",
-          homeSetDescription: "Legen Sie Ihr Zuhause auf der Karte fest und tippen Sie auf Startseite, um schnell dorthin zurückzukehren.",
-          homeReplaceDescription: "Wählen Sie einen neuen Standort, um Ihr aktuelles Zuhause zu ersetzen. Dies ist der Bearbeitungsmodus.",
+          homeSavedDescription:
+            "Ihr Zuhause ist gespeichert. Tippen Sie auf Startseite, um dorthin zurückzukehren. Tippen Sie zweimal auf Startseite, um den Bearbeitungsmodus zu öffnen.",
+          homeSetDescription:
+            "Legen Sie Ihr Zuhause auf der Karte fest und tippen Sie auf Startseite, um schnell dorthin zurückzukehren.",
+          homeReplaceDescription:
+            "Wählen Sie einen neuen Standort, um Ihr aktuelles Zuhause zu ersetzen. Dies ist der Bearbeitungsmodus.",
           h9Title: "Suche in der Nähe",
-          h9Text: "Speichern Sie zuerst Home und nutzen Sie dann die Suchvorschläge für Restaurants, Hotels, Museen, Apotheken und Aktivitäten in der Nähe.",
+          h9Text:
+            "Speichern Sie zuerst Home und nutzen Sie dann die Suchvorschläge für Restaurants, Hotels, Museen, Apotheken und Aktivitäten in der Nähe.",
           h10Title: "Suchergebnisse vergrößern",
-          h10Text: "Wählen Sie ein Suchergebnis aus, um den Ort zu vergrößern. Auf dem Handy tippen, auf dem Laptop klicken.",
+          h10Text:
+            "Wählen Sie ein Suchergebnis aus, um den Ort zu vergrößern. Auf dem Handy tippen, auf dem Laptop klicken.",
           nearbyRestaurants: "Restaurants in meiner Nähe",
           nearbyHotels: "Hotels in meiner Nähe",
           nearbyMuseums: "Museen in meiner Nähe",
           nearbyPharmacies: "Apotheken in meiner Nähe",
           nearbyThings: "Freizeitaktivitäten in meiner Nähe",
           bugText: "Bei Fehlern kontaktieren Sie:",
+          aboutStreetView: "Interaktives 360°-Google Street View",
+          exitStreetView: "Schließen",
+          h11Title: "Street View:",
+          h11Text:
+            "Klicken Sie auf das Street View-Symbol, um Straßen blau hervorzuheben, und klicken Sie dann auf eine blaue Straße für das 360°-Panorama.",
+          nStreetViewOn:
+            "Street View-Modus EIN: Klicken Sie auf eine blau hervorgehobene Straße, um Street View in 360° anzuzeigen.",
+          nStreetViewOff: "Street View-Modus deaktiviert.",
+          nStreetViewChecking: "Verfügbarkeit von Street View wird geprüft...",
+          nStreetViewLoaded: "Street View geladen!",
+          nStreetViewNone:
+            "Hier wurde kein Street View gefunden. Klicken Sie direkt auf eine blaue Straße oder zoomen Sie hinein.",
+          nStreetViewFail: "Street View-Panorama konnte nicht geöffnet werden.",
         },
         ar: {
           searchPlaceholder: "البحث عن المواقع...",
@@ -2414,7 +2907,7 @@
           nLayerUpdated: "تم تحديث طبقة الخريطة",
           nFontUpdated: "تم تحديث الخط",
           nRoutePlotted: "تم رسم المسار:",
-          nRouteLoaded: "Loaded route:",
+          nRouteLoaded: "تم تحميل المسار:",
           layerDefault: "الخريطة الافتراضية",
           layerSatellite: "صور الأقمار الصناعية",
           layerHybrid: "أقمار صناعية مع الأسماء",
@@ -2433,47 +2926,72 @@
           allRights: "© YB-Maps. جميع الحقوق محفوظة.",
           aboutBtn: "حول YB-Maps",
           homeTitle: "المنزل",
+          streetViewBtn: "جوجل ستريت فيو",
+          streetViewTitle: "جوجل ستريت فيو",
           helpBtn: "مساعدة",
           helpTitle: "مساعدة YB-Maps",
           helpHowToUse: "كيفية الاستخدام",
-          helpPhone: "الهاتف",
-          helpLaptop: "الكمبيوتر",
           phoneGuideTitle: "دليل الهاتف:",
-          laptopGuideTitle: "دليل الكمبيوتر:",
           h1Title: "البحث والطقس:",
-          h1Text: "اكتب مدينة أو دولة في شريط البحث ثم اختر نتيجة. على الهاتف اضغط، وعلى اللابتوب انقر.",
+          h1Text:
+            "اكتب مدينة أو دولة في شريط البحث ثم اختر نتيجة. على الهاتف اضغط، وعلى اللابتوب انقر.",
           h2Title: "طبقات الخريطة:",
-          h2Text: "افتح الطبقات واختر الخريطة العادية أو الأقمار الصناعية أو الأقمار الصناعية مع الأسماء. على الهاتف اضغط، وعلى اللابتوب انقر.",
+          h2Text:
+            "افتح الطبقات واختر الخريطة العادية أو الأقمار الصناعية أو الأقمار الصناعية مع الأسماء. على الهاتف اضغط، وعلى اللابتوب انقر.",
           h3Title: "الاتجاهات:",
-          h3Text: "افتح الاتجاهات واضغط بدء، ثم اختر موقعين على الخريطة. اضغط عليهما في الهاتف أو انقر عليهما في اللابتوب.",
+          h3Text:
+            "افتح الاتجاهات واضغط بدء، ثم اختر موقعين على الخريطة. اضغط عليهما في الهاتف أو انقر عليهما في اللابتوب.",
           h4Title: "البوصلة:",
-          h4Text: "اضغط على البوصلة في الهاتف أو انقر عليها في اللابتوب لمحاذاة الخريطة نحو الشمال.",
+          h4Text:
+            "اضغط على البوصلة في الهاتف أو انقر عليها في اللابتوب لمحاذاة الخريطة نحو الشمال.",
           h5Title: "بحث سريع:",
-          h5Text: "اكتب مكانًا في شريط البحث واختر نتيجة للبحث بسرعة عن الأماكن والتفاصيل.",
+          h5Text:
+            "اكتب مكانًا في شريط البحث واختر نتيجة للبحث بسرعة عن الأماكن والتفاصيل.",
           h6Title: "التحكم بالتكبير:",
-          h6Text: "حرّك الخريطة بالسحب. على الهاتف استخدم إصبعين للتكبير؛ وعلى اللابتوب استخدم عجلة الفأرة أو زري + و -.",
+          h6Text:
+            "حرّك الخريطة بالسحب. على الهاتف استخدم إصبعين للتكبير؛ وعلى اللابتوب استخدم عجلة الفأرة أو زري + و -.",
           h7Title: "حفظ المسارات:",
-          h7Text: "افتح الاتجاهات وابدأ التخطيط، ثم اختر نقطة البداية والوجهة وسمِّ المسار لحفظه.",
+          h7Text:
+            "افتح الاتجاهات وابدأ التخطيط، ثم اختر نقطة البداية والوجهة وسمِّ المسار لحفظه.",
           h8Title: "المنزل",
-          h8Text: "حدّد المنزل باختيار موقع على الخريطة. اضغط أو انقر على الرئيسية للعودة؛ واضغط أو انقر مرتين للتعديل.",
+          h8Text:
+            "حدّد المنزل باختيار موقع على الخريطة. اضغط أو انقر على الرئيسية للعودة؛ واضغط أو انقر مرتين للتعديل.",
           homeSetBtn: "تعيين المنزل",
           homeCancelBtn: "إلغاء",
           homeSavedText: "تم حفظ موقع المنزل",
           homeAddBtn: "إضافة منزل جديد",
           homeRemoveBtn: "إزالة المنزل الحالي",
-          homeSavedDescription: "تم حفظ منزلك. اضغط على الرئيسية للعودة إليه. اضغط على الرئيسية مرتين لفتح وضع التعديل.",
-          homeSetDescription: "حدّد منزلك على الخريطة، ثم اضغط على الرئيسية للعودة إليه بسرعة.",
-          homeReplaceDescription: "اختر موقعًا جديدًا لاستبدال منزلك الحالي. هذا هو وضع التعديل.",
+          homeSavedDescription:
+            "تم حفظ منزلك. اضغط على الرئيسية للعودة إليه. اضغط على الرئيسية مرتين لفتح وضع التعديل.",
+          homeSetDescription:
+            "حدّد منزلك على الخريطة، ثم اضغط على الرئيسية للعودة إليه بسرعة.",
+          homeReplaceDescription:
+            "اختر موقعًا جديدًا لاستبدال منزلك الحالي. هذا هو وضع التعديل.",
           h9Title: "البحث عن الأماكن القريبة",
-          h9Text: "احفظ المنزل أولًا، ثم استخدم اقتراحات البحث للعثور على المطاعم والفنادق والمتاحف والصيدليات والأنشطة القريبة.",
+          h9Text:
+            "احفظ المنزل أولًا، ثم استخدم اقتراحات البحث للعثور على المطاعم والفنادق والمتاحف والصيدليات والأنشطة القريبة.",
           h10Title: "تكبير نتائج البحث",
-          h10Text: "اختر نتيجة بحث لتكبير الخريطة على المكان. اضغط في الهاتف أو انقر في اللابتوب.",
+          h10Text:
+            "اختر نتيجة بحث لتكبير الخريطة على المكان. اضغط في الهاتف أو انقر في اللابتوب.",
           nearbyRestaurants: "مطاعم قريبة مني",
           nearbyHotels: "فنادق قريبة مني",
           nearbyMuseums: "متاحف قريبة مني",
           nearbyPharmacies: "صيدليات قريبة مني",
           nearbyThings: "أشياء يمكن فعلها بالقرب مني",
           bugText: "إذا وجدت أي خطأ، يرجى التواصل:",
+          aboutStreetView: "جوجل ستريت فيو تفاعلي بزاوية 360 درجة",
+          exitStreetView: "إغلاق",
+          h11Title: "ستريت فيو:",
+          h11Text:
+            "انقر فوق أيقونة ستريت فيو لتمييز الطرق باللون الأزرق، ثم انقر على أي طريق أزرق للدخول إلى العرض البانورامي 360 درجة.",
+          nStreetViewOn:
+            "تم تفعيل وضع ستريت فيو: انقر على أي طريق محدد باللون الأزرق لعرض ستريت فيو 360 درجة.",
+          nStreetViewOff: "تم إيقاف وضع ستريت فيو.",
+          nStreetViewChecking: "جارٍ التحقق من توفر ستريت فيو...",
+          nStreetViewLoaded: "تم تحميل ستريت فيو!",
+          nStreetViewNone:
+            "لا يتوفر ستريت فيو هنا. اضغط مباشرة على طريق محدد باللون الأزرق أو قم بالتكبير.",
+          nStreetViewFail: "تعذر فتح بانوراما ستريت فيو.",
         },
         zh: {
           searchPlaceholder: "搜索位置...",
@@ -2498,7 +3016,7 @@
           nLayerUpdated: "地图图层已更新",
           nFontUpdated: "字体已更新",
           nRoutePlotted: "路线已绘制：",
-          nRouteLoaded: "Loaded route:",
+          nRouteLoaded: "已加载路线：",
           layerDefault: "默认地图",
           layerSatellite: "卫星图像",
           layerHybrid: "带地名的卫星图",
@@ -2517,47 +3035,69 @@
           allRights: "© YB-Maps. 保留所有权利。",
           aboutBtn: "关于 YB-Maps",
           homeTitle: "家",
+          streetViewBtn: "谷歌街景",
+          streetViewTitle: "谷歌街景",
           helpBtn: "帮助",
           helpTitle: "YB-Maps 帮助与支持",
           helpHowToUse: "使用方法",
-          helpPhone: "手机",
-          helpLaptop: "电脑",
           phoneGuideTitle: "手机指南：",
-          laptopGuideTitle: "电脑指南：",
           h1Title: "搜索与天气：",
-          h1Text: "在搜索栏输入城市或国家，然后选择结果。手机上点击，笔记本电脑上单击。",
+          h1Text:
+            "在搜索栏输入城市或国家，然后选择结果。手机上点击，笔记本电脑上单击。",
           h2Title: "地图图层：",
-          h2Text: "打开图层，选择默认地图、卫星图或带名称的卫星图。手机上点击，笔记本电脑上单击。",
+          h2Text:
+            "打开图层，选择默认地图、卫星图或带名称的卫星图。手机上点击，笔记本电脑上单击。",
           h3Title: "路线导航：",
-          h3Text: "打开路线，点击开始，然后在地图上选择两个地点。手机上点击，笔记本电脑上单击。",
+          h3Text:
+            "打开路线，点击开始，然后在地图上选择两个地点。手机上点击，笔记本电脑上单击。",
           h4Title: "指南针：",
-          h4Text: "手机上点击指南针，笔记本电脑上单击指南针，即可将地图对准北方。",
+          h4Text:
+            "手机上点击指南针，笔记本电脑上单击指南针，即可将地图对准北方。",
           h5Title: "快速搜索：",
           h5Text: "在搜索栏输入地点并选择结果，即可快速查找地点和详细信息。",
           h6Title: "缩放控制：",
-          h6Text: "拖动地图来移动。手机上用双指缩放；笔记本电脑上使用鼠标滚轮或 + / - 按钮。",
+          h6Text:
+            "拖动地图来移动。手机上用双指缩放；笔记本电脑上使用鼠标滚轮或 + / - 按钮。",
           h7Title: "保存路线：",
-          h7Text: "打开路线并开始规划，选择出发地和目的地，然后为路线命名并保存。",
+          h7Text:
+            "打开路线并开始规划，选择出发地和目的地，然后为路线命名并保存。",
           h8Title: "家",
-          h8Text: "在地图上选择位置设置家。点击家可返回；双击家可进入编辑模式并选择新位置。",
+          h8Text:
+            "在地图上选择位置设置家。点击家可返回；双击家可进入编辑模式并选择新位置。",
           homeSetBtn: "设置家",
           homeCancelBtn: "取消",
           homeSavedText: "家庭位置已保存",
           homeAddBtn: "添加新家",
           homeRemoveBtn: "移除当前家庭位置",
-          homeSavedDescription: "您的家已保存。点击“主页”返回。双击“主页”进入编辑模式。",
-          homeSetDescription: "在地图上设置您的家，然后点击“主页”即可快速返回。",
+          homeSavedDescription:
+            "您的家已保存。点击“主页”返回。双击“主页”进入编辑模式。",
+          homeSetDescription:
+            "在地图上设置您的家，然后点击“主页”即可快速返回。",
           homeReplaceDescription: "选择新位置来替换当前的家。这是编辑模式。",
           h9Title: "附近搜索",
-          h9Text: "先保存家位置，然后使用搜索建议查找附近的餐厅、酒店、博物馆、药店和活动。",
+          h9Text:
+            "先保存家位置，然后使用搜索建议查找附近的餐厅、酒店、博物馆、药店和活动。",
           h10Title: "放大搜索结果",
-          h10Text: "选择搜索结果，地图会放大到该地点。手机上点击，笔记本电脑上单击。",
+          h10Text:
+            "选择搜索结果，地图会放大到该地点。手机上点击，笔记本电脑上单击。",
           nearbyRestaurants: "附近的餐厅",
           nearbyHotels: "附近的酒店",
           nearbyMuseums: "附近的博物馆",
           nearbyPharmacies: "附近的药店",
           nearbyThings: "附近可以做的事情",
           bugText: "如果遇到问题，请联系：",
+          aboutStreetView: "互动式 360° 谷歌街景",
+          exitStreetView: "关闭",
+          h11Title: "街景功能：",
+          h11Text:
+            "点击街景图标以蓝色高亮显示支持的道路，然后点击任意蓝色道路即可进入 360° 全景街景。",
+          nStreetViewOn:
+            "街景模式已开启：点击任何蓝色高亮道路即可查看 360° 全景街景。",
+          nStreetViewOff: "街景模式已关闭。",
+          nStreetViewChecking: "正在检查街景可用性...",
+          nStreetViewLoaded: "街景已加载！",
+          nStreetViewNone: "此处未找到街景。请直接点击蓝色高亮道路或放大地图。",
+          nStreetViewFail: "无法打开街景全景。",
         },
         ja: {
           searchPlaceholder: "場所を検索...",
@@ -2567,7 +3107,8 @@
           nearbyUnavailable: "近くの検索は現在利用できません。",
           noLocationsFound: "場所が見つかりません",
           copyLocation: "場所をコピー",
-          nDeparture: "出発地点を設定しました！地図をクリックして目的地を選択してください。",
+          nDeparture:
+            "出発地点を設定しました！地図をクリックして目的地を選択してください。",
           nNorth: "地図を北に合わせました",
           nCopied: "座標をコピーしました。",
           nCopyFail: "座標をコピーできませんでした。",
@@ -2582,7 +3123,7 @@
           nLayerUpdated: "地図レイヤーを更新しました",
           nFontUpdated: "フォントを更新しました",
           nRoutePlotted: "ルートを作成しました：",
-          nRouteLoaded: "Loaded route:",
+          nRouteLoaded: "ルートを読み込みました：",
           layerDefault: "標準地図",
           layerSatellite: "衛星画像",
           layerHybrid: "地名付き衛星",
@@ -2601,47 +3142,72 @@
           allRights: "© YB-Maps. 全著作権所有。",
           aboutBtn: "YB-Mapsについて",
           homeTitle: "ホーム",
+          streetViewBtn: "ストリートビュー",
+          streetViewTitle: "ストリートビュー",
           helpBtn: "ヘルプ",
           helpTitle: "YB-Maps ヘルプ",
           helpHowToUse: "使い方",
-          helpPhone: "スマホ",
-          helpLaptop: "PC",
           phoneGuideTitle: "スマホガイド：",
-          laptopGuideTitle: "PCガイド：",
           h1Title: "検索と天気：",
-          h1Text: "検索バーに都市名または国名を入力し、結果を選択します。スマートフォンではタップ、ノートパソコンではクリックします。",
+          h1Text:
+            "検索バーに都市名または国名を入力し、結果を選択します。スマートフォンではタップ、ノートパソコンではクリックします。",
           h2Title: "地図切り替え：",
-          h2Text: "レイヤーを開き、標準、衛星、名前付き衛星を選択します。スマートフォンではタップ、ノートパソコンではクリックします。",
+          h2Text:
+            "レイヤーを開き、標準、衛星、名前付き衛星を選択します。スマートフォンではタップ、ノートパソコンではクリックします。",
           h3Title: "ルート案内：",
-          h3Text: "ルートを開いて開始を選び、地図上の2か所を選択します。スマートフォンではタップ、ノートパソコンではクリックします。",
+          h3Text:
+            "ルートを開いて開始を選び、地図上の2か所を選択します。スマートフォンではタップ、ノートパソコンではクリックします。",
           h4Title: "コンパス：",
-          h4Text: "スマートフォンではコンパスをタップ、ノートパソコンではクリックして、地図を北に合わせます。",
+          h4Text:
+            "スマートフォンではコンパスをタップ、ノートパソコンではクリックして、地図を北に合わせます。",
           h5Title: "高速検索：",
-          h5Text: "検索バーに場所を入力して結果を選択すると、場所と詳細をすばやく検索できます。",
+          h5Text:
+            "検索バーに場所を入力して結果を選択すると、場所と詳細をすばやく検索できます。",
           h6Title: "ズーム：",
-          h6Text: "地図をドラッグして移動します。スマートフォンでは2本指でズーム、ノートパソコンではマウスホイールまたは+ / -ボタンを使います。",
+          h6Text:
+            "地図をドラッグして移動します。スマートフォンでは2本指でズーム、ノートパソコンではマウスホイールまたは+ / -ボタンを使います。",
           h7Title: "保存：",
-          h7Text: "ルートを開いて計画を開始し、出発地と目的地を選び、ルート名を付けて保存します。",
+          h7Text:
+            "ルートを開いて計画を開始し、出発地と目的地を選び、ルート名を付けて保存します。",
           h8Title: "ホーム",
-          h8Text: "地図上で自宅の場所を選択します。ホームをタップまたはクリックして戻り、2回タップまたはクリックして編集します。",
+          h8Text:
+            "地図上で自宅の場所を選択します。ホームをタップまたはクリックして戻り、2回タップまたはクリックして編集します。",
           homeSetBtn: "ホームを設定",
           homeCancelBtn: "キャンセル",
           homeSavedText: "ホームの場所を保存しました",
           homeAddBtn: "新しいホームを追加",
           homeRemoveBtn: "現在のホームを削除",
-          homeSavedDescription: "自宅が保存されています。「ホーム」をクリックして戻れます。「ホーム」を2回クリックすると編集モードが開きます。",
-          homeSetDescription: "地図上に自宅を設定し、「ホーム」をクリックしてすばやく戻れます。",
-          homeReplaceDescription: "現在の自宅を置き換える新しい場所を選択します。これは編集モードです。",
+          homeSavedDescription:
+            "自宅が保存されています。「ホーム」をクリックして戻れます。「ホーム」を2回クリックすると編集モードが開きます。",
+          homeSetDescription:
+            "地図上に自宅を設定し、「ホーム」をクリックしてすばやく戻れます。",
+          homeReplaceDescription:
+            "現在の自宅を置き換える新しい場所を選択します。これは編集モードです。",
           h9Title: "近くを検索",
-          h9Text: "まずホームを保存し、その後検索候補から近くのレストラン、ホテル、博物館、薬局、アクティビティを探します。",
+          h9Text:
+            "まずホームを保存し、その後検索候補から近くのレストラン、ホテル、博物館、薬局、アクティビティを探します。",
           h10Title: "検索結果を拡大",
-          h10Text: "検索結果を選ぶと、その場所へ地図が拡大します。スマートフォンではタップ、ノートパソコンではクリックします。",
+          h10Text:
+            "検索結果を選ぶと、その場所へ地図が拡大します。スマートフォンではタップ、ノートパソコンではクリックします。",
           nearbyRestaurants: "近くのレストラン",
           nearbyHotels: "近くのホテル",
           nearbyMuseums: "近くの美術館・博物館",
           nearbyPharmacies: "近くの薬局",
           nearbyThings: "近くでできること",
           bugText: "バグ報告・お問い合わせ：",
+          aboutStreetView: "インタラクティブな 360° Google ストリートビュー",
+          exitStreetView: "閉じる",
+          h11Title: "ストリートビュー：",
+          h11Text:
+            "ストリートビューアイコンをクリックして対応道路を青くハイライトし、青い道路をクリックして360°パノラマを開きます。",
+          nStreetViewOn:
+            "ストリートビュー有効：青くハイライトされた道路をクリックして360°ストリートビューを表示します。",
+          nStreetViewOff: "ストリートビューを解除しました。",
+          nStreetViewChecking: "ストリートビューの利用可否を確認中...",
+          nStreetViewLoaded: "ストリートビューを読み込みました！",
+          nStreetViewNone:
+            "ここにはストリートビューがありません。青くハイライトされた道路を直接クリックするか、ズームしてください。",
+          nStreetViewFail: "ストリートビューパノラマを開けませんでした。",
         },
         ru: {
           searchPlaceholder: "Поиск мест...",
@@ -2651,7 +3217,8 @@
           nearbyUnavailable: "Поиск рядом сейчас недоступен.",
           noLocationsFound: "Места не найдены",
           copyLocation: "Копировать место",
-          nDeparture: "Точка отправления задана! Нажмите на карту для выбора назначения.",
+          nDeparture:
+            "Точка отправления задана! Нажмите на карту для выбора назначения.",
           nNorth: "Карта выровнена на север",
           nCopied: "Координаты скопированы.",
           nCopyFail: "Не удалось скопировать координаты.",
@@ -2666,7 +3233,7 @@
           nLayerUpdated: "Слой карты обновлён",
           nFontUpdated: "Шрифт обновлён",
           nRoutePlotted: "Маршрут построен:",
-          nRouteLoaded: "Loaded route:",
+          nRouteLoaded: "Маршрут загружен:",
           layerDefault: "Стандартная карта",
           layerSatellite: "Спутник",
           layerHybrid: "Спутник с названиями",
@@ -2685,54 +3252,80 @@
           allRights: "© YB-Maps. Все права защищены.",
           aboutBtn: "О YB-Maps",
           homeTitle: "Домой",
+          streetViewBtn: "Просмотр улиц",
+          streetViewTitle: "Просмотр улиц",
           helpBtn: "Помощь",
           helpTitle: "Помощь YB-Maps",
           helpHowToUse: "Как пользоваться",
-          helpPhone: "Телефон",
-          helpLaptop: "Ноутбук",
           phoneGuideTitle: "Инструкция для телефона:",
-          laptopGuideTitle: "Инструкция для компьютера:",
           h1Title: "Поиск и погода:",
-          h1Text: "Введите город или страну в строку поиска и выберите результат. На телефоне нажмите, на ноутбуке кликните.",
+          h1Text:
+            "Введите город или страну в строку поиска и выберите результат. На телефоне нажмите, на ноутбуке кликните.",
           h2Title: "Слои карты:",
-          h2Text: "Откройте слои и выберите обычную карту, спутник или спутник с названиями. На телефоне нажмите, на ноутбуке кликните.",
+          h2Text:
+            "Откройте слои и выберите обычную карту, спутник или спутник с названиями. На телефоне нажмите, на ноутбуке кликните.",
           h3Title: "Маршруты:",
-          h3Text: "Откройте маршруты, нажмите «Старт», затем выберите две точки на карте. На телефоне нажимайте, на ноутбуке кликайте.",
+          h3Text:
+            "Откройте маршруты, нажмите «Старт», затем выберите две точки на карте. На телефоне нажимайте, на ноутбуке кликайте.",
           h4Title: "Компас:",
-          h4Text: "Нажмите на компас на телефоне или кликните по нему на ноутбуке, чтобы выровнять карту на север.",
+          h4Text:
+            "Нажмите на компас на телефоне или кликните по нему на ноутбуке, чтобы выровнять карту на север.",
           h5Title: "Быстрый поиск:",
-          h5Text: "Введите место в строку поиска и выберите результат для быстрого поиска мест и сведений.",
+          h5Text:
+            "Введите место в строку поиска и выберите результат для быстрого поиска мест и сведений.",
           h6Title: "Масштаб:",
-          h6Text: "Перемещайте карту перетаскиванием. На телефоне используйте два пальца для масштаба; на ноутбуке — колесо мыши или + / -.",
+          h6Text:
+            "Перемещайте карту перетаскиванием. На телефоне используйте два пальца для масштаба; на ноутбуке — колесо мыши или + / -.",
           h7Title: "Сохранение:",
-          h7Text: "Откройте маршруты, начните планирование, выберите отправление и пункт назначения, затем назовите и сохраните маршрут.",
+          h7Text:
+            "Откройте маршруты, начните планирование, выберите отправление и пункт назначения, затем назовите и сохраните маршрут.",
           h8Title: "Домой",
-          h8Text: "Выберите место на карте для дома. Нажмите или кликните «Дом», чтобы вернуться; дважды нажмите или кликните для редактирования.",
+          h8Text:
+            "Выберите место на карте для дома. Нажмите или кликните «Дом», чтобы вернуться; дважды нажмите или кликните для редактирования.",
           homeSetBtn: "Установить дом",
           homeCancelBtn: "Отмена",
           homeSavedText: "Домашнее местоположение сохранено",
           homeAddBtn: "Добавить новый дом",
           homeRemoveBtn: "Удалить текущий дом",
-          homeSavedDescription: "Ваш дом сохранён. Нажмите «Дом», чтобы вернуться. Нажмите «Дом» дважды, чтобы открыть режим редактирования.",
-          homeSetDescription: "Установите дом на карте, затем нажмите «Дом», чтобы быстро вернуться к нему.",
-          homeReplaceDescription: "Выберите новое место, чтобы заменить текущий дом. Это режим редактирования.",
+          homeSavedDescription:
+            "Ваш дом сохранён. Нажмите «Дом», чтобы вернуться. Нажмите «Дом» дважды, чтобы открыть режим редактирования.",
+          homeSetDescription:
+            "Установите дом на карте, затем нажмите «Дом», чтобы быстро вернуться к нему.",
+          homeReplaceDescription:
+            "Выберите новое место, чтобы заменить текущий дом. Это режим редактирования.",
           h9Title: "Поиск рядом",
-          h9Text: "Сначала сохраните дом, затем используйте подсказки поиска для ресторанов, отелей, музеев, аптек и занятий рядом.",
+          h9Text:
+            "Сначала сохраните дом, затем используйте подсказки поиска для ресторанов, отелей, музеев, аптек и занятий рядом.",
           h10Title: "Приблизить результаты",
-          h10Text: "Выберите результат поиска, чтобы приблизить карту к месту. На телефоне нажмите, на ноутбуке кликните.",
+          h10Text:
+            "Выберите результат поиска, чтобы приблизить карту к месту. На телефоне нажмите, на ноутбуке кликните.",
           nearbyRestaurants: "Рестораны рядом со мной",
           nearbyHotels: "Отели рядом со мной",
           nearbyMuseums: "Музеи рядом со мной",
           nearbyPharmacies: "Аптеки рядом со мной",
           nearbyThings: "Чем заняться рядом со мной",
           bugText: "Если вы нашли ошибку, напишите:",
+          aboutStreetView: "Интерактивный просмотр улиц Google 360°",
+          exitStreetView: "Закрыть",
+          h11Title: "Просмотр улиц:",
+          h11Text:
+            "Нажмите на значок Просмотра улиц, чтобы подсветить дороги синим, затем нажмите на любую синюю дорогу для перехода в режим 360°.",
+          nStreetViewOn:
+            "Режим просмотра улиц ВКЛ: Нажмите на любую дорогу с синей подсветкой для просмотра улиц в 360°.",
+          nStreetViewOff: "Режим просмотра улиц отключен.",
+          nStreetViewChecking: "Проверка доступности просмотра улиц...",
+          nStreetViewLoaded: "Просмотр улиц загружен!",
+          nStreetViewNone:
+            "Здесь нет просмотра улиц. Нажмите прямо на синюю дорогу или приблизьте карту.",
+          nStreetViewFail: "Не удалось открыть панораму улиц.",
         },
         pt: {
           searchPlaceholder: "Pesquisar locais...",
           nearbyTitle: "Perto",
           nearbyFinding: "A procurar locais próximos...",
           nearbyNone: "Não foram encontrados locais próximos.",
-          nearbyUnavailable: "A pesquisa de locais próximos não está disponível agora.",
+          nearbyUnavailable:
+            "A pesquisa de locais próximos não está disponível agora.",
           noLocationsFound: "Nenhum local encontrado",
           copyLocation: "Copiar localização",
           nDeparture: "Partida definida! Clique no mapa para o destino.",
@@ -2750,7 +3343,7 @@
           nLayerUpdated: "Camada do mapa atualizada",
           nFontUpdated: "Fonte atualizada",
           nRoutePlotted: "Rota traçada:",
-          nRouteLoaded: "Loaded route:",
+          nRouteLoaded: "Rota carregada:",
           layerDefault: "Mapa Padrão",
           layerSatellite: "Imagens de Satélite",
           layerHybrid: "Satélite com Nomes",
@@ -2769,47 +3362,72 @@
           allRights: "© YB-Maps. Todos os direitos reservados.",
           aboutBtn: "Sobre o YB-Maps",
           homeTitle: "Casa",
+          streetViewBtn: "Google Street View",
+          streetViewTitle: "Google Street View",
           helpBtn: "Ajuda",
           helpTitle: "Ajuda YB-Maps",
           helpHowToUse: "Como usar",
-          helpPhone: "Celular",
-          helpLaptop: "Computador",
           phoneGuideTitle: "Guia para Celular:",
-          laptopGuideTitle: "Guia para Computador:",
           h1Title: "Pesquisa e Clima:",
-          h1Text: "Digite uma cidade ou país na barra de pesquisa e selecione um resultado. No celular, toque; no laptop, clique.",
+          h1Text:
+            "Digite uma cidade ou país na barra de pesquisa e selecione um resultado. No celular, toque; no laptop, clique.",
           h2Title: "Modos de Mapa:",
-          h2Text: "Abra Camadas e escolha mapa padrão, satélite ou satélite com nomes. No celular, toque; no laptop, clique.",
+          h2Text:
+            "Abra Camadas e escolha mapa padrão, satélite ou satélite com nomes. No celular, toque; no laptop, clique.",
           h3Title: "Calcular Rotas:",
-          h3Text: "Abra Rotas, toque em Iniciar e selecione dois locais no mapa. No celular, toque; no laptop, clique.",
+          h3Text:
+            "Abra Rotas, toque em Iniciar e selecione dois locais no mapa. No celular, toque; no laptop, clique.",
           h4Title: "Bússola:",
-          h4Text: "Toque na bússola no celular ou clique nela no laptop para alinhar o mapa ao Norte.",
+          h4Text:
+            "Toque na bússola no celular ou clique nela no laptop para alinhar o mapa ao Norte.",
           h5Title: "Busca Rápida:",
-          h5Text: "Digite um local na barra de pesquisa e selecione um resultado para encontrar rapidamente locais e detalhes.",
+          h5Text:
+            "Digite um local na barra de pesquisa e selecione um resultado para encontrar rapidamente locais e detalhes.",
           h6Title: "Zoom:",
-          h6Text: "Mova o mapa arrastando. No celular, use dois dedos para ampliar; no laptop, use a roda do mouse ou os botões + / -.",
+          h6Text:
+            "Mova o mapa arrastando. No celular, use dois dedos para ampliar; no laptop, use a roda do mouse ou os botões + / -.",
           h7Title: "Salvar Rotas:",
-          h7Text: "Abra Rotas, inicie o planejamento, escolha origem e destino e dê um nome à rota para salvá-la.",
+          h7Text:
+            "Abra Rotas, inicie o planejamento, escolha origem e destino e dê um nome à rota para salvá-la.",
           h8Title: "Casa",
-          h8Text: "Defina Casa escolhendo um local no mapa. Toque ou clique em Casa para voltar; toque ou clique duas vezes para editar.",
+          h8Text:
+            "Defina Casa escolhendo um local no mapa. Toque ou clique em Casa para voltar; toque ou clique duas vezes para editar.",
           homeSetBtn: "Definir casa",
           homeCancelBtn: "Cancelar",
           homeSavedText: "Local de casa salvo",
           homeAddBtn: "Adicionar nova casa",
           homeRemoveBtn: "Remover casa atual",
-          homeSavedDescription: "Sua casa está salva. Toque em Início para voltar. Toque duas vezes em Início para abrir o modo de edição.",
-          homeSetDescription: "Defina sua casa no mapa e toque em Início para voltar rapidamente.",
-          homeReplaceDescription: "Escolha um novo local para substituir sua casa atual. Este é o modo de edição.",
+          homeSavedDescription:
+            "Sua casa está salva. Toque em Início para voltar. Toque duas vezes em Início para abrir o modo de edição.",
+          homeSetDescription:
+            "Defina sua casa no mapa e toque em Início para voltar rapidamente.",
+          homeReplaceDescription:
+            "Escolha um novo local para substituir sua casa atual. Este é o modo de edição.",
           h9Title: "Pesquisa por perto",
-          h9Text: "Salve Casa primeiro e use as sugestões de pesquisa para encontrar restaurantes, hotéis, museus, farmácias e atividades próximas.",
+          h9Text:
+            "Salve Casa primeiro e use as sugestões de pesquisa para encontrar restaurantes, hotéis, museus, farmácias e atividades próximas.",
           h10Title: "Ampliar resultados",
-          h10Text: "Selecione um resultado para aproximar o mapa do local. Toque no celular ou clique no laptop.",
+          h10Text:
+            "Selecione um resultado para aproximar o mapa do local. Toque no celular ou clique no laptop.",
           nearbyRestaurants: "Restaurantes perto de mim",
           nearbyHotels: "Hotéis perto de mim",
           nearbyMuseums: "Museus perto de mim",
           nearbyPharmacies: "Farmácias perto de mim",
           nearbyThings: "O que fazer perto de mim",
           bugText: "Encontrou um erro? Entre em contato:",
+          aboutStreetView: "Google Street View interativo em 360°",
+          exitStreetView: "Fechar",
+          h11Title: "Street View:",
+          h11Text:
+            "Clique no ícone do Street View para destacar as vias em azul e clique em qualquer estrada azul para abrir o panorama 360°.",
+          nStreetViewOn:
+            "Modo Street View ATIVADO: Clique em qualquer via destacada em azul para ver o Street View em 360°.",
+          nStreetViewOff: "Modo Street View desativado.",
+          nStreetViewChecking: "Verificando disponibilidade do Street View...",
+          nStreetViewLoaded: "Street View carregado!",
+          nStreetViewNone:
+            "Nenhum Street View encontrado aqui. Clique diretamente em uma via azul ou amplie o mapa.",
+          nStreetViewFail: "Não foi possível abrir o panorama do Street View.",
         },
         hi: {
           searchPlaceholder: "स्थान खोजें...",
@@ -2819,7 +3437,8 @@
           nearbyUnavailable: "आस-पास की खोज अभी उपलब्ध नहीं है।",
           noLocationsFound: "कोई स्थान नहीं मिला",
           copyLocation: "स्थान कॉपी करें",
-          nDeparture: "प्रस्थान स्थान सेट है! गंतव्य के लिए मानचित्र पर क्लिक करें।",
+          nDeparture:
+            "प्रस्थान स्थान सेट है! गंतव्य के लिए मानचित्र पर क्लिक करें।",
           nNorth: "मानचित्र को उत्तर दिशा में संरेखित किया गया",
           nCopied: "निर्देशांक कॉपी किए गए।",
           nCopyFail: "निर्देशांक कॉपी नहीं हो सके।",
@@ -2834,7 +3453,7 @@
           nLayerUpdated: "मानचित्र परत अपडेट की गई",
           nFontUpdated: "फ़ॉन्ट अपडेट किया गया",
           nRoutePlotted: "रूट बनाया गया:",
-          nRouteLoaded: "Loaded route:",
+          nRouteLoaded: "लोड किया गया रूट:",
           layerDefault: "डिफ़ॉल्ट मानचित्र",
           layerSatellite: "सैटेलाइट छवि",
           layerHybrid: "नामों के साथ सैटेलाइट",
@@ -2853,57 +3472,84 @@
           allRights: "© YB-Maps. सर्वाधिकार सुरक्षित।",
           aboutBtn: "YB-Maps के बारे में",
           homeTitle: "घर",
+          streetViewBtn: "गूगल स्ट्रीट व्यू",
+          streetViewTitle: "गूगल स्ट्रीट व्यू",
           helpBtn: "सहायता",
           helpTitle: "YB-Maps सहायता",
           helpHowToUse: "कैसे उपयोग करें",
-          helpPhone: "फोन",
-          helpLaptop: "लैपटॉप",
           phoneGuideTitle: "फोन गाइड:",
-          laptopGuideTitle: "लैपटॉप गाइड:",
           h1Title: "खोज और मौसम:",
-          h1Text: "सर्च बार में शहर या देश लिखें और परिणाम चुनें। फोन पर टैप करें; लैपटॉप पर क्लिक करें।",
+          h1Text:
+            "सर्च बार में शहर या देश लिखें और परिणाम चुनें। फोन पर टैप करें; लैपटॉप पर क्लिक करें।",
           h2Title: "मानचित्र दृश्य:",
-          h2Text: "लेयर्स खोलें और डिफ़ॉल्ट, सैटेलाइट या नामों वाली सैटेलाइट चुनें। फोन पर टैप करें; लैपटॉप पर क्लिक करें।",
+          h2Text:
+            "लेयर्स खोलें और डिफ़ॉल्ट, सैटेलाइट या नामों वाली सैटेलाइट चुनें। फोन पर टैप करें; लैपटॉप पर क्लिक करें।",
           h3Title: "दिशा-निर्देश:",
-          h3Text: "दिशा-निर्देश खोलें, प्रारंभ चुनें और मानचित्र पर दो स्थान चुनें। फोन पर टैप करें या लैपटॉप पर क्लिक करें।",
+          h3Text:
+            "दिशा-निर्देश खोलें, प्रारंभ चुनें और मानचित्र पर दो स्थान चुनें। फोन पर टैप करें या लैपटॉप पर क्लिक करें।",
           h4Title: "दिशा-सूचक (कम्पास):",
-          h4Text: "मानचित्र को उत्तर दिशा में करने के लिए फोन पर कम्पास टैप करें या लैपटॉप पर क्लिक करें।",
+          h4Text:
+            "मानचित्र को उत्तर दिशा में करने के लिए फोन पर कम्पास टैप करें या लैपटॉप पर क्लिक करें।",
           h5Title: "तेज़ खोज:",
-          h5Text: "सर्च बार में स्थान लिखें और परिणाम चुनकर स्थान और विवरण जल्दी खोजें।",
+          h5Text:
+            "सर्च बार में स्थान लिखें और परिणाम चुनकर स्थान और विवरण जल्दी खोजें।",
           h6Title: "ज़ूम नियन्त्रण:",
-          h6Text: "मानचित्र को खींचकर चलाएँ। फोन पर दो उंगलियों से ज़ूम करें; लैपटॉप पर माउस व्हील या + / - बटन इस्तेमाल करें।",
+          h6Text:
+            "मानचित्र को खींचकर चलाएँ। फोन पर दो उंगलियों से ज़ूम करें; लैपटॉप पर माउस व्हील या + / - बटन इस्तेमाल करें।",
           h7Title: "मार्ग सहेजें:",
-          h7Text: "दिशा-निर्देश खोलें, मार्ग योजना शुरू करें, प्रारंभ और गंतव्य चुनें और मार्ग को नाम देकर सेव करें।",
+          h7Text:
+            "दिशा-निर्देश खोलें, मार्ग योजना शुरू करें, प्रारंभ और गंतव्य चुनें और मार्ग को नाम देकर सेव करें।",
           h8Title: "घर",
-          h8Text: "मानचित्र पर अपना घर चुनकर सेट करें। वापस आने के लिए होम टैप या क्लिक करें; संपादन के लिए दो बार टैप या क्लिक करें।",
+          h8Text:
+            "मानचित्र पर अपना घर चुनकर सेट करें। वापस आने के लिए होम टैप या क्लिक करें; संपादन के लिए दो बार टैप या क्लिक करें।",
           homeSetBtn: "होम सेट करें",
           homeCancelBtn: "रद्द करें",
           homeSavedText: "होम स्थान सहेजा गया",
           homeAddBtn: "नया होम जोड़ें",
           homeRemoveBtn: "वर्तमान होम हटाएँ",
-          homeSavedDescription: "आपका होम सहेजा गया है। वापस जाने के लिए होम दबाएँ। संपादन मोड खोलने के लिए होम को दो बार दबाएँ।",
-          homeSetDescription: "मानचित्र पर अपना होम सेट करें और जल्दी वापस जाने के लिए होम दबाएँ।",
-          homeReplaceDescription: "वर्तमान होम को बदलने के लिए नया स्थान चुनें। यह संपादन मोड है।",
+          homeSavedDescription:
+            "आपका होम सहेजा गया है। वापस जाने के लिए होम दबाएँ। संपादन मोड खोलने के लिए होम को दो बार दबाएँ।",
+          homeSetDescription:
+            "मानचित्र पर अपना होम सेट करें और जल्दी वापस जाने के लिए होम दबाएँ।",
+          homeReplaceDescription:
+            "वर्तमान होम को बदलने के लिए नया स्थान चुनें। यह संपादन मोड है।",
           h9Title: "आस-पास खोजें",
-          h9Text: "पहले होम सेव करें, फिर पास के रेस्तरां, होटल, संग्रहालय, फार्मेसी और गतिविधियाँ खोजने के लिए सुझावों का उपयोग करें।",
+          h9Text:
+            "पहले होम सेव करें, फिर पास के रेस्तरां, होटल, संग्रहालय, फार्मेसी और गतिविधियाँ खोजने के लिए सुझावों का उपयोग करें।",
           h10Title: "खोज परिणाम पर ज़ूम करें",
-          h10Text: "किसी खोज परिणाम को चुनकर मानचित्र को उस स्थान पर ज़ूम करें। फोन पर टैप करें; लैपटॉप पर क्लिक करें।",
+          h10Text:
+            "किसी खोज परिणाम को चुनकर मानचित्र को उस स्थान पर ज़ूम करें। फोन पर टैप करें; लैपटॉप पर क्लिक करें।",
           nearbyRestaurants: "मेरे पास रेस्टोरेंट",
           nearbyHotels: "मेरे पास होटल",
           nearbyMuseums: "मेरे पास संग्रहालय",
           nearbyPharmacies: "मेरे पास फार्मेसी",
           nearbyThings: "मेरे पास करने के लिए चीज़ें",
           bugText: "यदि कोई समस्या हो तो संपर्क करें:",
+          aboutStreetView: "इंटरैक्टिव 360° गूगल स्ट्रीट व्यू",
+          exitStreetView: "बंद करें",
+          h11Title: "स्ट्रीट व्यू:",
+          h11Text:
+            "सड़कों को नीले रंग में हाइलाइट करने के लिए स्ट्रीट व्यू आइकन पर क्लिक करें, फिर 360° पैनोरमा देखने के लिए किसी भी नीली सड़क पर क्लिक करें।",
+          nStreetViewOn:
+            "स्ट्रीट व्यू मोड चालू: 360° स्ट्रीट व्यू देखने के लिए किसी भी नीली हाइलाइट की गई सड़क पर क्लिक करें।",
+          nStreetViewOff: "स्ट्रीट व्यू मोड निष्क्रिय किया गया।",
+          nStreetViewChecking: "स्ट्रीट व्यू की उपलब्धता जांची जा रही है...",
+          nStreetViewLoaded: "स्ट्रीट व्यू लोड हो गया!",
+          nStreetViewNone:
+            "यहाँ कोई स्ट्रीट व्यू नहीं मिला। कृपया सीधे किसी नीली सड़क पर क्लिक करें या ज़ूम करें।",
+          nStreetViewFail: "स्ट्रीट व्यू पैनोरमा नहीं खोला जा सका।",
         },
         it: {
           searchPlaceholder: "Cerca luoghi...",
           nearbyTitle: "Nelle vicinanze",
           nearbyFinding: "Ricerca di luoghi nelle vicinanze...",
           nearbyNone: "Nessun luogo nelle vicinanze trovato.",
-          nearbyUnavailable: "La ricerca nelle vicinanze non è disponibile al momento.",
+          nearbyUnavailable:
+            "La ricerca nelle vicinanze non è disponibile al momento.",
           noLocationsFound: "Nessuna posizione trovata",
           copyLocation: "Copia posizione",
-          nDeparture: "Partenza impostata! Fai clic sulla mappa per la destinazione.",
+          nDeparture:
+            "Partenza impostata! Fai clic sulla mappa per la destinazione.",
           nNorth: "Mappa allineata a Nord",
           nCopied: "Coordinate copiate.",
           nCopyFail: "Impossibile copiare le coordinate.",
@@ -2918,7 +3564,7 @@
           nLayerUpdated: "Livello mappa aggiornato",
           nFontUpdated: "Carattere aggiornato",
           nRoutePlotted: "Percorso tracciato:",
-          nRouteLoaded: "Loaded route:",
+          nRouteLoaded: "Percorso caricato:",
           layerDefault: "Mappa predefinita",
           layerSatellite: "Immagini satellitari",
           layerHybrid: "Satellite con nomi",
@@ -2937,47 +3583,72 @@
           allRights: "© YB-Maps. Tutti i diritti riservati.",
           aboutBtn: "Informazioni su YB-Maps",
           homeTitle: "Casa",
+          streetViewBtn: "Google Street View",
+          streetViewTitle: "Google Street View",
           helpBtn: "Aiuto",
           helpTitle: "Supporto YB-Maps",
           helpHowToUse: "Come usare",
-          helpPhone: "Telefono",
-          helpLaptop: "Computer",
           phoneGuideTitle: "Guida Smartphone:",
-          laptopGuideTitle: "Guida PC:",
           h1Title: "Ricerca e Meteo:",
-          h1Text: "Scrivi una città o un paese nella barra di ricerca e seleziona un risultato. Sul telefono tocca; sul laptop fai clic.",
+          h1Text:
+            "Scrivi una città o un paese nella barra di ricerca e seleziona un risultato. Sul telefono tocca; sul laptop fai clic.",
           h2Title: "Viste Mappa:",
-          h2Text: "Apri Livelli e scegli mappa standard, satellite o satellite con nomi. Sul telefono tocca; sul laptop fai clic.",
+          h2Text:
+            "Apri Livelli e scegli mappa standard, satellite o satellite con nomi. Sul telefono tocca; sul laptop fai clic.",
           h3Title: "Calcola Percorso:",
-          h3Text: "Apri Percorsi, premi Avvia e seleziona due luoghi sulla mappa. Sul telefono tocca; sul laptop fai clic.",
+          h3Text:
+            "Apri Percorsi, premi Avvia e seleziona due luoghi sulla mappa. Sul telefono tocca; sul laptop fai clic.",
           h4Title: "Bussola:",
-          h4Text: "Tocca la bussola sul telefono o fai clic sul laptop per allineare la mappa verso Nord.",
+          h4Text:
+            "Tocca la bussola sul telefono o fai clic sul laptop per allineare la mappa verso Nord.",
           h5Title: "Ricerca Rapida:",
-          h5Text: "Scrivi un luogo nella barra di ricerca e seleziona un risultato per trovare rapidamente luoghi e dettagli.",
+          h5Text:
+            "Scrivi un luogo nella barra di ricerca e seleziona un risultato per trovare rapidamente luoghi e dettagli.",
           h6Title: "Controllo Zoom:",
-          h6Text: "Sposta la mappa trascinandola. Sul telefono usa due dita per lo zoom; sul laptop usa la rotellina del mouse o i pulsanti + / -.",
+          h6Text:
+            "Sposta la mappa trascinandola. Sul telefono usa due dita per lo zoom; sul laptop usa la rotellina del mouse o i pulsanti + / -.",
           h7Title: "Salva Percorsi:",
-          h7Text: "Apri Percorsi, avvia la pianificazione, scegli partenza e destinazione e assegna un nome al percorso per salvarlo.",
+          h7Text:
+            "Apri Percorsi, avvia la pianificazione, scegli partenza e destinazione e assegna un nome al percorso per salvarlo.",
           h8Title: "Casa",
-          h8Text: "Imposta Casa scegliendo una posizione sulla mappa. Tocca o fai clic su Casa per tornare; tocca o fai clic due volte per modificarla.",
+          h8Text:
+            "Imposta Casa scegliendo una posizione sulla mappa. Tocca o fai clic su Casa per tornare; tocca o fai clic due volte per modificarla.",
           homeSetBtn: "Imposta casa",
           homeCancelBtn: "Annulla",
           homeSavedText: "Posizione casa salvata",
           homeAddBtn: "Aggiungi nuova casa",
           homeRemoveBtn: "Rimuovi casa attuale",
-          homeSavedDescription: "La tua casa è salvata. Tocca Casa per tornare indietro. Tocca Casa due volte per aprire la modalità modifica.",
-          homeSetDescription: "Imposta Casa sulla mappa e tocca Casa per tornarci rapidamente.",
-          homeReplaceDescription: "Scegli una nuova posizione per sostituire la casa attuale. Questa è la modalità modifica.",
+          homeSavedDescription:
+            "La tua casa è salvata. Tocca Casa per tornare indietro. Tocca Casa due volte per aprire la modalità modifica.",
+          homeSetDescription:
+            "Imposta Casa sulla mappa e tocca Casa per tornarci rapidamente.",
+          homeReplaceDescription:
+            "Scegli una nuova posizione per sostituire la casa attuale. Questa è la modalità modifica.",
           h9Title: "Ricerca nelle vicinanze",
-          h9Text: "Salva prima Casa, poi usa i suggerimenti per trovare ristoranti, hotel, musei, farmacie e attività vicine.",
+          h9Text:
+            "Salva prima Casa, poi usa i suggerimenti per trovare ristoranti, hotel, musei, farmacie e attività vicine.",
           h10Title: "Ingrandisci i risultati",
-          h10Text: "Seleziona un risultato per ingrandire la mappa sul luogo. Sul telefono tocca; sul laptop fai clic.",
+          h10Text:
+            "Seleziona un risultato per ingrandire la mappa sul luogo. Sul telefono tocca; sul laptop fai clic.",
           nearbyRestaurants: "Ristoranti vicino a me",
           nearbyHotels: "Hotel vicino a me",
           nearbyMuseums: "Musei vicino a me",
           nearbyPharmacies: "Farmacie vicino a me",
           nearbyThings: "Cose da fare vicino a me",
           bugText: "Per segnalare un errore, scrivi a:",
+          aboutStreetView: "Google Street View interattivo a 360°",
+          exitStreetView: "Chiudi",
+          h11Title: "Street View:",
+          h11Text:
+            "Fai clic sull'icona Street View per evidenziare le strade in blu, quindi fai clic su qualsiasi strada blu per aprire la vista a 360°.",
+          nStreetViewOn:
+            "Modalità Street View ATTIVA: Fai clic su qualsiasi strada evidenziata in blu per visualizzare Street View a 360°.",
+          nStreetViewOff: "Modalità Street View disattivata.",
+          nStreetViewChecking: "Verifica disponibilità Street View in corso...",
+          nStreetViewLoaded: "Street View caricato!",
+          nStreetViewNone:
+            "Nessun Street View trovato qui. Fai clic direttamente su una strada evidenziata in blu o aumenta lo zoom.",
+          nStreetViewFail: "Impossibile aprire la panoramica di Street View.",
         },
         tr: {
           searchPlaceholder: "Konum ara...",
@@ -3002,7 +3673,7 @@
           nLayerUpdated: "Harita katmanı güncellendi",
           nFontUpdated: "Yazı tipi güncellendi",
           nRoutePlotted: "Rota çizildi:",
-          nRouteLoaded: "Loaded route:",
+          nRouteLoaded: "Rota yüklendi:",
           layerDefault: "Varsayılan Harita",
           layerSatellite: "Uydu Görüntüsü",
           layerHybrid: "İsimli Uydu",
@@ -3021,47 +3692,73 @@
           allRights: "© YB-Maps. Tüm hakları saklıdır.",
           aboutBtn: "YB-Maps Hakkında",
           homeTitle: "Ev",
+          streetViewBtn: "Google Sokak Görünümü",
+          streetViewTitle: "Google Sokak Görünümü",
           helpBtn: "Yardım",
           helpTitle: "YB-Maps Yardım",
           helpHowToUse: "Nasıl kullanılır",
-          helpPhone: "Telefon",
-          helpLaptop: "Laptoptan",
           phoneGuideTitle: "Mobil Rehber:",
-          laptopGuideTitle: "Masaüstü Rehberi:",
           h1Title: "Arama ve Hava Durumu:",
-          h1Text: "Arama çubuğuna şehir veya ülke yazın ve bir sonuç seçin. Telefonda dokunun; laptopta tıklayın.",
+          h1Text:
+            "Arama çubuğuna şehir veya ülke yazın ve bir sonuç seçin. Telefonda dokunun; laptopta tıklayın.",
           h2Title: "Harita Katmanları:",
-          h2Text: "Katmanları açın ve Standart, Uydu veya İsimli Uydu seçin. Telefonda dokunun; laptopta tıklayın.",
+          h2Text:
+            "Katmanları açın ve Standart, Uydu veya İsimli Uydu seçin. Telefonda dokunun; laptopta tıklayın.",
           h3Title: "Rota Çizimi:",
-          h3Text: "Rotaları açın, Başlat'a dokunun ve haritada iki konum seçin. Telefonda dokunun; laptopta tıklayın.",
+          h3Text:
+            "Rotaları açın, Başlat'a dokunun ve haritada iki konum seçin. Telefonda dokunun; laptopta tıklayın.",
           h4Title: "Pusula Alignment:",
-          h4Text: "Haritayı Kuzey'e hizalamak için telefonda pusulaya dokunun veya laptopta tıklayın.",
+          h4Text:
+            "Haritayı Kuzey'e hizalamak için telefonda pusulaya dokunun veya laptopta tıklayın.",
           h5Title: "Hızlı Arama:",
-          h5Text: "Arama çubuğuna bir konum yazın ve sonuç seçerek yerleri ve ayrıntıları hızlıca bulun.",
+          h5Text:
+            "Arama çubuğuna bir konum yazın ve sonuç seçerek yerleri ve ayrıntıları hızlıca bulun.",
           h6Title: "Yakınlaştırma:",
-          h6Text: "Haritayı sürükleyerek hareket ettirin. Telefonda iki parmakla yakınlaştırın; laptopta fare tekerleğini veya + / - düğmelerini kullanın.",
+          h6Text:
+            "Haritayı sürükleyerek hareket ettirin. Telefonda iki parmakla yakınlaştırın; laptopta fare tekerleğini veya + / - düğmelerini kullanın.",
           h7Title: "Rota Kaydetme:",
-          h7Text: "Rotaları açın, planlamayı başlatın, başlangıç ve varış noktalarını seçin ve rotayı kaydetmek için adlandırın.",
+          h7Text:
+            "Rotaları açın, planlamayı başlatın, başlangıç ve varış noktalarını seçin ve rotayı kaydetmek için adlandırın.",
           h8Title: "Ev",
-          h8Text: "Haritada bir konum seçerek Ev'i ayarlayın. Dönmek için Ev'e dokunun veya tıklayın; düzenlemek için iki kez dokunun veya tıklayın.",
+          h8Text:
+            "Haritada bir konum seçerek Ev'i ayarlayın. Dönmek için Ev'e dokunun veya tıklayın; düzenlemek için iki kez dokunun veya tıklayın.",
           homeSetBtn: "Evi ayarla",
           homeCancelBtn: "İptal",
           homeSavedText: "Ev konumu kaydedildi",
           homeAddBtn: "Yeni ev ekle",
           homeRemoveBtn: "Mevcut evi kaldır",
-          homeSavedDescription: "Eviniz kaydedildi. Geri dönmek için Ana Sayfa'ya dokunun. Düzenleme modunu açmak için Ana Sayfa'ya iki kez dokunun.",
-          homeSetDescription: "Evinizi haritada ayarlayın ve hızlıca geri dönmek için Ana Sayfa'ya dokunun.",
-          homeReplaceDescription: "Mevcut evinizi değiştirmek için yeni bir konum seçin. Bu düzenleme modudur.",
+          homeSavedDescription:
+            "Eviniz kaydedildi. Geri dönmek için Ana Sayfa'ya dokunun. Düzenleme modunu açmak için Ana Sayfa'ya iki kez dokunun.",
+          homeSetDescription:
+            "Evinizi haritada ayarlayın ve hızlıca geri dönmek için Ana Sayfa'ya dokunun.",
+          homeReplaceDescription:
+            "Mevcut evinizi değiştirmek için yeni bir konum seçin. Bu düzenleme modudur.",
           h9Title: "Yakınımda ara",
-          h9Text: "Önce Ev'i kaydedin, ardından yakındaki restoran, otel, müze, eczane ve etkinlikleri bulmak için arama önerilerini kullanın.",
+          h9Text:
+            "Önce Ev'i kaydedin, ardından yakındaki restoran, otel, müze, eczane ve etkinlikleri bulmak için arama önerilerini kullanın.",
           h10Title: "Arama sonuçlarını yakınlaştır",
-          h10Text: "Bir arama sonucu seçerek haritayı o konuma yakınlaştırın. Telefonda dokunun; laptopta tıklayın.",
+          h10Text:
+            "Bir arama sonucu seçerek haritayı o konuma yakınlaştırın. Telefonda dokunun; laptopta tıklayın.",
           nearbyRestaurants: "Yakınımdaki restoranlar",
           nearbyHotels: "Yakınımdaki oteller",
           nearbyMuseums: "Yakınımdaki müzeler",
           nearbyPharmacies: "Yakınımdaki eczaneler",
           nearbyThings: "Yakınımda yapılacak şeyler",
           bugText: "Bir hata bulursanız iletişim:",
+          aboutStreetView: "Etkileşimli 360° Google Sokak Görünümü",
+          exitStreetView: "Kapat",
+          h11Title: "Sokak Görünümü:",
+          h11Text:
+            "Yolları mavi renkle vurgulamak için Sokak Görünümü simgesine tıklayın, ardından 360° panoramaya girmek için herhangi bir mavi yola tıklayın.",
+          nStreetViewOn:
+            "Sokak Görünümü modu AÇIK: 360° Sokak Görünümünü görmek için mavi renkle vurgulanmış herhangi bir yola tıklayın.",
+          nStreetViewOff: "Sokak Görünümü modu devre dışı bırakıldı.",
+          nStreetViewChecking:
+            "Sokak Görünümü kullanılabilirliği kontrol ediliyor...",
+          nStreetViewLoaded: "Sokak Görünümü yüklendi!",
+          nStreetViewNone:
+            "Burada Sokak Görünümü bulunamadı. Doğrudan mavi bir yola tıklayın veya yakınlaştırın.",
+          nStreetViewFail: "Sokak Görünümü panoraması açılamadı.",
         },
         ko: {
           searchPlaceholder: "장소 검색...",
@@ -3071,7 +3768,8 @@
           nearbyUnavailable: "주변 검색을 지금 사용할 수 없습니다.",
           noLocationsFound: "위치를 찾을 수 없습니다",
           copyLocation: "위치 복사",
-          nDeparture: "출발지가 설정되었습니다! 목적지를 선택하려면 지도를 클릭하세요.",
+          nDeparture:
+            "출발지가 설정되었습니다! 목적지를 선택하려면 지도를 클릭하세요.",
           nNorth: "지도가 북쪽으로 정렬되었습니다",
           nCopied: "좌표가 복사되었습니다.",
           nCopyFail: "좌표를 복사할 수 없습니다.",
@@ -3086,7 +3784,7 @@
           nLayerUpdated: "지도 레이어가 업데이트되었습니다",
           nFontUpdated: "글꼴이 업데이트되었습니다",
           nRoutePlotted: "경로가 표시되었습니다:",
-          nRouteLoaded: "Loaded route:",
+          nRouteLoaded: "경로가 로드되었습니다:",
           layerDefault: "기본 지도",
           layerSatellite: "위성 이미지",
           layerHybrid: "지명 포함 위성",
@@ -3105,47 +3803,72 @@
           allRights: "© YB-Maps. 모든 권리 보유.",
           aboutBtn: "YB-Maps 정보",
           homeTitle: "집",
+          streetViewBtn: "스트리트 뷰",
+          streetViewTitle: "스트리트 뷰",
           helpBtn: "도움말",
           helpTitle: "YB-Maps 도움말",
           helpHowToUse: "사용 방법",
-          helpPhone: "모바일",
-          helpLaptop: "컴퓨터",
           phoneGuideTitle: "모바일 안내:",
-          laptopGuideTitle: "컴퓨터 안내:",
           h1Title: "검색 및 날씨:",
-          h1Text: "검색창에 도시나 국가를 입력한 다음 결과를 선택하세요. 휴대폰에서는 탭하고 노트북에서는 클릭하세요.",
+          h1Text:
+            "검색창에 도시나 국가를 입력한 다음 결과를 선택하세요. 휴대폰에서는 탭하고 노트북에서는 클릭하세요.",
           h2Title: "지도 레이어:",
-          h2Text: "레이어를 열고 기본 지도, 위성 지도 또는 이름이 있는 위성 지도를 선택하세요. 휴대폰에서는 탭하고 노트북에서는 클릭하세요.",
+          h2Text:
+            "레이어를 열고 기본 지도, 위성 지도 또는 이름이 있는 위성 지도를 선택하세요. 휴대폰에서는 탭하고 노트북에서는 클릭하세요.",
           h3Title: "길찾기:",
-          h3Text: "길찾기를 열고 시작을 누른 다음 지도에서 두 위치를 선택하세요. 휴대폰에서는 탭하고 노트북에서는 클릭하세요.",
+          h3Text:
+            "길찾기를 열고 시작을 누른 다음 지도에서 두 위치를 선택하세요. 휴대폰에서는 탭하고 노트북에서는 클릭하세요.",
           h4Title: "나침반:",
-          h4Text: "휴대폰에서는 나침반을 탭하고 노트북에서는 클릭하여 지도를 북쪽으로 정렬하세요.",
+          h4Text:
+            "휴대폰에서는 나침반을 탭하고 노트북에서는 클릭하여 지도를 북쪽으로 정렬하세요.",
           h5Title: "빠른 검색:",
-          h5Text: "검색창에 위치를 입력하고 결과를 선택하여 장소와 세부 정보를 빠르게 찾으세요.",
+          h5Text:
+            "검색창에 위치를 입력하고 결과를 선택하여 장소와 세부 정보를 빠르게 찾으세요.",
           h6Title: "확대/축소:",
-          h6Text: "지도를 드래그하여 이동하세요. 휴대폰에서는 두 손가락으로 확대/축소하고 노트북에서는 마우스 휠이나 + / - 버튼을 사용하세요.",
+          h6Text:
+            "지도를 드래그하여 이동하세요. 휴대폰에서는 두 손가락으로 확대/축소하고 노트북에서는 마우스 휠이나 + / - 버튼을 사용하세요.",
           h7Title: "경로 저장:",
-          h7Text: "길찾기를 열고 경로 계획을 시작한 뒤 출발지와 목적지를 선택하고 경로 이름을 지정하여 저장하세요.",
+          h7Text:
+            "길찾기를 열고 경로 계획을 시작한 뒤 출발지와 목적지를 선택하고 경로 이름을 지정하여 저장하세요.",
           h8Title: "집",
-          h8Text: "지도에서 집 위치를 선택해 설정하세요. 돌아가려면 홈을 탭하거나 클릭하고, 편집하려면 두 번 탭하거나 클릭하세요.",
+          h8Text:
+            "지도에서 집 위치를 선택해 설정하세요. 돌아가려면 홈을 탭하거나 클릭하고, 편집하려면 두 번 탭하거나 클릭하세요.",
           homeSetBtn: "집 설정",
           homeCancelBtn: "취소",
           homeSavedText: "집 위치가 저장되었습니다",
           homeAddBtn: "새 집 추가",
           homeRemoveBtn: "현재 집 삭제",
-          homeSavedDescription: "집 위치가 저장되었습니다. 홈을 눌러 돌아가세요. 홈을 두 번 누르면 편집 모드가 열립니다.",
-          homeSetDescription: "지도에서 집 위치를 설정한 다음 홈을 눌러 빠르게 돌아가세요.",
-          homeReplaceDescription: "현재 집을 바꿀 새 위치를 선택하세요. 이것은 편집 모드입니다.",
+          homeSavedDescription:
+            "집 위치가 저장되었습니다. 홈을 눌러 돌아가세요. 홈을 두 번 누르면 편집 모드가 열립니다.",
+          homeSetDescription:
+            "지도에서 집 위치를 설정한 다음 홈을 눌러 빠르게 돌아가세요.",
+          homeReplaceDescription:
+            "현재 집을 바꿀 새 위치를 선택하세요. 이것은 편집 모드입니다.",
           h9Title: "주변 검색",
-          h9Text: "먼저 집을 저장한 다음 검색 추천을 사용하여 주변의 식당, 호텔, 박물관, 약국 및 즐길 거리를 찾으세요.",
+          h9Text:
+            "먼저 집을 저장한 다음 검색 추천을 사용하여 주변의 식당, 호텔, 박물관, 약국 및 즐길 거리를 찾으세요.",
           h10Title: "검색 결과 확대",
-          h10Text: "검색 결과를 선택하면 해당 장소로 지도가 확대됩니다. 휴대폰에서는 탭하고 노트북에서는 클릭하세요.",
+          h10Text:
+            "검색 결과를 선택하면 해당 장소로 지도가 확대됩니다. 휴대폰에서는 탭하고 노트북에서는 클릭하세요.",
           nearbyRestaurants: "내 주변 음식점",
           nearbyHotels: "내 주변 호텔",
           nearbyMuseums: "내 주변 박물관",
           nearbyPharmacies: "내 주변 약국",
           nearbyThings: "내 주변에서 할 일",
           bugText: "버그 제보 및 문의 사항:",
+          aboutStreetView: "대화형 360° Google 스트리트 뷰",
+          exitStreetView: "닫기",
+          h11Title: "스트리트 뷰:",
+          h11Text:
+            "지원되는 도로를 파란색으로 표시하려면 스트리트 뷰 아이콘을 클릭한 후, 파란색 도로를 클릭하여 360° 파노라마를 확인하세요.",
+          nStreetViewOn:
+            "스트리트 뷰 모드 켜짐: 360° 스트리트 뷰를 보려면 파란색으로 강조된 도로를 클릭하세요.",
+          nStreetViewOff: "스트리트 뷰 모드가 비활성화되었습니다.",
+          nStreetViewChecking: "스트리트 뷰 지원 여부 확인 중...",
+          nStreetViewLoaded: "스트리트 뷰가 로드되었습니다!",
+          nStreetViewNone:
+            "이 위치에서 스트리트 뷰를 찾을 수 없습니다. 파란색 도로를 직접 클릭하거나 지도를 확대하세요.",
+          nStreetViewFail: "스트리트 뷰 파노라마를 열 수 없습니다.",
         },
         sw: {
           searchPlaceholder: "Tafuta mahali...",
@@ -3155,7 +3878,8 @@
           nearbyUnavailable: "Utafutaji wa karibu haupatikani kwa sasa.",
           noLocationsFound: "Hakuna maeneo yaliyopatikana",
           copyLocation: "Nakili eneo",
-          nDeparture: "Mahali pa kuanzia pamewekwa! Bofya ramani kuchagua unakoenda.",
+          nDeparture:
+            "Mahali pa kuanzia pamewekwa! Bofya ramani kuchagua unakoenda.",
           nNorth: "Ramani imepangiliwa Kaskazini",
           nCopied: "Kuratibu kumenakiliwa.",
           nCopyFail: "Imeshindikana kunakili kuratibu.",
@@ -3170,7 +3894,7 @@
           nLayerUpdated: "Tabaka la ramani limesasishwa",
           nFontUpdated: "Fonti imesasishwa",
           nRoutePlotted: "Njia imechorwa:",
-          nRouteLoaded: "Loaded route:",
+          nRouteLoaded: "Njia imepakiwa:",
           layerDefault: "Ramani ya Kawaida",
           layerSatellite: "Picha za Sateleti",
           layerHybrid: "Sateleti yenye Majina",
@@ -3189,53 +3913,82 @@
           allRights: "© YB-Maps. Haki zote zimehifadhiwa.",
           aboutBtn: "Kuhusu YB-Maps",
           homeTitle: "Nyumbani",
+          streetViewBtn: "Google Street View",
+          streetViewTitle: "Google Street View",
           helpBtn: "Msaada",
           helpTitle: "Msaada wa YB-Maps",
           helpHowToUse: "Jinsi ya kutumia",
-          helpPhone: "Simu",
-          helpLaptop: "Kompyuta",
           phoneGuideTitle: "Mwongozo wa Simu:",
-          laptopGuideTitle: "Mwongozo wa Kompyuta:",
           h1Title: "Utafutaji na Hali ya Hewa:",
-          h1Text: "Andika jiji au nchi kwenye upau wa utafutaji kisha chagua matokeo. Kwenye simu gusa; kwenye laptop bofya.",
+          h1Text:
+            "Andika jiji au nchi kwenye upau wa utafutaji kisha chagua matokeo. Kwenye simu gusa; kwenye laptop bofya.",
           h2Title: "Muonekano wa Ramani:",
-          h2Text: "Fungua Tabaka na uchague Ramani ya Kawaida, Satelaiti, au Satelaiti yenye Majina. Kwenye simu gusa; kwenye laptop bofya.",
+          h2Text:
+            "Fungua Tabaka na uchague Ramani ya Kawaida, Satelaiti, au Satelaiti yenye Majina. Kwenye simu gusa; kwenye laptop bofya.",
           h3Title: "Njia na Mwelekeo:",
-          h3Text: "Fungua Maelekezo, chagua Anza, kisha chagua maeneo mawili kwenye ramani. Kwenye simu gusa; kwenye laptop bofya.",
+          h3Text:
+            "Fungua Maelekezo, chagua Anza, kisha chagua maeneo mawili kwenye ramani. Kwenye simu gusa; kwenye laptop bofya.",
           h4Title: "Dira (Compass):",
-          h4Text: "Gusa dira kwenye simu au bofya kwenye laptop ili kuelekeza ramani Kaskazini.",
+          h4Text:
+            "Gusa dira kwenye simu au bofya kwenye laptop ili kuelekeza ramani Kaskazini.",
           h5Title: "Utafutaji wa Haraka:",
-          h5Text: "Andika eneo kwenye upau wa utafutaji na uchague matokeo ili kupata maeneo na maelezo kwa haraka.",
+          h5Text:
+            "Andika eneo kwenye upau wa utafutaji na uchague matokeo ili kupata maeneo na maelezo kwa haraka.",
           h6Title: "Kuongeza/Kupunguza Ukubwa:",
-          h6Text: "Sogeza ramani kwa kuiburuta. Kwenye simu tumia vidole viwili kukuza; kwenye laptop tumia gurudumu la panya au vitufe vya + / -.",
+          h6Text:
+            "Sogeza ramani kwa kuiburuta. Kwenye simu tumia vidole viwili kukuza; kwenye laptop tumia gurudumu la panya au vitufe vya + / -.",
           h7Title: "Hifadhi Njia:",
-          h7Text: "Fungua Maelekezo, anza kupanga njia, chagua mwanzo na mwisho, kisha ipe njia jina ili kuihifadhi.",
+          h7Text:
+            "Fungua Maelekezo, anza kupanga njia, chagua mwanzo na mwisho, kisha ipe njia jina ili kuihifadhi.",
           h8Title: "Nyumbani",
-          h8Text: "Weka Nyumbani kwa kuchagua eneo kwenye ramani. Gusa au bofya Nyumbani kurudi; gusa au bofya mara mbili kuhariri.",
+          h8Text:
+            "Weka Nyumbani kwa kuchagua eneo kwenye ramani. Gusa au bofya Nyumbani kurudi; gusa au bofya mara mbili kuhariri.",
           homeSetBtn: "Weka Nyumbani",
           homeCancelBtn: "Ghairi",
           homeSavedText: "Mahali pa nyumbani pamehifadhiwa",
           homeAddBtn: "Ongeza Nyumba Mpya",
           homeRemoveBtn: "Ondoa Nyumba ya Sasa",
-          homeSavedDescription: "Nyumbani kwako kumehifadhiwa. Bofya Nyumbani kurudi. Bofya Nyumbani mara mbili kufungua hali ya kuhariri.",
-          homeSetDescription: "Weka nyumbani kwako kwenye ramani, kisha bofya Nyumbani kurudi haraka.",
-          homeReplaceDescription: "Chagua eneo jipya kuchukua nafasi ya nyumbani kwako kwa sasa. Hii ni hali ya kuhariri.",
+          homeSavedDescription:
+            "Nyumbani kwako kumehifadhiwa. Bofya Nyumbani kurudi. Bofya Nyumbani mara mbili kufungua hali ya kuhariri.",
+          homeSetDescription:
+            "Weka nyumbani kwako kwenye ramani, kisha bofya Nyumbani kurudi haraka.",
+          homeReplaceDescription:
+            "Chagua eneo jipya kuchukua nafasi ya nyumbani kwako kwa sasa. Hii ni hali ya kuhariri.",
           h9Title: "Tafuta karibu",
-          h9Text: "Hifadhi Nyumbani kwanza, kisha tumia mapendekezo ya utafutaji kupata mikahawa, hoteli, makumbusho, maduka ya dawa na shughuli zilizo karibu.",
+          h9Text:
+            "Hifadhi Nyumbani kwanza, kisha tumia mapendekezo ya utafutaji kupata mikahawa, hoteli, makumbusho, maduka ya dawa na shughuli zilizo karibu.",
           h10Title: "Kuza matokeo ya utafutaji",
-          h10Text: "Chagua matokeo ya utafutaji ili kukuza ramani kwenye eneo hilo. Kwenye simu gusa; kwenye laptop bofya.",
+          h10Text:
+            "Chagua matokeo ya utafutaji ili kukuza ramani kwenye eneo hilo. Kwenye simu gusa; kwenye laptop bofya.",
           nearbyRestaurants: "Migahawa karibu nami",
           nearbyHotels: "Hoteli karibu nami",
           nearbyMuseums: "Makumbusho karibu nami",
           nearbyPharmacies: "Maduka ya dawa karibu nami",
           nearbyThings: "Mambo ya kufanya karibu nami",
           bugText: "Kama ukipata tatizo, wasiliana nasi:",
+          aboutStreetView: "Google Street View shirikishi ya 360°",
+          exitStreetView: "Funga",
+          h11Title: "Street View:",
+          h11Text:
+            "Bofya aikoni ya Street View ili kuangazia barabara kwa rangi ya bluu, kisha bofya barabara yoyote ya bluu kufungua mandhari ya 360°.",
+          nStreetViewOn:
+            "Hali ya Street View IMEWASHWA: Bofya barabara yoyote iliyoangaziwa kwa bluu ili kuona Street View ya 360°.",
+          nStreetViewOff: "Hali ya Street View imezimwa.",
+          nStreetViewChecking: "Inathibitisha upatikanaji wa Street View...",
+          nStreetViewLoaded: "Street View imepakiwa!",
+          nStreetViewNone:
+            "Hakuna Street View iliyopatikana hapa. Bofya moja kwa moja kwenye barabara ya bluu au kukuza.",
+          nStreetViewFail: "Haikuweza kufungua mandhari ya Street View.",
         },
       };
 
       function getUiText(key) {
         const lang = localStorage.getItem("yb_lang") || "en";
-        return (translations[lang] || translations.en)[key] || translations.en[key] || key;
+        return (
+          (translations[lang] || translations.en)[key] ||
+          translations.en[key] ||
+          key
+        );
       }
 
       function getSearchLanguage() {
@@ -3267,9 +4020,6 @@
           sInput.placeholder = dict.searchPlaceholder;
         }
 
-        // Arabic must never change the physical YB-Maps layout.
-        // Keep every UI container LTR; only align translated text to the right.
-        // Setting direction:rtl on layout elements can reverse flex/grid positioning.
         document.documentElement.dir = "ltr";
         document.body.dir = "ltr";
 
@@ -3288,8 +4038,6 @@
 
         localStorage.setItem("yb_lang", lang);
 
-        // Use a smooth Ethiopic font for Amharic without changing the user's
-        // selected font for other languages.
         if (lang === "am") {
           document.body.style.fontFamily = '"Noto Sans Ethiopic", sans-serif';
         } else {
@@ -3297,7 +4045,6 @@
           if (storedFont) document.body.style.fontFamily = storedFont;
         }
 
-        // Keep Google map labels synchronized with the selected app language.
         if (typeof applyMapLanguage === "function") {
           applyMapLanguage(lang);
         }
@@ -3329,7 +4076,14 @@
       function googleTileUrl(layerType, lang) {
         const mapLang = MAP_LABEL_LANGUAGES[lang] || "en";
         const regionHint = lang === "om" ? "&gl=ET" : "";
-        return `https://mt1.google.com/vt/lyrs=${layerType}&hl=${encodeURIComponent(mapLang)}${regionHint}&x={x}&y={y}&z={z}`;
+        return (
+          "https://mt1.google.com/vt/lyrs=" +
+          layerType +
+          "&hl=" +
+          encodeURIComponent(mapLang) +
+          regionHint +
+          "&x={x}&y={y}&z={z}"
+        );
       }
 
       const defaultSource = new ol.source.XYZ({
@@ -3345,6 +4099,18 @@
       const hybridSource = new ol.source.XYZ({
         url: googleTileUrl("y", "en"),
         maxZoom: 20,
+      });
+
+      // Google Street View Coverage Tile Layer (Blue Lines)
+      const streetViewCoverageSource = new ol.source.XYZ({
+        url: "https://mt1.google.com/mapslt?lyrs=svv&x={x}&y={y}&z={z}&w=256&h=256&hl=en&style=40,18",
+        maxZoom: 20,
+      });
+
+      const streetViewCoverageLayer = new ol.layer.Tile({
+        source: streetViewCoverageSource,
+        visible: false,
+        zIndex: 5,
       });
 
       function applyMapLanguage(lang) {
@@ -3401,31 +4167,25 @@
 
       const map = new ol.Map({
         target: "map",
-        layers: [tileLayer, vectorLayer],
+        layers: [tileLayer, streetViewCoverageLayer, vectorLayer],
         view: view,
         controls: [],
       });
 
-      // Keep OpenLayers' built-in map navigation active:
-      // drag to pan, mouse wheel to zoom, double-click to zoom, and pinch to zoom.
       map
         .getInteractions()
         .forEach((interaction) => interaction.setActive(true));
 
-      // Explicitly keep the map viewport touch-enabled on phones.
       const mapViewport = map.getViewport();
       mapViewport.style.touchAction = "none";
       mapViewport.style.webkitUserSelect = "none";
       mapViewport.style.userSelect = "none";
 
-      // Recalculate the map size after phone rotation/resizing so touch gestures stay responsive.
       window.addEventListener("resize", () => map.updateSize());
       window.addEventListener("orientationchange", () => {
         setTimeout(() => map.updateSize(), 100);
       });
 
-      // UI panels are fixed overlays; map navigation is handled by OpenLayers interactions.
-      // --- HELPER FUNCTION TO CLEAR SEARCH PIN ---
       function clearSearchPin() {
         vectorSource.getFeatures().forEach((f) => {
           if (f.get("type") === "search-pin") {
@@ -3449,8 +4209,264 @@
         }
       }
 
+      // Quota Listener
+      window.addEventListener("gmp-quota-exceeded", () => {
+        const qBanner = document.getElementById("gmp-quota-banner");
+        if (qBanner) qBanner.style.display = "block";
+      });
 
+      // --- STREET VIEW LOGIC ---
+      let isStreetViewMode = false;
+      let streetViewPanoramaInstance = null;
+      let streetViewService = null;
+
+      const streetViewBtn = document.getElementById("street-view-btn");
+      const streetViewContainer = document.getElementById(
+        "street-view-container",
+      );
+      const streetViewCloseBtn = document.getElementById(
+        "street-view-close-btn",
+      );
+
+      function toggleStreetViewMode() {
+        isStreetViewMode = !isStreetViewMode;
+        if (isStreetViewMode) {
+          // Disable routing / home selection if active
+          if (isRoutingActive) stopRouting();
+          if (homeSelectionActive) {
+            homeSelectionActive = false;
+            closeHomeMenu();
+          }
+
+          streetViewBtn.classList.add("street-view-active");
+          streetViewCoverageLayer.setVisible(true);
+          document.getElementById("map").classList.add("sniper-mode");
+          document.body.classList.add("sniper-mode");
+          showNotification(getUiText("nStreetViewOn"));
+        } else {
+          exitStreetViewMode();
+        }
+      }
+
+      function exitStreetViewMode() {
+        isStreetViewMode = false;
+        streetViewBtn.classList.remove("street-view-active");
+        streetViewCoverageLayer.setVisible(false);
+        document.getElementById("map").classList.remove("sniper-mode");
+        document.body.classList.remove("sniper-mode");
+        showNotification(getUiText("nStreetViewOff"));
+      }
+
+      streetViewBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        closeAllPanels();
+        toggleStreetViewMode();
+      });
+
+      streetViewCloseBtn.addEventListener("click", function () {
+        streetViewContainer.style.display = "none";
+        if (streetViewPanoramaInstance) {
+          streetViewPanoramaInstance.setVisible(false);
+        }
+        // Fully deactivate Street View mode so the sniper cursor and blue coverage are cleared
+        exitStreetViewMode();
+      });
+
+      function ensureGoogleMapsLoaded() {
+        return new Promise((resolve, reject) => {
+          if (window.google && window.google.maps) {
+            return resolve(window.google.maps);
+          }
+          let attempts = 0;
+          const interval = setInterval(() => {
+            attempts++;
+            if (window.google && window.google.maps) {
+              clearInterval(interval);
+              resolve(window.google.maps);
+            } else if (attempts > 60) {
+              clearInterval(interval);
+              reject(new Error("Google Maps API failed to load in time"));
+            }
+          }, 100);
+        });
+      }
+
+      async function queryStreetView(lat, lng, radius) {
+        // Method 1: Google Street View Metadata REST API (fastest, supports wide radius & returns pano_id directly)
+        try {
+          const metaUrl =
+            "https://maps.googleapis.com/maps/api/streetview/metadata?location=" +
+            lat +
+            "," +
+            lng +
+            "&radius=" +
+            radius +
+            "&key=AIzaSyAWDe07sZ-8ox_u5lhHqHUtCfIFw0wNiN4";
+          const res = await fetch(metaUrl);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.status === "OK" && data.pano_id) {
+              return {
+                pano: data.pano_id,
+                location: data.location || { lat, lng },
+              };
+            }
+          }
+        } catch (e) {
+          console.warn("Street View metadata fetch error:", e);
+        }
+
+        // Method 2: Google Maps JavaScript SDK StreetViewService fallback
+        if (
+          window.google &&
+          window.google.maps &&
+          window.google.maps.StreetViewService
+        ) {
+          try {
+            if (!streetViewService) {
+              streetViewService = new google.maps.StreetViewService();
+            }
+            const svData = await new Promise((resolve, reject) => {
+              streetViewService.getPanorama(
+                {
+                  location: { lat, lng },
+                  radius: radius,
+                  preference: google.maps.StreetViewPreference.NEAREST,
+                  internalUsageAttributionIds: [
+                    "gmp_mcp_codeassist_v1_aistudio",
+                  ],
+                },
+                function (result, status) {
+                  if (
+                    status === google.maps.StreetViewStatus.OK &&
+                    result &&
+                    result.location
+                  ) {
+                    resolve(result);
+                  } else {
+                    reject(new Error(status || "ZERO_RESULTS"));
+                  }
+                },
+              );
+            });
+
+            if (svData && svData.location && svData.location.pano) {
+              return {
+                pano: svData.location.pano,
+                location: svData.location.latLng || { lat, lng },
+              };
+            }
+          } catch (e) {
+            // Next attempt
+          }
+        }
+
+        return null;
+      }
+
+      async function loadStreetViewAtCoordinate(coordinate) {
+        const lonLat = ol.proj.toLonLat(coordinate);
+        const lat = Number(lonLat[1]);
+        const lng = Number(lonLat[0]);
+
+        showNotification(getUiText("nStreetViewChecking"), true);
+
+        try {
+          await ensureGoogleMapsLoaded();
+
+          // Calculate adaptive radii based on map zoom to guarantee hit on roads even at medium zoom
+          const currentZoom = map.getView().getZoom() || 14;
+          const dynamicBase = Math.round(
+            150 * Math.pow(1.5, Math.max(0, 16 - currentZoom)),
+          );
+          const radiiToTry = [
+            Math.min(dynamicBase, 250),
+            Math.min(dynamicBase * 2, 800),
+            Math.min(dynamicBase * 4, 2500),
+          ];
+
+          let panoResult = null;
+          for (const r of radiiToTry) {
+            panoResult = await queryStreetView(lat, lng, r);
+            if (panoResult) break;
+          }
+
+          if (panoResult && panoResult.pano) {
+            await openStreetViewViewer(panoResult.pano, panoResult.location);
+            showNotification(getUiText("nStreetViewLoaded"));
+          } else {
+            showNotification(getUiText("nStreetViewNone"));
+          }
+        } catch (err) {
+          console.warn("Street View lookup error:", err);
+          showNotification(getUiText("nStreetViewNone"));
+        }
+      }
+
+      function openStreetViewViewer(panoId, latLng) {
+        document.getElementById("map").classList.remove("sniper-mode");
+        document.body.classList.remove("sniper-mode");
+        streetViewContainer.style.display = "block";
+        const panoElement = document.getElementById("street-view-pano");
+
+        try {
+          if (!streetViewPanoramaInstance) {
+            streetViewPanoramaInstance = new google.maps.StreetViewPanorama(
+              panoElement,
+              {
+                enableCloseButton: false,
+                motionTracking: false,
+                motionTrackingControl: false,
+                fullscreenControl: false,
+                addressControl: false,
+                linksControl: true,
+                panControl: false,
+                zoomControl: false,
+                showRoadLabels: false,
+                internalUsageAttributionIds: ["gmp_mcp_codeassist_v1_aistudio"],
+              },
+            );
+          }
+
+          if (panoId) {
+            streetViewPanoramaInstance.setPano(panoId);
+          }
+          if (latLng) {
+            streetViewPanoramaInstance.setPosition(latLng);
+          }
+          streetViewPanoramaInstance.setPov({ heading: 0, pitch: 0 });
+          streetViewPanoramaInstance.setVisible(true);
+
+          setTimeout(() => {
+            if (
+              window.google &&
+              window.google.maps &&
+              window.google.maps.event
+            ) {
+              google.maps.event.trigger(streetViewPanoramaInstance, "resize");
+            }
+          }, 150);
+        } catch (err) {
+          console.error("Error displaying panorama:", err);
+          showNotification(getUiText("nStreetViewFail"));
+        }
+      }
+
+      window.addEventListener("keydown", function (e) {
+        if (
+          e.key === "Escape" &&
+          streetViewContainer.style.display === "block"
+        ) {
+          streetViewCloseBtn.click();
+        }
+      });
+
+      // --- MAP CLICK HANDLER ---
       map.on("click", function (evt) {
+        if (isStreetViewMode) {
+          loadStreetViewAtCoordinate(evt.coordinate);
+          return;
+        }
         if (homeSelectionActive) {
           saveHomeAtCoordinate(evt.coordinate);
           return;
@@ -3475,6 +4491,7 @@
           vectorSource.addFeature(endMarkerFeature);
           routeStep = 2;
           document.getElementById("map").classList.remove("sniper-mode");
+          document.body.classList.remove("sniper-mode");
 
           fetchRouteOSRM(departureCoord, destinationCoord);
         }
@@ -3508,18 +4525,18 @@
               compassTargetRotation - compassVisualRotation,
             );
 
-            // Smooth, frame-rate-independent follow so the needle stays centered
-            // and does not jump or glitch around West/South.
             const smoothing = 1 - Math.exp(-deltaTime / 90);
             compassVisualRotation += delta * smoothing;
 
-            compassNeedle.style.transform = `rotate(${compassVisualRotation}rad)`;
+            compassNeedle.style.transform =
+              "rotate(" + compassVisualRotation + "rad)";
 
             if (Math.abs(delta) > 0.0005) {
               compassFrame = requestAnimationFrame(animateCompass);
             } else {
               compassVisualRotation = compassTargetRotation;
-              compassNeedle.style.transform = `rotate(${compassVisualRotation}rad)`;
+              compassNeedle.style.transform =
+                "rotate(" + compassVisualRotation + "rad)";
               compassLastFrameTime = 0;
             }
           },
@@ -3538,11 +4555,14 @@
 
       compassNeedle.style.transform = "rotate(0rad)";
 
-      // Country Flag Emoji Helper
       function getCountryFlagEmoji(countryCode) {
         if (!countryCode || countryCode.length !== 2) return "";
         const code = countryCode.toLowerCase();
-        return `<img src="https://flagcdn.com/w40/${code}.png" alt="" style="width: 24px; height: 16px; object-fit: cover; border-radius: 3px; display: block;" loading="lazy">`;
+        return (
+          '<img src="https://flagcdn.com/w40/' +
+          code +
+          '.png" alt="" style="width: 24px; height: 16px; object-fit: cover; border-radius: 3px; display: block;" loading="lazy">'
+        );
       }
 
       // --- SEARCH ENGINE ---
@@ -3574,7 +4594,7 @@
         }
 
         const searchLanguage = getSearchLanguage();
-        const cacheKey = `${searchLanguage}:${query.toLowerCase()}`;
+        const cacheKey = searchLanguage + ":" + query.toLowerCase();
         if (searchCache.has(cacheKey)) {
           renderSearchResults(searchCache.get(cacheKey), query);
           return;
@@ -3584,17 +4604,16 @@
           if (searchAbortController) searchAbortController.abort();
           searchAbortController = new AbortController();
 
-          // Search with the selected language first, then English as a fallback.
-          // This lets users type normal Latin/ABCD letters even when the UI
-          // language uses another script, while still showing a translated
-          // place name whenever the map data has one.
           const languages =
             searchLanguage === "en" ? ["en"] : [searchLanguage, "en"];
 
           const responses = await Promise.all(
             languages.map((lang) =>
               fetch(
-                `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=6&lang=${encodeURIComponent(lang)}`,
+                "https://photon.komoot.io/api/?q=" +
+                  encodeURIComponent(query) +
+                  "&limit=6&lang=" +
+                  encodeURIComponent(lang),
                 {
                   signal: searchAbortController.signal,
                   cache: "force-cache",
@@ -3604,7 +4623,9 @@
             ),
           );
 
-          const datasets = await Promise.all(responses.map((res) => res.json()));
+          const datasets = await Promise.all(
+            responses.map((res) => res.json()),
+          );
           const results = [];
           const seen = new Set();
 
@@ -3615,16 +4636,8 @@
               if (coords.length < 2) continue;
 
               const place = {
-                name:
-                  props.name ||
-                  props.city ||
-                  props.country ||
-                  "Location",
-                city:
-                  props.city ||
-                  props.state ||
-                  props.county ||
-                  "",
+                name: props.name || props.city || props.country || "Location",
+                city: props.city || props.state || props.county || "",
                 country: props.country || "",
                 countryCode: (props.countrycode || "").toUpperCase(),
                 type: props.type || "",
@@ -3638,7 +4651,11 @@
               }
 
               const key =
-                `${place.name.toLowerCase()}|${place.lat.toFixed(5)}|${place.lon.toFixed(5)}`;
+                place.name.toLowerCase() +
+                "|" +
+                place.lat.toFixed(5) +
+                "|" +
+                place.lon.toFixed(5);
               if (seen.has(key)) continue;
               seen.add(key);
 
@@ -3664,7 +4681,7 @@
           const normalizedQuery = query.toLowerCase();
           for (let i = 2; i <= normalizedQuery.length; i++) {
             searchPrefixCache.set(
-              `${searchLanguage}:${normalizedQuery.slice(0, i)}`,
+              searchLanguage + ":" + normalizedQuery.slice(0, i),
               results,
             );
           }
@@ -3673,18 +4690,18 @@
         } catch (err) {
           if (err.name === "AbortError") return;
           searchResults.innerHTML =
-            `<div class="search-result-item">${getUiText("noLocationsFound")}</div>`;
+            '<div class="search-result-item">' +
+            getUiText("noLocationsFound") +
+            "</div>";
           searchResults.style.display = "block";
         }
       }
 
-      // --- COPY LOCATION ---
       async function copyLocationLink(item) {
         if (!item || item.lat == null || item.lon == null) return;
-
         const lat = Number(item.lat);
         const lon = Number(item.lon);
-        const copyText = `${lat}, ${lon}`;
+        const copyText = lat + ", " + lon;
 
         try {
           if (navigator.clipboard && window.isSecureContext) {
@@ -3706,211 +4723,8 @@
         }
       }
 
-      // --- COUNTRY INFORMATION ---
       const countryInfoModal = document.getElementById("country-info-modal");
       const countryInfoClose = document.getElementById("country-info-close");
-
-      const countryInfoLabels = {
-        en: {
-          timezone: "Timezone",
-          country: "Country",
-          capital: "Country capital",
-          continent: "Continent",
-          economy: "ECONOMY",
-        },
-        am: {
-          timezone: "የሰዓት ዞን",
-          country: "አገር",
-          capital: "የአገሩ ዋና ከተማ",
-          continent: "አህጉር",
-          economy: "ኢኮኖሚ",
-        },
-        om: {
-          timezone: "Sa'aatii",
-          country: "Biyya",
-          capital: "Magaalaa guddoo biyya",
-          continent: "Qaaradda",
-          economy: "DINAGDEE",
-        },
-        es: {
-          timezone: "Zona horaria",
-          country: "País",
-          capital: "Capital",
-          continent: "Continente",
-          economy: "ECONOMÍA",
-        },
-        fr: {
-          timezone: "Fuseau horaire",
-          country: "Pays",
-          capital: "Capitale",
-          continent: "Continent",
-          economy: "ÉCONOMIE",
-        },
-        de: {
-          timezone: "Zeitzone",
-          country: "Land",
-          capital: "Hauptstadt",
-          continent: "Kontinent",
-          economy: "WIRTSCHAFT",
-        },
-        ar: {
-          timezone: "المنطقة الزمنية",
-          country: "الدولة",
-          capital: "عاصمة الدولة",
-          continent: "القارة",
-          economy: "الاقتصاد",
-        },
-        zh: {
-          timezone: "时区",
-          country: "国家",
-          capital: "国家首都",
-          continent: "洲",
-          economy: "经济",
-        },
-        ja: {
-          timezone: "タイムゾーン",
-          country: "国",
-          capital: "首都",
-          continent: "大陸",
-          economy: "経済",
-        },
-        ru: {
-          timezone: "Часовой пояс",
-          country: "Страна",
-          capital: "Столица",
-          continent: "Континент",
-          economy: "ЭКОНОМИКА",
-        },
-        pt: {
-          timezone: "Fuso horário",
-          country: "País",
-          capital: "Capital",
-          continent: "Continente",
-          economy: "ECONOMIA",
-        },
-        hi: {
-          timezone: "समय क्षेत्र",
-          country: "देश",
-          capital: "राजधानी",
-          continent: "महाद्वीप",
-          economy: "अर्थव्यवस्था",
-        },
-        it: {
-          timezone: "Fuso orario",
-          country: "Paese",
-          capital: "Capitale",
-          continent: "Continente",
-          economy: "ECONOMIA",
-        },
-        tr: {
-          timezone: "Saat dilimi",
-          country: "Ülke",
-          capital: "Başkent",
-          continent: "Kıta",
-          economy: "EKONOMİ",
-        },
-        ko: {
-          timezone: "시간대",
-          country: "국가",
-          capital: "수도",
-          continent: "대륙",
-          economy: "경제",
-        },
-        sw: {
-          timezone: "Saa za eneo",
-          country: "Nchi",
-          capital: "Mji mkuu",
-          continent: "Bara",
-          economy: "UCHUMI",
-        },
-      };
-
-      function formatMoney(value) {
-        if (typeof value !== "number" || !Number.isFinite(value)) return "—";
-        if (value >= 1e12) return "$" + (value / 1e12).toFixed(2) + "T";
-        if (value >= 1e9) return "$" + (value / 1e9).toFixed(2) + "B";
-        if (value >= 1e6) return "$" + (value / 1e6).toFixed(2) + "M";
-        return "$" + Math.round(value).toLocaleString();
-      }
-
-      async function showCountryInfo(item) {
-        if (!item || !item.countryCode) return;
-
-        const lang = localStorage.getItem("yb_lang") || "en";
-        const labels = countryInfoLabels[lang] || countryInfoLabels.en;
-
-        document.getElementById("country-info-timezone").textContent =
-          labels.timezone;
-        document.getElementById("country-info-country").textContent =
-          labels.country;
-        document.getElementById("country-info-capital").textContent =
-          labels.capital;
-        document.getElementById("country-info-continent").textContent =
-          labels.continent;
-        document.getElementById("country-info-economy-title").textContent =
-          labels.economy;
-        document.getElementById("country-info-economy-value").textContent =
-          "Loading…";
-        countryInfoModal.style.display = "flex";
-
-        try {
-          const code = item.countryCode.toLowerCase();
-          const countryResp = await fetch(
-            `https://restcountries.com/v3.1/alpha/${encodeURIComponent(code)}`,
-          );
-          if (!countryResp.ok) throw new Error("Country lookup failed");
-          const countryData = await countryResp.json();
-          const country = Array.isArray(countryData)
-            ? countryData[0]
-            : countryData;
-
-          const flagUrl =
-            country?.flags?.png || `https://flagcdn.com/w640/${code}.png`;
-          const flag = document.getElementById("country-info-flag");
-          flag.src = flagUrl;
-          flag.alt = country?.name?.common || item.country || "Country flag";
-
-          const countryName =
-            country?.name?.common || item.country || item.name;
-          const capital = country?.capital?.join(", ") || "—";
-          const timezone = country?.timezones?.join(", ") || "—";
-          const continent =
-            country?.continents?.join(", ") || country?.region || "—";
-
-          document.getElementById("country-info-timezone").textContent =
-            `${labels.timezone}: ${timezone}`;
-          document.getElementById("country-info-country").textContent =
-            `${labels.country}: ${countryName}`;
-          document.getElementById("country-info-capital").textContent =
-            `${labels.capital}: ${capital}`;
-          document.getElementById("country-info-continent").textContent =
-            `${labels.continent}: ${continent}`;
-
-          // World Bank public GDP data fills the large economy box.
-          let economyText = "—";
-          try {
-            const [gdpResp, pcResp] = await Promise.all([
-              fetch(
-                `https://api.worldbank.org/v2/country/${encodeURIComponent(code)}/indicator/NY.GDP.MKTP.CD?format=json&per_page=1`,
-              ),
-              fetch(
-                `https://api.worldbank.org/v2/country/${encodeURIComponent(code)}/indicator/NY.GDP.PCAP.CD?format=json&per_page=1`,
-              ),
-            ]);
-            const gdpData = await gdpResp.json();
-            const pcData = await pcResp.json();
-            const gdp = gdpData?.[1]?.find((x) => x.value != null)?.value;
-            const perCapita = pcData?.[1]?.find((x) => x.value != null)?.value;
-            economyText = `GDP: ${formatMoney(gdp)}\nGDP per capita: ${formatMoney(perCapita)}`;
-          } catch (e) {}
-
-          document.getElementById("country-info-economy-value").textContent =
-            economyText;
-        } catch (e) {
-          document.getElementById("country-info-economy-value").textContent =
-            "Country information unavailable.";
-        }
-      }
 
       countryInfoClose.addEventListener("click", () => {
         countryInfoModal.style.display = "none";
@@ -3924,7 +4738,9 @@
       async function renderSearchResults(items, query) {
         if (!items || items.length === 0) {
           searchResults.innerHTML =
-            `<div class="search-result-item">${getUiText("noLocationsFound")}</div>`;
+            '<div class="search-result-item">' +
+            getUiText("noLocationsFound") +
+            "</div>";
           searchResults.style.display = "block";
           return;
         }
@@ -3942,10 +4758,10 @@
 
             if (isCountryQuery) {
               primary = item.country || item.name;
-              secondary = item.city ? `${item.city}` : "Country";
+              secondary = item.city ? item.city : "Country";
             } else {
               if (item.city && item.country) {
-                secondary = `${item.city}, ${item.country}`;
+                secondary = item.city + ", " + item.country;
               } else if (item.country) {
                 secondary = item.country;
               } else if (item.city) {
@@ -4016,27 +4832,32 @@
 
       const nearbySearchCategories = [
         {
-          labelKey: "nearbyRestaurants", label: "Restaurants near me",
+          labelKey: "nearbyRestaurants",
+          label: "Restaurants near me",
           query: "restaurant",
           icon: "https://cdn-icons-png.flaticon.com/512/710/710923.png",
         },
         {
-          labelKey: "nearbyHotels", label: "Hotels near me",
+          labelKey: "nearbyHotels",
+          label: "Hotels near me",
           query: "hotel",
           icon: "https://cdn-icons-png.flaticon.com/512/5867/5867132.png",
         },
         {
-          labelKey: "nearbyMuseums", label: "Museums near me",
+          labelKey: "nearbyMuseums",
+          label: "Museums near me",
           query: "museum",
           icon: "https://cdn-icons-png.flaticon.com/512/5236/5236884.png",
         },
         {
-          labelKey: "nearbyPharmacies", label: "Pharmacies near me",
+          labelKey: "nearbyPharmacies",
+          label: "Pharmacies near me",
           query: "pharmacy",
           icon: "https://cdn-icons-png.flaticon.com/512/14599/14599222.png",
         },
         {
-          labelKey: "nearbyThings", label: "Things to do around me",
+          labelKey: "nearbyThings",
+          label: "Things to do around me",
           query: "tourism",
           icon: "https://cdn-icons-png.flaticon.com/512/7695/7695065.png",
         },
@@ -4046,7 +4867,9 @@
         if (searchInput.value.trim()) return;
 
         searchResults.innerHTML =
-          `<div class="search-suggestion-title">${getUiText("nearbyTitle")}</div>` +
+          '<div class="search-suggestion-title">' +
+          getUiText("nearbyTitle") +
+          "</div>" +
           '<div class="search-suggestions-grid">' +
           nearbySearchCategories
             .map(
@@ -4054,9 +4877,12 @@
                 '<button class="search-suggestion-item" type="button" data-nearby-index="' +
                 index +
                 '">' +
-                '<span class="search-suggestion-icon" style="--icon-url:url(' + item.icon + ')" aria-hidden="true"></span>' +
+                '<span class="search-suggestion-icon" style="--icon-url:url(' +
+                item.icon +
+                ')" aria-hidden="true"></span>' +
                 "<span>" +
-                ((translations[localStorage.getItem("yb_lang") || "en"] || translations.en)[item.labelKey] || item.label) +
+                ((translations[localStorage.getItem("yb_lang") || "en"] ||
+                  translations.en)[item.labelKey] || item.label) +
                 "</span>" +
                 "</button>",
             )
@@ -4088,12 +4914,13 @@
           }
 
           navigator.geolocation.getCurrentPosition(
-            (position) => resolve([position.coords.longitude, position.coords.latitude]),
+            (position) =>
+              resolve([position.coords.longitude, position.coords.latitude]),
             () => {
               if (savedHome) resolve(ol.proj.toLonLat(savedHome));
               else reject(new Error("location-permission-denied"));
             },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 120000 }
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 120000 },
           );
         });
       }
@@ -4102,7 +4929,9 @@
         const localizedItemLabel = getUiText(item.labelKey);
         searchInput.value = localizedItemLabel;
         searchResults.innerHTML =
-          `<div class="search-result-item">${getUiText("nearbyFinding")}</div>`;
+          '<div class="search-result-item">' +
+          getUiText("nearbyFinding") +
+          "</div>";
         searchResults.style.display = "block";
 
         try {
@@ -4111,7 +4940,14 @@
           const lonPad = 0.18;
           const latPad = 0.15;
           const bbox =
-            `${lon - lonPad},${lat - latPad},${lon + lonPad},${lat + latPad}`;
+            lon -
+            lonPad +
+            "," +
+            (lat - latPad) +
+            "," +
+            (lon + lonPad) +
+            "," +
+            (lat + latPad);
 
           const queries =
             item.query === "tourism"
@@ -4126,7 +4962,16 @@
           for (const query of queries) {
             for (const lang of languages) {
               const url =
-                `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&lat=${lat}&lon=${lon}&bbox=${encodeURIComponent(bbox)}&limit=20&lang=${encodeURIComponent(lang)}`;
+                "https://photon.komoot.io/api/?q=" +
+                encodeURIComponent(query) +
+                "&lat=" +
+                lat +
+                "&lon=" +
+                lon +
+                "&bbox=" +
+                encodeURIComponent(bbox) +
+                "&limit=20&lang=" +
+                encodeURIComponent(lang);
 
               const resp = await fetch(url, {
                 cache: "no-store",
@@ -4141,8 +4986,19 @@
                 if (coords.length < 2) continue;
 
                 const place = {
-                  name: props.name || props.street || props.city || props.country || "Location",
-                  city: props.city || props.town || props.village || props.municipality || props.state || "",
+                  name:
+                    props.name ||
+                    props.street ||
+                    props.city ||
+                    props.country ||
+                    "Location",
+                  city:
+                    props.city ||
+                    props.town ||
+                    props.village ||
+                    props.municipality ||
+                    props.state ||
+                    "",
                   country: props.country || "",
                   countryCode: (props.countrycode || "").toUpperCase(),
                   type: props.type || "",
@@ -4151,13 +5007,19 @@
                   lat: Number(coords[1]),
                 };
 
-                if (!Number.isFinite(place.lon) || !Number.isFinite(place.lat)) continue;
+                if (!Number.isFinite(place.lon) || !Number.isFinite(place.lat))
+                  continue;
 
                 const nameLower = place.name.toLowerCase().trim();
                 const typeLower = place.type.toLowerCase();
                 const osmVal = place.osm_value.toLowerCase();
 
-                if (CONTINENTS.includes(nameLower) || typeLower === "continent" || osmVal === "continent") continue;
+                if (
+                  CONTINENTS.includes(nameLower) ||
+                  typeLower === "continent" ||
+                  osmVal === "continent"
+                )
+                  continue;
                 allResults.push(place);
               }
             }
@@ -4167,7 +5029,12 @@
           const seen = new Set();
 
           for (const place of allResults) {
-            const key = `${place.name.toLowerCase()}|${place.lat.toFixed(5)}|${place.lon.toFixed(5)}`;
+            const key =
+              place.name.toLowerCase() +
+              "|" +
+              place.lat.toFixed(5) +
+              "|" +
+              place.lon.toFixed(5);
             if (seen.has(key)) continue;
             seen.add(key);
 
@@ -4181,17 +5048,24 @@
           const results = unique.slice(0, 6);
 
           if (results.length) {
-            searchCache.set(`${searchLanguage}:${item.label.toLowerCase()}`, results);
+            searchCache.set(
+              searchLanguage + ":" + item.label.toLowerCase(),
+              results,
+            );
             renderSearchResults(results, localizedItemLabel);
           } else {
             searchResults.innerHTML =
-              `<div class="search-result-item">${getUiText("nearbyNone")}</div>`;
+              '<div class="search-result-item">' +
+              getUiText("nearbyNone") +
+              "</div>";
           }
 
           searchResults.style.display = "block";
         } catch (err) {
           searchResults.innerHTML =
-            `<div class="search-result-item">${getUiText("nearbyUnavailable")}</div>`;
+            '<div class="search-result-item">' +
+            getUiText("nearbyUnavailable") +
+            "</div>";
           searchResults.style.display = "block";
         }
       }
@@ -4200,7 +5074,6 @@
         if (!this.value.trim()) showSearchSuggestions();
       });
 
-      // Fast search input: show cached partial results immediately, then refresh with the exact query.
       searchInput.addEventListener("input", function () {
         const value = this.value.trim();
         if (!value) {
@@ -4212,10 +5085,14 @@
         const normalized = value.toLowerCase();
         if (normalized.length >= 2) {
           const searchLanguage = getSearchLanguage();
-          let prefixResults = searchPrefixCache.get(`${searchLanguage}:${normalized}`);
+          let prefixResults = searchPrefixCache.get(
+            searchLanguage + ":" + normalized,
+          );
           if (!prefixResults) {
             for (let i = normalized.length - 1; i >= 2; i--) {
-              const cached = searchPrefixCache.get(`${searchLanguage}:${normalized.slice(0, i)}`);
+              const cached = searchPrefixCache.get(
+                searchLanguage + ":" + normalized.slice(0, i),
+              );
               if (cached) {
                 prefixResults = cached;
                 break;
@@ -4235,7 +5112,9 @@
       // --- HOME LOCATION ---
       const homeBtn = document.getElementById("home-btn");
       const homeMenu = document.getElementById("home-menu");
-      const homeMenuDescription = document.getElementById("home-menu-description");
+      const homeMenuDescription = document.getElementById(
+        "home-menu-description",
+      );
       const homeSavedItem = document.getElementById("home-saved-item");
       const homePrimaryBtn = document.getElementById("home-primary-btn");
       const homeCancelBtn = document.getElementById("home-cancel-btn");
@@ -4244,8 +5123,11 @@
       let homeClickTimer = null;
 
       try {
-        const storedHome = JSON.parse(localStorage.getItem("yb_home_location") || "null");
-        if (storedHome && Array.isArray(storedHome) && storedHome.length === 2) savedHome = storedHome;
+        const storedHome = JSON.parse(
+          localStorage.getItem("yb_home_location") || "null",
+        );
+        if (storedHome && Array.isArray(storedHome) && storedHome.length === 2)
+          savedHome = storedHome;
       } catch (error) {
         savedHome = null;
       }
@@ -4254,15 +5136,27 @@
 
       function renderHomeMenu() {
         if (savedHome) {
-          homeMenuDescription.textContent = (translations[localStorage.getItem("yb_lang") || "en"] || translations.en).homeSavedDescription;
+          homeMenuDescription.textContent = (
+            translations[localStorage.getItem("yb_lang") || "en"] ||
+            translations.en
+          ).homeSavedDescription;
           homeSavedItem.style.display = "flex";
-          homePrimaryBtn.textContent = (translations[localStorage.getItem("yb_lang") || "en"] || translations.en).homeAddBtn;
+          homePrimaryBtn.textContent = (
+            translations[localStorage.getItem("yb_lang") || "en"] ||
+            translations.en
+          ).homeAddBtn;
           homeCancelBtn.style.display = "none";
           homeRemoveBtn.style.display = "block";
         } else {
-          homeMenuDescription.textContent = (translations[localStorage.getItem("yb_lang") || "en"] || translations.en).homeSetDescription;
+          homeMenuDescription.textContent = (
+            translations[localStorage.getItem("yb_lang") || "en"] ||
+            translations.en
+          ).homeSetDescription;
           homeSavedItem.style.display = "none";
-          homePrimaryBtn.textContent = (translations[localStorage.getItem("yb_lang") || "en"] || translations.en).homeSetBtn;
+          homePrimaryBtn.textContent = (
+            translations[localStorage.getItem("yb_lang") || "en"] ||
+            translations.en
+          ).homeSetBtn;
           homeCancelBtn.style.display = "none";
           homeRemoveBtn.style.display = "none";
         }
@@ -4275,6 +5169,7 @@
         localStorage.removeItem("yb_home_location");
         homeSelectionActive = false;
         document.getElementById("map").classList.remove("sniper-mode");
+        document.body.classList.remove("sniper-mode");
         renderHomeMenu();
         closeHomeMenu();
         showNotification(getUiText("nRemoved"));
@@ -4286,7 +5181,9 @@
         homeMenu.classList.add("show");
         homeMenu.setAttribute("aria-hidden", "false");
         if (replaceMode) {
-          const homeDict = translations[localStorage.getItem("yb_lang") || "en"] || translations.en;
+          const homeDict =
+            translations[localStorage.getItem("yb_lang") || "en"] ||
+            translations.en;
           homeMenuDescription.textContent = homeDict.homeReplaceDescription;
           homePrimaryBtn.textContent = homeDict.homeAddBtn;
           homeCancelBtn.style.display = "block";
@@ -4300,8 +5197,10 @@
 
       function startHomeSelection() {
         closeHomeMenu();
+        if (isStreetViewMode) exitStreetViewMode();
         homeSelectionActive = true;
         document.getElementById("map").classList.add("sniper-mode");
+        document.body.classList.add("sniper-mode");
         showNotification(getUiText("nClickHome"));
       }
 
@@ -4316,6 +5215,7 @@
         localStorage.setItem("yb_home_location", JSON.stringify(savedHome));
         homeSelectionActive = false;
         document.getElementById("map").classList.remove("sniper-mode");
+        document.body.classList.remove("sniper-mode");
         renderHomeMenu();
         closeHomeMenu();
         showNotification(getUiText("nSaved"));
@@ -4333,23 +5233,15 @@
 
       homeBtn.addEventListener("click", function (e) {
         e.stopPropagation();
-        if (homeClickTimer) clearTimeout(homeClickTimer);
-        homeClickTimer = setTimeout(() => {
-          homeClickTimer = null;
-          if (savedHome) goToSavedHome();
-          else openHomeMenu(false);
-        }, 350);
-      });
-
-      homeBtn.addEventListener("dblclick", function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (homeClickTimer) {
-          clearTimeout(homeClickTimer);
-          homeClickTimer = null;
+        const isMenuOpen = homeMenu.classList.contains("show");
+        if (isMenuOpen) {
+          closeHomeMenu();
+        } else {
+          openHomeMenu(false);
+          if (savedHome) {
+            goToSavedHome();
+          }
         }
-        if (savedHome) openHomeMenu(true);
-        else openHomeMenu(false);
       });
 
       renderHomeMenu();
@@ -4391,16 +5283,19 @@
         isRoutingActive = false;
         clearCurrentRoute();
         document.getElementById("map").classList.remove("sniper-mode");
+        document.body.classList.remove("sniper-mode");
         btnStartRoute.style.display = "inline-block";
         btnStopRoute.style.display = "none";
         showNotification(getUiText("nRouteClear"));
       }
 
       function startRouting() {
+        if (isStreetViewMode) exitStreetViewMode();
         clearCurrentRoute();
         isRoutingActive = true;
         routeStep = 0;
         document.getElementById("map").classList.add("sniper-mode");
+        document.body.classList.add("sniper-mode");
         btnStartRoute.style.display = "none";
         btnStopRoute.style.display = "inline-block";
         if (window.innerWidth <= 768) {
@@ -4419,7 +5314,16 @@
         showNotification("Calculating route...", true);
 
         try {
-          const url = `https://router.project-osrm.org/route/v1/driving/${startLonLat[0]},${startLonLat[1]};${endLonLat[0]},${endLonLat[1]}?overview=full&geometries=geojson`;
+          const url =
+            "https://router.project-osrm.org/route/v1/driving/" +
+            startLonLat[0] +
+            "," +
+            startLonLat[1] +
+            ";" +
+            endLonLat[0] +
+            "," +
+            endLonLat[1] +
+            "?overview=full&geometries=geojson";
           const resp = await fetch(url);
           const data = await resp.json();
 
@@ -4441,10 +5345,10 @@
 
             const nameInput = document.getElementById("route-name-input");
             const routeName =
-              nameInput.value.trim() || `Route ${savedRoutes.length + 1}`;
+              nameInput.value.trim() || "Route " + (savedRoutes.length + 1);
             saveRouteToStorage(routeName, start, end, routeCoords);
 
-            showNotification(`${getUiText("nRoutePlotted")} ${routeName}`);
+            showNotification(getUiText("nRoutePlotted") + " " + routeName);
           } else {
             showNotification(getUiText("nRouteFail"));
           }
@@ -4462,7 +5366,8 @@
       function renderSavedRoutes() {
         const container = document.getElementById("saved-routes-list");
         if (!savedRoutes.length) {
-          container.innerHTML = `<div style="font-size: 13px; color: rgba(255, 255, 255, 0.4); text-align: center; padding: 10px;" data-i18n="noRoutes">No saved routes yet</div>`;
+          container.innerHTML =
+            '<div style="font-size: 13px; color: rgba(255, 255, 255, 0.4); text-align: center; padding: 10px;" data-i18n="noRoutes">No saved routes yet</div>';
           return;
         }
 
@@ -4514,7 +5419,7 @@
         isRoutingActive = true;
         routeStep = 2;
 
-        showNotification(`${getUiText("nRouteLoaded")} ${item.name}`);
+        showNotification(getUiText("nRouteLoaded") + " " + item.name);
       };
 
       window.deleteSavedRoute = function (id) {
@@ -4573,7 +5478,6 @@
           if (!isVis) el.style.display = "flex";
         });
 
-      // Global click listener to close UI panels when tapping the map or anywhere outside
       document.addEventListener("click", function (e) {
         const topCluster = document.querySelector(".top-left-cluster");
         const layersMenu = document.getElementById("layers-menu");
@@ -4593,7 +5497,6 @@
         }
       });
 
-      // Layer Switching
       document.querySelectorAll(".layer-option").forEach((opt) => {
         opt.addEventListener("click", function () {
           const lType = this.getAttribute("data-layer");
@@ -4638,7 +5541,7 @@
         if (!storedFont) return;
         document.body.style.fontFamily = storedFont;
         const storedFontOption = fontMenu.querySelector(
-          `.custom-select-option[data-value="${CSS.escape(storedFont)}"]`,
+          '.custom-select-option[data-value="' + CSS.escape(storedFont) + '"]',
         );
         if (storedFontOption) {
           fontSelectedText.textContent = storedFontOption.textContent.trim();
@@ -4735,7 +5638,6 @@
       applyStoredFont();
 
       // Zoom Controls
-
       document
         .getElementById("btn-zoom-in")
         .addEventListener("click", function () {
@@ -4780,27 +5682,11 @@
         if (e.target === helpModal) helpModal.style.display = "none";
       });
 
-      // Help Modal Tabs
-      document.querySelectorAll(".help-tab-btn").forEach((btn) => {
-        btn.addEventListener("click", function () {
-          document
-            .querySelectorAll(".help-tab-btn")
-            .forEach((b) => (b.style.background = "rgba(255, 255, 255, 0.06)"));
-          this.style.background = "#10b981";
-
-          const target = this.getAttribute("data-target");
-          document
-            .querySelectorAll(".help-section-content")
-            .forEach((sec) => (sec.style.display = "none"));
-          document.getElementById(target).style.display = "block";
-        });
-      });
-
       // Initialize Stored Language
       const storedLang = localStorage.getItem("yb_lang") || "en";
       langSelect.value = storedLang;
       const storedLangOption = langWrapper.querySelector(
-        `.language-option[data-value="${storedLang}"]`,
+        '.language-option[data-value="' + storedLang + '"]',
       );
       if (storedLangOption) {
         const storedFlag = storedLangOption
