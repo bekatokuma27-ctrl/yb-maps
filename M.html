@@ -31,7 +31,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Fira+Code:wght@400;600&family=Inter:wght@400;500;700&family=Montserrat:wght@400;600&family=Nunito:wght@400;600&family=Outfit:wght@400;600&family=Playfair+Display:wght@400;600&family=Plus+Jakarta+Sans:wght@400;600&family=Poppins:wght@400;600&family=Quicksand:wght@400;600&family=Raleway:wght@400;600&family=Roboto:wght@400;500;700&family=Space+Grotesk:wght@400;600&family=Syne:wght@400;700&family=Ubuntu:wght@400;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@400;500;600;700&family=Caveat:wght@600&family=Fira+Code:wght@400;600&family=Inter:wght@400;500;700&family=Montserrat:wght@400;600&family=Nunito:wght@400;600&family=Outfit:wght@400;600&family=Playfair+Display:wght@400;600&family=Plus+Jakarta+Sans:wght@400;600&family=Poppins:wght@400;600&family=Quicksand:wght@400;600&family=Raleway:wght@400;600&family=Roboto:wght@400;500;700&family=Space+Grotesk:wght@400;600&family=Syne:wght@400;700&family=Ubuntu:wght@400;700&display=swap"
       rel="stylesheet"
     />
 
@@ -1729,41 +1729,19 @@
         >
           YB-Maps Help &amp; Support
         </div>
-        <div style="display: flex; gap: 10px; margin-bottom: 20px">
-          <button
-            class="help-tab-btn active"
-            data-target="phone-help"
-            style="
-              flex: 1;
-              padding: 10px;
-              background: #10b981;
-              border: none;
-              border-radius: 10px;
-              color: white;
-              font-weight: 600;
-              cursor: pointer;
-            "
-            data-i18n="helpPhone"
-          >
-            Phone
-          </button>
-          <button
-            class="help-tab-btn"
-            data-target="laptop-help"
-            style="
-              flex: 1;
-              padding: 10px;
-              background: rgba(255, 255, 255, 0.06);
-              border: 1px solid rgba(255, 255, 255, 0.15);
-              border-radius: 10px;
-              color: white;
-              font-weight: 600;
-              cursor: pointer;
-            "
-            data-i18n="helpLaptop"
-          >
-            Laptop
-          </button>
+        <div
+          style="
+            margin-bottom: 14px;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+          "
+          data-i18n="helpHowToUse"
+        >
+          How to Use
         </div>
         <div
           id="phone-help"
@@ -1838,88 +1816,10 @@
             >
           </li>
           <li><strong data-i18n="h8Title">Home:</strong> <span data-i18n="h8Text">Set your home on the map, then click Home to return to it.</span></li>
-          <li><strong data-i18n="h9Title">Nearby Search:</strong> <span data-i18n="h9Text">When Home is saved, search suggestions include restaurants, hotels, museums, pharmacies, and things to do around you.</span></li>
+          <li><strong data-i18n="h9Title">Nearby Search:</strong> <span data-i18n="h9Text">Use Nearby Search to find restaurants, hotels, museums, pharmacies, and things to do around your current location.</span></li>
           <li><strong data-i18n="h10Title">Close Search Results:</strong> <span data-i18n="h10Text">Clicking a search result now zooms closely to the selected place.</span></li>
           </ul>
         </div>
-        <div
-          id="laptop-help"
-          class="help-section-content"
-          style="
-            display: none;
-            font-size: 13.5px;
-            color: rgba(255, 255, 255, 0.88);
-            line-height: 1.6;
-          "
-        >
-          <p
-            style="margin-bottom: 8px; font-weight: 700; color: #fff"
-            data-i18n="laptopGuideTitle"
-          >
-            Desktop / Laptop Master Guide:
-          </p>
-          <ul
-            style="
-              padding-left: 18px;
-              display: flex;
-              flex-direction: column;
-              gap: 8px;
-            "
-          >
-            <li>
-              <strong data-i18n="h1Title">Search:</strong>
-              <span data-i18n="h1Text"
-                >Type any city or country in top left bar to view results with
-                flags and location details.</span
-              >
-            </li>
-            <li>
-              <strong data-i18n="h2Title">Map Views:</strong>
-              <span data-i18n="h2Text"
-                >Tap layers button to choose Default, Satellite, or Satellite
-                with Names.</span
-              >
-            </li>
-            <li>
-              <strong data-i18n="h3Title">Directions &amp; Routes:</strong>
-              <span data-i18n="h3Text"
-                >Open directions panel, click Start, then tap two locations on
-                the map to calculate route.</span
-              >
-            </li>
-            <li>
-              <strong data-i18n="h4Title">Compass Alignment:</strong>
-              <span data-i18n="h4Text"
-                >Tap compass icon anytime to re-align map to exact North.</span
-              >
-            </li>
-          <li>
-            <strong data-i18n="h5Title">Fast Search Engine:</strong>
-            <span data-i18n="h5Text"
-              >Instant location searching showing city, country, flag, and
-              details.</span
-            >
-          </li>
-          <li>
-            <strong data-i18n="h6Title">Pan &amp; Zoom Controls:</strong>
-            <span data-i18n="h6Text"
-              >Use mouse scroll wheel or bottom zoom +/- buttons for smooth
-              navigation.</span
-            >
-          </li>
-          <li>
-            <strong data-i18n="h7Title">Route Planning:</strong>
-            <span data-i18n="h7Text"
-              >Name your commute and save custom driving routes for quick
-              access.</span
-            >
-          </li>
-          <li><strong data-i18n="h8Title">Home:</strong> <span data-i18n="h8Text">Set your home on the map, then click Home to return to it.</span></li>
-          <li><strong data-i18n="h9Title">Nearby Search:</strong> <span data-i18n="h9Text">When Home is saved, search suggestions include restaurants, hotels, museums, pharmacies, and things to do around you.</span></li>
-          <li><strong data-i18n="h10Title">Close Search Results:</strong> <span data-i18n="h10Text">Clicking a search result now zooms closely to the selected place.</span></li>
-          </ul>
-        </div>
-
         <div
           style="
             margin-top: 22px;
@@ -2025,6 +1925,7 @@
           homeTitle: "Home",
           helpBtn: "Help",
           helpTitle: "YB-Maps Help & Support",
+          helpHowToUse: "How to Use",
           helpPhone: "Phone",
           helpLaptop: "Laptop",
           phoneGuideTitle: "Mobile / Phone Navigation Guide:",
@@ -2114,6 +2015,7 @@
           homeTitle: "ቤት",
           helpBtn: "እርዳታ",
           helpTitle: "የYB-Maps እርዳታ እና ድጋፍ",
+          helpHowToUse: "እንዴት መጠቀም እንደሚቻል",
           helpPhone: "ስልክ",
           helpLaptop: "ላፕቶፕ",
           phoneGuideTitle: "የስልክ መመሪያ:",
@@ -2197,6 +2099,7 @@
           homeTitle: "Mana",
           helpBtn: "Gargaarsa",
           helpTitle: "Gargaarsa YB-Maps",
+          helpHowToUse: "Akkamitti Itti Fayyadamtu",
           helpPhone: "Bilbila",
           helpLaptop: "Laaptopii",
           phoneGuideTitle: "Qajeelfama Bilbilaa:",
@@ -2280,6 +2183,7 @@
           homeTitle: "Inicio",
           helpBtn: "Ayuda",
           helpTitle: "Ayuda de YB-Maps",
+          helpHowToUse: "Cómo usar",
           helpPhone: "Teléfono",
           helpLaptop: "Portátil",
           phoneGuideTitle: "Guía para móviles:",
@@ -2312,11 +2216,11 @@
           h9Text: "Guarda Casa primero y usa las sugerencias para buscar restaurantes, hoteles, museos, farmacias y actividades cercanas.",
           h10Title: "Acercar resultados",
           h10Text: "Selecciona un resultado para acercar el mapa al lugar. Toca en el teléfono o haz clic en el portátil.",
-          nearbyRestaurants: "Restaurantes cerca",
-          nearbyHotels: "Hoteles cerca",
-          nearbyMuseums: "Museos cerca",
-          nearbyPharmacies: "Farmacias cerca",
-          nearbyThings: "Cosas que hacer cerca",
+          nearbyRestaurants: "Restaurantes cerca de mí",
+          nearbyHotels: "Hoteles cerca de mí",
+          nearbyMuseums: "Museos cerca de mí",
+          nearbyPharmacies: "Farmacias cerca de mí",
+          nearbyThings: "Cosas que hacer cerca de mí",
           bugText: "Si encuentra algún error, contacte:",
         },
         fr: {
@@ -2363,6 +2267,7 @@
           homeTitle: "Accueil",
           helpBtn: "Aide",
           helpTitle: "Aide YB-Maps",
+          helpHowToUse: "Comment utiliser",
           helpPhone: "Téléphone",
           helpLaptop: "Ordinateur",
           phoneGuideTitle: "Guide mobile:",
@@ -2395,11 +2300,11 @@
           h9Text: "Enregistrez d'abord Accueil, puis utilisez les suggestions pour trouver restaurants, hôtels, musées, pharmacies et activités à proximité.",
           h10Title: "Zoomer sur les résultats",
           h10Text: "Sélectionnez un résultat pour zoomer sur le lieu. Appuyez sur téléphone ou cliquez sur ordinateur.",
-          nearbyRestaurants: "Restaurants à proximité",
-          nearbyHotels: "Hôtels à proximité",
-          nearbyMuseums: "Musées à proximité",
-          nearbyPharmacies: "Pharmacies à proximité",
-          nearbyThings: "Activités à proximité",
+          nearbyRestaurants: "Restaurants près de moi",
+          nearbyHotels: "Hôtels près de moi",
+          nearbyMuseums: "Musées près de moi",
+          nearbyPharmacies: "Pharmacies près de moi",
+          nearbyThings: "Choses à faire autour de moi",
           bugText: "Si vous trouvez un bug, contactez:",
         },
         de: {
@@ -2446,6 +2351,7 @@
           homeTitle: "Startseite",
           helpBtn: "Hilfe",
           helpTitle: "YB-Maps Hilfe",
+          helpHowToUse: "So wird es verwendet",
           helpPhone: "Telefon",
           helpLaptop: "Laptop",
           phoneGuideTitle: "Anleitung für Mobilgeräte:",
@@ -2478,11 +2384,11 @@
           h9Text: "Speichern Sie zuerst Home und nutzen Sie dann die Suchvorschläge für Restaurants, Hotels, Museen, Apotheken und Aktivitäten in der Nähe.",
           h10Title: "Suchergebnisse vergrößern",
           h10Text: "Wählen Sie ein Suchergebnis aus, um den Ort zu vergrößern. Auf dem Handy tippen, auf dem Laptop klicken.",
-          nearbyRestaurants: "Restaurants near me",
-          nearbyHotels: "Hotels near me",
-          nearbyMuseums: "Museums near me",
-          nearbyPharmacies: "Pharmacies near me",
-          nearbyThings: "Things to do around me",
+          nearbyRestaurants: "Restaurants in meiner Nähe",
+          nearbyHotels: "Hotels in meiner Nähe",
+          nearbyMuseums: "Museen in meiner Nähe",
+          nearbyPharmacies: "Apotheken in meiner Nähe",
+          nearbyThings: "Freizeitaktivitäten in meiner Nähe",
           bugText: "Bei Fehlern kontaktieren Sie:",
         },
         ar: {
@@ -2529,6 +2435,7 @@
           homeTitle: "المنزل",
           helpBtn: "مساعدة",
           helpTitle: "مساعدة YB-Maps",
+          helpHowToUse: "كيفية الاستخدام",
           helpPhone: "الهاتف",
           helpLaptop: "الكمبيوتر",
           phoneGuideTitle: "دليل الهاتف:",
@@ -2561,11 +2468,11 @@
           h9Text: "احفظ المنزل أولًا، ثم استخدم اقتراحات البحث للعثور على المطاعم والفنادق والمتاحف والصيدليات والأنشطة القريبة.",
           h10Title: "تكبير نتائج البحث",
           h10Text: "اختر نتيجة بحث لتكبير الخريطة على المكان. اضغط في الهاتف أو انقر في اللابتوب.",
-          nearbyRestaurants: "Restaurants near me",
-          nearbyHotels: "Hotels near me",
-          nearbyMuseums: "Museums near me",
-          nearbyPharmacies: "Pharmacies near me",
-          nearbyThings: "Things to do around me",
+          nearbyRestaurants: "مطاعم قريبة مني",
+          nearbyHotels: "فنادق قريبة مني",
+          nearbyMuseums: "متاحف قريبة مني",
+          nearbyPharmacies: "صيدليات قريبة مني",
+          nearbyThings: "أشياء يمكن فعلها بالقرب مني",
           bugText: "إذا وجدت أي خطأ، يرجى التواصل:",
         },
         zh: {
@@ -2612,6 +2519,7 @@
           homeTitle: "家",
           helpBtn: "帮助",
           helpTitle: "YB-Maps 帮助与支持",
+          helpHowToUse: "使用方法",
           helpPhone: "手机",
           helpLaptop: "电脑",
           phoneGuideTitle: "手机指南：",
@@ -2644,11 +2552,11 @@
           h9Text: "先保存家位置，然后使用搜索建议查找附近的餐厅、酒店、博物馆、药店和活动。",
           h10Title: "放大搜索结果",
           h10Text: "选择搜索结果，地图会放大到该地点。手机上点击，笔记本电脑上单击。",
-          nearbyRestaurants: "Restaurants near me",
-          nearbyHotels: "Hotels near me",
-          nearbyMuseums: "Museums near me",
-          nearbyPharmacies: "Pharmacies near me",
-          nearbyThings: "Things to do around me",
+          nearbyRestaurants: "附近的餐厅",
+          nearbyHotels: "附近的酒店",
+          nearbyMuseums: "附近的博物馆",
+          nearbyPharmacies: "附近的药店",
+          nearbyThings: "附近可以做的事情",
           bugText: "如果遇到问题，请联系：",
         },
         ja: {
@@ -2695,6 +2603,7 @@
           homeTitle: "ホーム",
           helpBtn: "ヘルプ",
           helpTitle: "YB-Maps ヘルプ",
+          helpHowToUse: "使い方",
           helpPhone: "スマホ",
           helpLaptop: "PC",
           phoneGuideTitle: "スマホガイド：",
@@ -2727,11 +2636,11 @@
           h9Text: "まずホームを保存し、その後検索候補から近くのレストラン、ホテル、博物館、薬局、アクティビティを探します。",
           h10Title: "検索結果を拡大",
           h10Text: "検索結果を選ぶと、その場所へ地図が拡大します。スマートフォンではタップ、ノートパソコンではクリックします。",
-          nearbyRestaurants: "Restaurants near me",
-          nearbyHotels: "Hotels near me",
-          nearbyMuseums: "Museums near me",
-          nearbyPharmacies: "Pharmacies near me",
-          nearbyThings: "Things to do around me",
+          nearbyRestaurants: "近くのレストラン",
+          nearbyHotels: "近くのホテル",
+          nearbyMuseums: "近くの美術館・博物館",
+          nearbyPharmacies: "近くの薬局",
+          nearbyThings: "近くでできること",
           bugText: "バグ報告・お問い合わせ：",
         },
         ru: {
@@ -2778,6 +2687,7 @@
           homeTitle: "Домой",
           helpBtn: "Помощь",
           helpTitle: "Помощь YB-Maps",
+          helpHowToUse: "Как пользоваться",
           helpPhone: "Телефон",
           helpLaptop: "Ноутбук",
           phoneGuideTitle: "Инструкция для телефона:",
@@ -2810,11 +2720,11 @@
           h9Text: "Сначала сохраните дом, затем используйте подсказки поиска для ресторанов, отелей, музеев, аптек и занятий рядом.",
           h10Title: "Приблизить результаты",
           h10Text: "Выберите результат поиска, чтобы приблизить карту к месту. На телефоне нажмите, на ноутбуке кликните.",
-          nearbyRestaurants: "Restaurants near me",
-          nearbyHotels: "Hotels near me",
-          nearbyMuseums: "Museums near me",
-          nearbyPharmacies: "Pharmacies near me",
-          nearbyThings: "Things to do around me",
+          nearbyRestaurants: "Рестораны рядом со мной",
+          nearbyHotels: "Отели рядом со мной",
+          nearbyMuseums: "Музеи рядом со мной",
+          nearbyPharmacies: "Аптеки рядом со мной",
+          nearbyThings: "Чем заняться рядом со мной",
           bugText: "Если вы нашли ошибку, напишите:",
         },
         pt: {
@@ -2861,6 +2771,7 @@
           homeTitle: "Casa",
           helpBtn: "Ajuda",
           helpTitle: "Ajuda YB-Maps",
+          helpHowToUse: "Como usar",
           helpPhone: "Celular",
           helpLaptop: "Computador",
           phoneGuideTitle: "Guia para Celular:",
@@ -2893,11 +2804,11 @@
           h9Text: "Salve Casa primeiro e use as sugestões de pesquisa para encontrar restaurantes, hotéis, museus, farmácias e atividades próximas.",
           h10Title: "Ampliar resultados",
           h10Text: "Selecione um resultado para aproximar o mapa do local. Toque no celular ou clique no laptop.",
-          nearbyRestaurants: "Restaurants near me",
-          nearbyHotels: "Hotels near me",
-          nearbyMuseums: "Museums near me",
-          nearbyPharmacies: "Pharmacies near me",
-          nearbyThings: "Things to do around me",
+          nearbyRestaurants: "Restaurantes perto de mim",
+          nearbyHotels: "Hotéis perto de mim",
+          nearbyMuseums: "Museus perto de mim",
+          nearbyPharmacies: "Farmácias perto de mim",
+          nearbyThings: "O que fazer perto de mim",
           bugText: "Encontrou um erro? Entre em contato:",
         },
         hi: {
@@ -2944,6 +2855,7 @@
           homeTitle: "घर",
           helpBtn: "सहायता",
           helpTitle: "YB-Maps सहायता",
+          helpHowToUse: "कैसे उपयोग करें",
           helpPhone: "फोन",
           helpLaptop: "लैपटॉप",
           phoneGuideTitle: "फोन गाइड:",
@@ -2976,11 +2888,11 @@
           h9Text: "पहले होम सेव करें, फिर पास के रेस्तरां, होटल, संग्रहालय, फार्मेसी और गतिविधियाँ खोजने के लिए सुझावों का उपयोग करें।",
           h10Title: "खोज परिणाम पर ज़ूम करें",
           h10Text: "किसी खोज परिणाम को चुनकर मानचित्र को उस स्थान पर ज़ूम करें। फोन पर टैप करें; लैपटॉप पर क्लिक करें।",
-          nearbyRestaurants: "Restaurants near me",
-          nearbyHotels: "Hotels near me",
-          nearbyMuseums: "Museums near me",
-          nearbyPharmacies: "Pharmacies near me",
-          nearbyThings: "Things to do around me",
+          nearbyRestaurants: "मेरे पास रेस्टोरेंट",
+          nearbyHotels: "मेरे पास होटल",
+          nearbyMuseums: "मेरे पास संग्रहालय",
+          nearbyPharmacies: "मेरे पास फार्मेसी",
+          nearbyThings: "मेरे पास करने के लिए चीज़ें",
           bugText: "यदि कोई समस्या हो तो संपर्क करें:",
         },
         it: {
@@ -3027,6 +2939,7 @@
           homeTitle: "Casa",
           helpBtn: "Aiuto",
           helpTitle: "Supporto YB-Maps",
+          helpHowToUse: "Come usare",
           helpPhone: "Telefono",
           helpLaptop: "Computer",
           phoneGuideTitle: "Guida Smartphone:",
@@ -3059,11 +2972,11 @@
           h9Text: "Salva prima Casa, poi usa i suggerimenti per trovare ristoranti, hotel, musei, farmacie e attività vicine.",
           h10Title: "Ingrandisci i risultati",
           h10Text: "Seleziona un risultato per ingrandire la mappa sul luogo. Sul telefono tocca; sul laptop fai clic.",
-          nearbyRestaurants: "Restaurants near me",
-          nearbyHotels: "Hotels near me",
-          nearbyMuseums: "Museums near me",
-          nearbyPharmacies: "Pharmacies near me",
-          nearbyThings: "Things to do around me",
+          nearbyRestaurants: "Ristoranti vicino a me",
+          nearbyHotels: "Hotel vicino a me",
+          nearbyMuseums: "Musei vicino a me",
+          nearbyPharmacies: "Farmacie vicino a me",
+          nearbyThings: "Cose da fare vicino a me",
           bugText: "Per segnalare un errore, scrivi a:",
         },
         tr: {
@@ -3110,6 +3023,7 @@
           homeTitle: "Ev",
           helpBtn: "Yardım",
           helpTitle: "YB-Maps Yardım",
+          helpHowToUse: "Nasıl kullanılır",
           helpPhone: "Telefon",
           helpLaptop: "Laptoptan",
           phoneGuideTitle: "Mobil Rehber:",
@@ -3142,11 +3056,11 @@
           h9Text: "Önce Ev'i kaydedin, ardından yakındaki restoran, otel, müze, eczane ve etkinlikleri bulmak için arama önerilerini kullanın.",
           h10Title: "Arama sonuçlarını yakınlaştır",
           h10Text: "Bir arama sonucu seçerek haritayı o konuma yakınlaştırın. Telefonda dokunun; laptopta tıklayın.",
-          nearbyRestaurants: "Restaurants near me",
-          nearbyHotels: "Hotels near me",
-          nearbyMuseums: "Museums near me",
-          nearbyPharmacies: "Pharmacies near me",
-          nearbyThings: "Things to do around me",
+          nearbyRestaurants: "Yakınımdaki restoranlar",
+          nearbyHotels: "Yakınımdaki oteller",
+          nearbyMuseums: "Yakınımdaki müzeler",
+          nearbyPharmacies: "Yakınımdaki eczaneler",
+          nearbyThings: "Yakınımda yapılacak şeyler",
           bugText: "Bir hata bulursanız iletişim:",
         },
         ko: {
@@ -3193,6 +3107,7 @@
           homeTitle: "집",
           helpBtn: "도움말",
           helpTitle: "YB-Maps 도움말",
+          helpHowToUse: "사용 방법",
           helpPhone: "모바일",
           helpLaptop: "컴퓨터",
           phoneGuideTitle: "모바일 안내:",
@@ -3225,11 +3140,11 @@
           h9Text: "먼저 집을 저장한 다음 검색 추천을 사용하여 주변의 식당, 호텔, 박물관, 약국 및 즐길 거리를 찾으세요.",
           h10Title: "검색 결과 확대",
           h10Text: "검색 결과를 선택하면 해당 장소로 지도가 확대됩니다. 휴대폰에서는 탭하고 노트북에서는 클릭하세요.",
-          nearbyRestaurants: "Restaurants near me",
-          nearbyHotels: "Hotels near me",
-          nearbyMuseums: "Museums near me",
-          nearbyPharmacies: "Pharmacies near me",
-          nearbyThings: "Things to do around me",
+          nearbyRestaurants: "내 주변 음식점",
+          nearbyHotels: "내 주변 호텔",
+          nearbyMuseums: "내 주변 박물관",
+          nearbyPharmacies: "내 주변 약국",
+          nearbyThings: "내 주변에서 할 일",
           bugText: "버그 제보 및 문의 사항:",
         },
         sw: {
@@ -3276,6 +3191,7 @@
           homeTitle: "Nyumbani",
           helpBtn: "Msaada",
           helpTitle: "Msaada wa YB-Maps",
+          helpHowToUse: "Jinsi ya kutumia",
           helpPhone: "Simu",
           helpLaptop: "Kompyuta",
           phoneGuideTitle: "Mwongozo wa Simu:",
@@ -3308,11 +3224,11 @@
           h9Text: "Hifadhi Nyumbani kwanza, kisha tumia mapendekezo ya utafutaji kupata mikahawa, hoteli, makumbusho, maduka ya dawa na shughuli zilizo karibu.",
           h10Title: "Kuza matokeo ya utafutaji",
           h10Text: "Chagua matokeo ya utafutaji ili kukuza ramani kwenye eneo hilo. Kwenye simu gusa; kwenye laptop bofya.",
-          nearbyRestaurants: "Restaurants near me",
-          nearbyHotels: "Hotels near me",
-          nearbyMuseums: "Museums near me",
-          nearbyPharmacies: "Pharmacies near me",
-          nearbyThings: "Things to do around me",
+          nearbyRestaurants: "Migahawa karibu nami",
+          nearbyHotels: "Hoteli karibu nami",
+          nearbyMuseums: "Makumbusho karibu nami",
+          nearbyPharmacies: "Maduka ya dawa karibu nami",
+          nearbyThings: "Mambo ya kufanya karibu nami",
           bugText: "Kama ukipata tatizo, wasiliana nasi:",
         },
       };
@@ -3371,6 +3287,15 @@
         }
 
         localStorage.setItem("yb_lang", lang);
+
+        // Use a smooth Ethiopic font for Amharic without changing the user's
+        // selected font for other languages.
+        if (lang === "am") {
+          document.body.style.fontFamily = '"Noto Sans Ethiopic", sans-serif';
+        } else {
+          const storedFont = localStorage.getItem("yb_font");
+          if (storedFont) document.body.style.fontFamily = storedFont;
+        }
 
         // Keep Google map labels synchronized with the selected app language.
         if (typeof applyMapLanguage === "function") {
@@ -4155,14 +4080,25 @@
           });
       }
 
-      async function performNearbyCategorySearch(item) {
-        if (!savedHome) {
-          showNotification(getUiText("nSetFirst"));
-          return;
-        }
+      function getNearbyCoordinates() {
+        return new Promise((resolve, reject) => {
+          if (!navigator.geolocation) {
+            if (savedHome) return resolve(ol.proj.toLonLat(savedHome));
+            return reject(new Error("geolocation-unavailable"));
+          }
 
-        const [lon, lat] = ol.proj.toLonLat(savedHome);
-        const searchLanguage = getSearchLanguage();
+          navigator.geolocation.getCurrentPosition(
+            (position) => resolve([position.coords.longitude, position.coords.latitude]),
+            () => {
+              if (savedHome) resolve(ol.proj.toLonLat(savedHome));
+              else reject(new Error("location-permission-denied"));
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 120000 }
+          );
+        });
+      }
+
+      async function performNearbyCategorySearch(item) {
         const localizedItemLabel = getUiText(item.labelKey);
         searchInput.value = localizedItemLabel;
         searchResults.innerHTML =
@@ -4170,9 +4106,8 @@
         searchResults.style.display = "block";
 
         try {
-          // Use the selected language first and English second. This keeps
-          // nearby search working even when a category has no translated
-          // names in the map data.
+          const [lon, lat] = await getNearbyCoordinates();
+          const searchLanguage = getSearchLanguage();
           const lonPad = 0.18;
           const latPad = 0.15;
           const bbox =
@@ -4191,12 +4126,13 @@
           for (const query of queries) {
             for (const lang of languages) {
               const url =
-                `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&lat=${lat}&lon=${lon}&bbox=${encodeURIComponent(bbox)}&limit=12&lang=${encodeURIComponent(lang)}`;
+                `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&lat=${lat}&lon=${lon}&bbox=${encodeURIComponent(bbox)}&limit=20&lang=${encodeURIComponent(lang)}`;
 
               const resp = await fetch(url, {
-                cache: "force-cache",
+                cache: "no-store",
                 priority: "high",
               });
+              if (!resp.ok) continue;
               const data = await resp.json();
 
               for (const f of data.features || []) {
@@ -4205,19 +4141,8 @@
                 if (coords.length < 2) continue;
 
                 const place = {
-                  name:
-                    props.name ||
-                    props.street ||
-                    props.city ||
-                    props.country ||
-                    "Location",
-                  city:
-                    props.city ||
-                    props.town ||
-                    props.village ||
-                    props.municipality ||
-                    props.state ||
-                    "",
+                  name: props.name || props.street || props.city || props.country || "Location",
+                  city: props.city || props.town || props.village || props.municipality || props.state || "",
                   country: props.country || "",
                   countryCode: (props.countrycode || "").toUpperCase(),
                   type: props.type || "",
@@ -4226,22 +4151,13 @@
                   lat: Number(coords[1]),
                 };
 
-                if (!Number.isFinite(place.lon) || !Number.isFinite(place.lat)) {
-                  continue;
-                }
+                if (!Number.isFinite(place.lon) || !Number.isFinite(place.lat)) continue;
 
                 const nameLower = place.name.toLowerCase().trim();
                 const typeLower = place.type.toLowerCase();
                 const osmVal = place.osm_value.toLowerCase();
 
-                if (
-                  CONTINENTS.includes(nameLower) ||
-                  typeLower === "continent" ||
-                  osmVal === "continent"
-                ) {
-                  continue;
-                }
-
+                if (CONTINENTS.includes(nameLower) || typeLower === "continent" || osmVal === "continent") continue;
                 allResults.push(place);
               }
             }
@@ -4251,27 +4167,21 @@
           const seen = new Set();
 
           for (const place of allResults) {
-            const key =
-              `${place.name.toLowerCase()}|${place.lat.toFixed(5)}|${place.lon.toFixed(5)}`;
+            const key = `${place.name.toLowerCase()}|${place.lat.toFixed(5)}|${place.lon.toFixed(5)}`;
             if (seen.has(key)) continue;
             seen.add(key);
 
-            const dx =
-              (place.lon - lon) * Math.cos((lat * Math.PI) / 180);
+            const dx = (place.lon - lon) * Math.cos((lat * Math.PI) / 180);
             const dy = place.lat - lat;
             place.distanceScore = dx * dx + dy * dy;
             unique.push(place);
           }
 
           unique.sort((a, b) => a.distanceScore - b.distanceScore);
-
           const results = unique.slice(0, 6);
 
           if (results.length) {
-            searchCache.set(
-              `${searchLanguage}:${item.label.toLowerCase()}`,
-              results,
-            );
+            searchCache.set(`${searchLanguage}:${item.label.toLowerCase()}`, results);
             renderSearchResults(results, localizedItemLabel);
           } else {
             searchResults.innerHTML =
@@ -4287,7 +4197,7 @@
       }
 
       searchInput.addEventListener("focus", function () {
-        if (!this.value.trim() && savedHome) showSearchSuggestions();
+        if (!this.value.trim()) showSearchSuggestions();
       });
 
       // Fast search input: show cached partial results immediately, then refresh with the exact query.
@@ -4295,8 +4205,7 @@
         const value = this.value.trim();
         if (!value) {
           clearSearchPin();
-          if (savedHome) showSearchSuggestions();
-          else searchResults.style.display = "none";
+          showSearchSuggestions();
           return;
         }
 
